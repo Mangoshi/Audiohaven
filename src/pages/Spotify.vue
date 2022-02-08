@@ -32,6 +32,12 @@
 
 <script>
 // import axios from '/config/audiohaven.js'
+require('dotenv').config();
+
+// const client_id = process.env.SPOTIFY_API_ID;
+// const client_secret = process.env.SPOTIFY_CLIENT_SECRET;
+// const auth_token = Buffer.from(`${client_id}:${client_secret}`, 'utf-8').toString('base64');
+
 
 export default {
 	name: "Spotify",
@@ -72,7 +78,25 @@ export default {
 
 	},
 	methods: {
-
+		/*
+		getSpotifyAuth(){
+			const client_id = process.env.SPOTIFY_API_ID;
+			const client_secret = process.env.SPOTIFY_CLIENT_SECRET;
+			axios
+				.get(``,
+					{
+						headers: {
+							"Authorization" : `Bearer ${token}`
+						}
+					})
+				.then(response => {
+						console.log("getData() response: ", response.data.data)
+						this.courses = response.data.data
+					}
+				)
+				.catch(error => console.log("getData() error caught: ", error))
+		}
+		*/
 	}
 }
 </script>

@@ -8,18 +8,21 @@
 		:src="this.photoHD"
 	>
 		<v-container fluid>
-			<v-item-group
-				style="
+			<v-row justify="center">
+				<v-item-group
+					style="
 					margin-top: 300px;
-					padding: 20px;
-					background-color: white;
+					padding: 50px;
+					background-color: yellowgreen;
 					border-radius: 100px;
 					border: 20px solid black;
+					max-width: 800px;
+					font-family: 'Courier New', monospace;
 				">
-				<h1>Welcome!</h1>
-				<h2>This page doesn't serve much purpose...</h2>
-				<h3>Check the sidebar for the testing grounds :)</h3>
-			</v-item-group>
+					<h1>Welcome!</h1>
+					<h2>Check the sidebar for the testing grounds :)</h2>
+				</v-item-group>
+			</v-row>
 		</v-container>
 	</v-img>
 </template>
