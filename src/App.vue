@@ -1,25 +1,9 @@
 <template>
 	<v-app id="app">
 
-		<!-- Sidebar -->
-		<v-navigation-drawer
-			v-if="loggedIn"
-			v-model="drawer"
-			app
-		>
-			<v-list>
-				<v-list-item-group>
-					<!-- Home Page -->
-					<v-list-item class="mb-10" to="/">
-						<router-link to="/"><v-icon>mdi-home</v-icon>&nbsp;Home</router-link>
-					</v-list-item>
-					<!-- Spotify Page -->
-					<v-list-item class="mb-10" to="/">
-						<router-link to="Spotify"><v-icon>mdi-spotify</v-icon>&nbsp;Spotify</router-link>
-					</v-list-item>
-				</v-list-item-group>
-			</v-list>
-		</v-navigation-drawer>
+    <!--Sidebar-->
+    <NavSideBar v-if="loggedIn"> </NavSideBar>
+    <!--End sidebar-->
 
 		<!-- Navbar -->
 		<v-app-bar app>
@@ -43,10 +27,14 @@
 
 <script>
 import { mapState } from 'vuex'
+import NavSideBar from '@/components/NavSideBar'
 
 export default {
 	name: 'App',
-	data: () => ({
+  components: {
+    NavSideBar,
+  },
+  data: () => ({
 		drawer: null
 	}),
 	created(){
