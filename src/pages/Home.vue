@@ -11,16 +11,46 @@
 			<v-row justify="center">
 				<v-item-group
 					style="
-					margin-top: 300px;
+					margin-top: 12vw;
 					padding: 50px;
-					background-color: yellowgreen;
+					background-color: lightgrey;
 					border-radius: 100px;
 					border: 20px solid black;
 					max-width: 800px;
 					font-family: 'Courier New', monospace;
 				">
-					<h1>Welcome!</h1>
-					<h2>Check the sidebar for the testing grounds :)</h2>
+					<!-- If user is not logged in -->
+					<div v-if="!loggedIn">
+						<h1>Welcome!</h1>
+						<h2>You don't appeared to be logged in...</h2>
+						<h3>Please log in below :)</h3>
+						<h1>⬇</h1>
+						<v-form v-model="valid">
+							<v-text-field
+								required
+								type="email"
+								v-model="form.email"
+								placeholder="email"
+								:rules="emailRules"
+							/>
+							<v-text-field
+								required
+								type="password"
+								v-model="form.password"
+								placeholder="password"
+								:rules="passwordRules"
+							/>
+						</v-form>
+						<br>
+						<v-btn @click="login(form)">Login</v-btn>
+						<!--	Register Button which switches form	-->
+						<!--<v-btn @click="register(form)">Register</v-btn>-->
+					</div>
+					<div v-else>
+						<h2>
+							You are logged in.
+						</h2>
+					</div>
 				</v-item-group>
 			</v-row>
 		</v-container>
@@ -29,7 +59,8 @@
 
 <!--suppress JSUnresolvedVariable, JSUnresolvedVariable, SpellCheckingInspection -->
 <script>
-import axios from '/config/audiohaven.js'
+import axios from '../config/audiohaven.js'
+import { mapActions, mapState } from 'vuex'
 
 export default {
 	name: "Home",
@@ -40,12 +71,28 @@ export default {
 			// Image data
 			photoHD: "",
 			photoSD: "",
+			// Form data
+			form: {
+				email: "",
+				password: "",
+			},
+			// Form validation data
+			valid: false,
+			emailRules: [
+				v => !!v || 'E-mail is required',
+				v => /.+@.+/.test(v) || 'E-mail must be valid',
+			],
+			passwordRules: [
+				v => !!v || 'Password is required',
+				v => v.length >= 5 || 'Password must be more than 5 characters long',
+			],
 		}
 	},
 	mounted(){
 		this.getBackgroundImage()
 	},
 	methods: {
+		...mapActions(['login']),
 		randomInt(min, max) {
 			return Math.floor(Math.random() * (max - min + 1) + min)
 		},
@@ -64,7 +111,10 @@ export default {
 				})
 				.catch(error => console.log("Pexels error: ", error))
 		}
-	}
+	},
+	computed: {
+		...mapState(['loggedIn']),
+	},
 }
 </script>
 

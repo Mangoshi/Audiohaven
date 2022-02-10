@@ -3,6 +3,7 @@
 
 		<!-- Sidebar -->
 		<v-navigation-drawer
+			v-if="loggedIn"
 			v-model="drawer"
 			app
 		>
@@ -22,8 +23,12 @@
 
 		<!-- Navbar -->
 		<v-app-bar app>
-			<v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
+			<v-app-bar-nav-icon v-if="$store.state.loggedIn" @click="drawer = !drawer"></v-app-bar-nav-icon>
 			<v-toolbar-title>AudioHaven API Playground - {{ currentRouteName }}</v-toolbar-title>
+			<v-spacer>
+
+			</v-spacer>
+			<v-btn v-if="$store.state.loggedIn" class="v-btn accent black--text" @click="logout()">Log Out</v-btn>
 		</v-app-bar>
 
 		<!-- Router View -->
@@ -37,15 +42,32 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
+
 export default {
 	name: 'App',
 	data: () => ({
 		drawer: null
 	}),
+	created(){
+		if (localStorage.getItem('token')){
+			this.$store.commit('SET_LOGGED_IN_STATUS', true)
+		} else {
+			this.$store.commit('SET_LOGGED_IN_STATUS', false)
+		}
+	},
+	methods: {
+		logout() {
+			this.$store.dispatch('logout')
+			this.$router.replace("/")
+		},
+	},
 	computed: {
 		currentRouteName() {
 			return this.$route.name;
-		}
+		},
+		// mapping loggedIn state
+		...mapState(['loggedIn']),
 	}
 }
 </script>

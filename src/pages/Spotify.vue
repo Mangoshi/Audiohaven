@@ -34,10 +34,6 @@
 // import axios from '/config/audiohaven.js'
 require('dotenv').config();
 
-// const client_id = process.env.SPOTIFY_API_ID;
-// const client_secret = process.env.SPOTIFY_CLIENT_SECRET;
-// const auth_token = Buffer.from(`${client_id}:${client_secret}`, 'utf-8').toString('base64');
-
 
 export default {
 	name: "Spotify",
