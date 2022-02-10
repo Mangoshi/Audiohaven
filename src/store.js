@@ -7,7 +7,8 @@ Vue.use(Vuex)
 export default new Vuex.Store({
 	// state: Store's data
 	state: {
-		loggedIn: false
+		loggedIn: false,
+		errors: {},
 	},
 	// getters:
 	getters:{},
@@ -15,6 +16,9 @@ export default new Vuex.Store({
 	mutations:{
 		SET_LOGGED_IN_STATUS(state, loggedIn){
 			state.loggedIn = loggedIn
+		},
+		SET_ERRORS(state, errors){
+			state.errors = errors
 		}
 	},
 	// actions: Store's methods
@@ -31,6 +35,7 @@ export default new Vuex.Store({
 					console.log(response.data)
 					context.commit('SET_LOGGED_IN_STATUS', true)
 					localStorage.setItem('token', response.data.token)
+					localStorage.setItem('username', response.data.username)
 				})
 				.catch(error =>{
 					console.log(error)
@@ -41,7 +46,7 @@ export default new Vuex.Store({
 			axios
 				.post("register",
 					{
-						name: credentials.name,
+						username: credentials.username,
 						email: credentials.email,
 						password: credentials.password
 					})
@@ -49,7 +54,7 @@ export default new Vuex.Store({
 					console.log(`register() response: ${response.data}`)
 					context.commit('SET_LOGGED_IN_STATUS', true)
 					localStorage.setItem('token', response.data.token)
-					localStorage.setItem('username', response.data.name)
+					localStorage.setItem('username', response.data.username)
 				})
 				.catch(error =>{
 					console.log(`register() error: ${error}`)
@@ -59,6 +64,7 @@ export default new Vuex.Store({
 		logout(context){
 			localStorage.removeItem('token')
 			context.commit('SET_LOGGED_IN_STATUS', false)
+			localStorage.removeItem('username')
 		}
 	}
 })

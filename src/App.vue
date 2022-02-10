@@ -84,6 +84,12 @@ export default {
 	color: #2c3e50;
 }
 
+/* Utility Classes */
+
+.unselectable {
+	user-select: none;
+}
+
 /* Transition Styling */
 
 .fade-enter-active {

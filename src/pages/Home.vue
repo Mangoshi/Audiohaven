@@ -21,31 +21,79 @@
 				">
 					<!-- If user is not logged in -->
 					<div v-if="!loggedIn">
-						<h1>Welcome!</h1>
-						<h2>You don't appeared to be logged in...</h2>
-						<h3>Please log in below :)</h3>
-						<h1>⬇</h1>
-						<v-form v-model="valid">
-							<v-text-field
-								required
-								type="email"
-								v-model="form.email"
-								placeholder="email"
-								:rules="emailRules"
-							/>
-							<v-text-field
-								required
-								type="password"
-								v-model="form.password"
-								placeholder="password"
-								:rules="passwordRules"
-							/>
-						</v-form>
-						<br>
-						<v-btn @click="login(form)">Login</v-btn>
-						<!--	Register Button which switches form	-->
-						<!--<v-btn @click="register(form)">Register</v-btn>-->
+						<!-- Login Form -->
+						<div v-if="formToggle">
+							<h1>Welcome!</h1>
+							<h2>You don't appeared to be logged in...</h2>
+							<h3>Please log in below :)</h3>
+							<h1>⬇</h1>
+							<v-form v-model="loginValid">
+								<v-text-field
+									required
+									type="text"
+									v-model="loginForm.username"
+									placeholder="username"
+									:rules="usernameRules"
+								/>
+								<v-text-field
+									required
+									type="email"
+									v-model="loginForm.email"
+									placeholder="email"
+									:rules="emailRules"
+								/>
+								<small v-if="errors.email" class="unselectable errorMessage">{{errors[0].email}}</small>
+								<v-text-field
+									required
+									type="password"
+									v-model="loginForm.password"
+									placeholder="password"
+									:rules="passwordRules"
+								/>
+								<small v-if="errors.password" class="align-left unselectable errorMessage">{{errors.password[0]}}</small>
+							</v-form>
+							<br>
+							<v-btn color="secondary" class="mr-2" @click="toggleForm()">Register</v-btn>
+							<v-btn color="accent" class="secondary--text ml-2" @click="login(loginForm)">Login</v-btn>
+						</div>
+						<!-- Register Form -->
+						<div v-else>
+							<h1>Welcome!</h1>
+							<h2>Ah, you want to register?</h2>
+							<h3>Please fill in your details below :)</h3>
+							<h1>⬇</h1>
+							<v-form v-model="registerValid">
+								<v-text-field
+									required
+									type="text"
+									v-model="registerForm.username"
+									placeholder="username"
+									:rules="usernameRules"
+								/>
+								<small v-if="errors.username" class="unselectable errorMessage">{{errors.name[0]}}</small>
+								<v-text-field
+									required
+									type="email"
+									v-model="registerForm.email"
+									placeholder="email"
+									:rules="emailRules"
+								/>
+								<small v-if="errors.email" class="unselectable errorMessage">{{errors.email[0]}}</small>
+								<v-text-field
+									required
+									type="password"
+									v-model="registerForm.password"
+									placeholder="password"
+									:rules="passwordRules"
+								/>
+								<small v-if="errors.password" class="unselectable errorMessage">{{errors.password[0]}}</small>
+							</v-form>
+							<br>
+							<v-btn color="secondary" class="mr-2" @click="toggleForm()">Login</v-btn>
+							<v-btn color="accent" class="secondary--text ml-2" @click="register(registerForm)">Register</v-btn>
+						</div>
 					</div>
+					<!-- If user is logged in -->
 					<div v-else>
 						<h2>
 							You are logged in.
@@ -72,12 +120,21 @@ export default {
 			photoHD: "",
 			photoSD: "",
 			// Form data
-			form: {
+			loginForm: {
+				username: "",
 				email: "",
 				password: "",
 			},
+			registerForm: {
+				username: "",
+				email: "",
+				password: ""
+			},
+			formToggle: true,
 			// Form validation data
-			valid: false,
+			loginValid: false,
+			registerValid: false,
+			// Form validation rules
 			emailRules: [
 				v => !!v || 'E-mail is required',
 				v => /.+@.+/.test(v) || 'E-mail must be valid',
@@ -86,13 +143,17 @@ export default {
 				v => !!v || 'Password is required',
 				v => v.length >= 5 || 'Password must be more than 5 characters long',
 			],
+			usernameRules: [
+				v => !!v || 'Name is required',
+				v => v.length > 1 || 'Name must be more than 1 character long',
+			]
 		}
 	},
 	mounted(){
 		this.getBackgroundImage()
 	},
 	methods: {
-		...mapActions(['login']),
+		...mapActions(['login', 'register']),
 		randomInt(min, max) {
 			return Math.floor(Math.random() * (max - min + 1) + min)
 		},
@@ -110,10 +171,13 @@ export default {
 					this.photoSD = pexels.data.photos[photoIndex].src.medium
 				})
 				.catch(error => console.log("Pexels error: ", error))
+		},
+		toggleForm(){
+			this.formToggle = !this.formToggle
 		}
 	},
 	computed: {
-		...mapState(['loggedIn']),
+		...mapState(['loggedIn', 'errors'])
 	},
 }
 </script>
