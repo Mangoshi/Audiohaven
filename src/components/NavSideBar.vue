@@ -1,7 +1,6 @@
 <template>
 	<!--Sidebar-->
 	<v-navigation-drawer
-
 		v-model="drawer"
 		app
 	>
