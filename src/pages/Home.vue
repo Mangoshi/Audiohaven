@@ -9,97 +9,95 @@
 	>
 		<v-container fluid>
 			<v-row justify="center">
-				<v-item-group
-					style="
-					margin-top: 12vw;
-					padding: 50px;
-					background-color: lightgrey;
-					border-radius: 100px;
-					border: 20px solid black;
-					max-width: 800px;
-					font-family: 'Courier New', monospace;
-				">
-					<!-- If user is not logged in -->
-					<div v-if="!loggedIn">
-						<!-- Login Form -->
-						<div v-if="formToggle">
-							<h1>Welcome!</h1>
-							<h2>You don't appeared to be logged in...</h2>
-							<h3>Please log in below :)</h3>
-							<h1>⬇</h1>
-							<v-form v-model="loginValid">
-								<v-text-field
-									required
-									type="text"
-									v-model="loginForm.username"
-									placeholder="username"
-									:rules="usernameRules"
-								/>
-								<v-text-field
-									required
-									type="email"
-									v-model="loginForm.email"
-									placeholder="email"
-									:rules="emailRules"
-								/>
-								<small v-if="errors.email" class="unselectable errorMessage">{{errors[0].email}}</small>
-								<v-text-field
-									required
-									type="password"
-									v-model="loginForm.password"
-									placeholder="password"
-									:rules="passwordRules"
-								/>
-								<small v-if="errors.password" class="align-left unselectable errorMessage">{{errors.password[0]}}</small>
-							</v-form>
-							<br>
-							<v-btn color="secondary" class="mr-2" @click="toggleForm()">Register</v-btn>
-							<v-btn color="accent" class="secondary--text ml-2" @click="login(loginForm)">Login</v-btn>
-						</div>
-						<!-- Register Form -->
-						<div v-else>
-							<h1>Welcome!</h1>
-							<h2>Ah, you want to register?</h2>
-							<h3>Please fill in your details below :)</h3>
-							<h1>⬇</h1>
-							<v-form v-model="registerValid">
-								<v-text-field
-									required
-									type="text"
-									v-model="registerForm.username"
-									placeholder="username"
-									:rules="usernameRules"
-								/>
-								<small v-if="errors.username" class="unselectable errorMessage">{{errors.name[0]}}</small>
-								<v-text-field
-									required
-									type="email"
-									v-model="registerForm.email"
-									placeholder="email"
-									:rules="emailRules"
-								/>
-								<small v-if="errors.email" class="unselectable errorMessage">{{errors.email[0]}}</small>
-								<v-text-field
-									required
-									type="password"
-									v-model="registerForm.password"
-									placeholder="password"
-									:rules="passwordRules"
-								/>
-								<small v-if="errors.password" class="unselectable errorMessage">{{errors.password[0]}}</small>
-							</v-form>
-							<br>
-							<v-btn color="secondary" class="mr-2" @click="toggleForm()">Login</v-btn>
-							<v-btn color="accent" class="secondary--text ml-2" @click="register(registerForm)">Register</v-btn>
-						</div>
-					</div>
-					<!-- If user is logged in -->
-					<div v-else>
-						<h2>
-							You are logged in.
-						</h2>
-					</div>
-				</v-item-group>
+        <v-col cols="12" sm="6" md="6">
+          <v-item-group class="loginBox">
+            <!-- If user is not logged in -->
+            <div v-if="!loggedIn">
+              <!-- Login Form -->
+              <div v-if="formToggle">
+                <h1 class="testText">Welcome to AudioHaven</h1>
+                <h3 class="testText2">Please log in to start organising your music. </h3>
+                <p class="testText2"> Not a user (yet), why not sign up now.</p>
+                <br>
+                <v-form v-model="loginValid">
+                  <v-text-field
+                    required
+                    type="text"
+                    v-model="loginForm.username"
+                    filled
+                    placeholder="username"
+                    :rules="usernameRules"
+                  />
+                  <v-text-field
+                    required
+                    type="email"
+                    v-model="loginForm.email"
+                    filled
+                    placeholder="email"
+                    :rules="emailRules"
+                  />
+                  <small v-if="errors.email" class="unselectable errorMessage">{{errors[0].email}}</small>
+                  <v-text-field
+                    required
+                    type="password"
+                    filled
+                    v-model="loginForm.password"
+                    placeholder="password"
+                    :rules="passwordRules"
+                  />
+                  <small v-if="errors.password" class="align-left unselectable errorMessage">{{errors.password[0]}}</small>
+                </v-form>
+                <br>
+                <v-btn color="secondary" class="mr-2" @click="toggleForm()" large>Register</v-btn>
+                <v-btn color="accent" class="secondary--text ml-2" @click="login(loginForm)" large>Login</v-btn>
+              </div>
+              <!-- Register Form -->
+              <div v-else>
+                <h1 class="testText">Welcome to AudioHaven</h1>
+                <h3 class="testText2">Please register to start organising your music. </h3>
+                <br>
+                <v-form v-model="registerValid">
+                  <v-text-field
+                    required
+                    type="text"
+                    filled
+                    v-model="registerForm.username"
+                    placeholder="username"
+                    :rules="usernameRules"
+                  />
+                  <small v-if="errors.username" class="unselectable errorMessage">{{errors.name[0]}}</small>
+                  <v-text-field
+                    required
+                    type="email"
+                    filled
+                    v-model="registerForm.email"
+                    placeholder="email"
+                    :rules="emailRules"
+                  />
+                  <small v-if="errors.email" class="unselectable errorMessage">{{errors.email[0]}}</small>
+                  <v-text-field
+                    required
+                    type="password"
+                    filled
+                    v-model="registerForm.password"
+                    placeholder="password"
+                    :rules="passwordRules"
+                  />
+                  <small v-if="errors.password" class="unselectable errorMessage">{{errors.password[0]}}</small>
+                </v-form>
+                <br>
+                <v-btn color="secondary" class="mr-2" @click="toggleForm()" large>Login</v-btn>
+                <v-btn color="accent" class="secondary--text ml-2" @click="register(registerForm)" large>Register</v-btn>
+              </div>
+            </div>
+            <!-- If user is logged in -->
+            <div v-else>
+              <h2>
+                You are logged in.
+              </h2>
+            </div>
+          </v-item-group>
+        </v-col>
 			</v-row>
 		</v-container>
 	</v-img>
@@ -183,5 +181,27 @@ export default {
 </script>
 
 <style>
+.loginBox{
+  margin-top: 12vw;
+  padding: 50px;
+  background-color: #fafafa;
+  border-radius: 30px;
+  //border: 20px solid black;
+  max-width: 1000px;
+  font-family: 'Roboto', sans-serif;
+
+}
+
+.testText {
+  color: #222020;
+  text-align: left;
+}
+
+.testText2 {
+  color: #423F3F;
+  text-align: left;
+  font-weight: 300;
+}
+
 
 </style>

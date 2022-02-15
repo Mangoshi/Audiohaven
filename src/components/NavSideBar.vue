@@ -1,9 +1,8 @@
 <template>
   <!-- Sidebar -->
   <v-navigation-drawer
-
-      v-model="drawer"
       app
+      permanent
   >
     <v-list>
       <v-list-item-group>
@@ -22,7 +21,10 @@
 
 <script>
 export default {
-  name: "NavSideBar"
+  name: "NavSideBar",
+  props:{
+    drawer: Boolean
+  }
 }
 </script>
 

@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 export default axios.create({
-    // Live version: 'https://audiohaven.herokuapp.com/'
+   // Live version: ''
     // Using localhost URL while running the API locally
-    baseURL: 'http://localhost:3000'
+    baseURL: 'https://audiohaven.herokuapp.com/'
 })

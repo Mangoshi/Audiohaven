@@ -2,12 +2,13 @@
 	<v-app id="app">
 
     <!--Sidebar-->
-    <NavSideBar v-if="loggedIn"> </NavSideBar>
+    <NavSideBar v-if="$store.state.loggedIn" :drawer="false"> </NavSideBar>
     <!--End sidebar-->
 
 		<!-- Navbar -->
 		<v-app-bar app>
-			<v-app-bar-nav-icon v-if="$store.state.loggedIn" @click="drawer = !drawer"></v-app-bar-nav-icon>
+
+			<v-app-bar-nav-icon v-if="$store.state.loggedIn" @click="NavSideBar"></v-app-bar-nav-icon>
 			<v-toolbar-title>AudioHaven API Playground - {{ currentRouteName }}</v-toolbar-title>
 			<v-spacer>
 
@@ -35,7 +36,7 @@ export default {
     NavSideBar,
   },
   data: () => ({
-		drawer: null
+		drawer: false
 	}),
 	created(){
 		if (localStorage.getItem('token')){
@@ -63,6 +64,9 @@ export default {
 <style>
 
 /* Global Styling */
+
+/*Fonts*/
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap');
 
 #app {
 	font-family: Avenir, Helvetica, Arial, sans-serif;
