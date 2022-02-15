@@ -21,14 +21,14 @@
 					</thead>
 					<tbody>
 					<tr
-						v-for="item in spotifyRequests"
-						:key="item.type"
+						v-for="requestEntry in spotifyRequests"
+						:key="requestEntry.type"
 						style="text-align: left"
 					>
-						<td>{{ item.endpoint }}</td>
-						<td :style="`background-color:${item.color}`" style="text-align: center">{{ item.type }}</td>
-						<td>{{ item.request }}</td>
-						<td>{{ item.response }}</td>
+						<td>{{ requestEntry.endpoint }}</td>
+						<td :style="`background-color:${requestEntry.color}`" style="text-align: center">{{ requestEntry.type }}</td>
+						<td>{{ requestEntry.request }}</td>
+						<td>{{ requestEntry.response }}</td>
 					</tr>
 					</tbody>
 				</template>
@@ -55,12 +55,12 @@
 			<div v-if="spotifyLoggedIn">
 				<h1>Artists You Follow</h1>
 				<v-data-iterator
-					:items="items"
-					:items-per-page.sync="itemsPerPage"
-					:page.sync="page"
-					:search="search"
-					:sort-by="sortBy.toLowerCase()"
-					:sort-desc="sortDesc"
+					:items="followedArtists"
+					:items-per-page.sync="followedArtistsPerPage"
+					:page.sync="followedArtistPage"
+					:search="followedArtistSearch"
+					:sort-by="followedArtistSortBy.toLowerCase()"
+					:sort-desc="followedArtistSortDesc"
 					hide-default-footer
 				>
 					<template v-slot:header>
@@ -70,7 +70,7 @@
 							class="mb-1"
 						>
 							<v-text-field
-								v-model="search"
+								v-model="followedArtistSearch"
 								clearable
 								flat
 								solo-inverted
@@ -81,17 +81,17 @@
 							<template v-if="$vuetify.breakpoint.mdAndUp">
 								<v-spacer></v-spacer>
 								<v-select
-									v-model="sortBy"
+									v-model="followedArtistSortBy"
 									flat
 									solo-inverted
 									hide-details
-									:items="keys"
+									:items="followedArtistKeys"
 									prepend-inner-icon="mdi-magnify"
 									label="Sort by"
 								></v-select>
 								<v-spacer></v-spacer>
 								<v-btn-toggle
-									v-model="sortDesc"
+									v-model="followedArtistSortDesc"
 									mandatory
 								>
 									<v-btn
@@ -118,8 +118,8 @@
 					<template v-slot:default="props">
 						<v-row>
 							<v-col
-								v-for="item in props.items"
-								:key="item.name"
+								v-for="followedArtist in props.items"
+								:key="followedArtist.name"
 								cols="12"
 								sm="6"
 								md="4"
@@ -127,10 +127,10 @@
 							>
 								<v-card>
 									<v-card-title class="subheading font-weight-bold">
-										{{ item.name }}
+										{{ followedArtist.name }}
 									</v-card-title>
 									<v-img
-										:src="item.images[0].url"
+										:src="followedArtist.images[0].url"
 										:aspect-ratio="1"
 									>
 									</v-img>
@@ -142,14 +142,14 @@
 											v-for="(key, index) in filteredKeys"
 											:key="index"
 										>
-											<v-list-item-content :class="{ 'purple--text': sortBy === key }">
+											<v-list-item-content :class="{ 'purple--text': followedArtistSortBy === key }">
 												{{ key }}:
 											</v-list-item-content>
 											<v-list-item-content
 												class="align-end"
-												:class="{ 'purple--text': sortBy === key }"
+												:class="{ 'purple--text': followedArtistSortBy === key }"
 											>
-												{{ item[key.toLowerCase()] }}
+												{{ followedArtist[key.toLowerCase()] }}
 											</v-list-item-content>
 										</v-list-item>
 									</v-list>
@@ -164,7 +164,7 @@
 							align="center"
 							justify="center"
 						>
-							<span class="grey--text">Items per page</span>
+							<span class="grey--text">Artists per page</span>
 							<v-menu offset-y>
 								<template v-slot:activator="{ on, attrs }">
 									<v-btn
@@ -175,15 +175,15 @@
 										v-bind="attrs"
 										v-on="on"
 									>
-										{{ itemsPerPage }}
+										{{ followedArtistsPerPage }}
 										<v-icon>mdi-chevron-down</v-icon>
 									</v-btn>
 								</template>
 								<v-list>
 									<v-list-item
-										v-for="(number, index) in itemsPerPageArray"
+										v-for="(number, index) in followedArtistsPerPageArray"
 										:key="index"
-										@click="updateItemsPerPage(number)"
+										@click="updateFollowedArtistsPerPage(number)"
 									>
 										<v-list-item-title>{{ number }}</v-list-item-title>
 									</v-list-item>
@@ -193,7 +193,7 @@
 							<v-spacer></v-spacer>
 
 							<span class="mr-4grey--text">
-								Page {{ page }} of {{ numberOfPages }}
+								Page {{ followedArtistPage }} of {{ numberOfPages }}
 							</span>
 							<v-btn
 								fab
@@ -280,28 +280,28 @@ export default {
 				}
 			],
 			spotifyLoggedIn: false,
-			// Data Iterator //,
-			itemsPerPageArray: [4, 8, 12],
-			search: '',
-			filter: {},
-			sortDesc: false,
-			page: 1,
-			itemsPerPage: 4,
-			sortBy: 'name',
-			keys: [
+			// Followed Artists Data Iterator //,
+			followedArtistsPerPageArray: [4, 8, 12],
+			followedArtistSearch: '',
+			followedArtistFilter: {},
+			followedArtistSortDesc: false,
+			followedArtistPage: 1,
+			followedArtistsPerPage: 4,
+			followedArtistSortBy: 'name',
+			followedArtistKeys: [
 				'Name',
 				'Popularity',
 			],
-			items: [],
+			followedArtists: [],
 		}
 	},
 	computed: {
 		// Data Iterator Computed Methods //
 		numberOfPages () {
-			return Math.ceil(this.items.length / this.itemsPerPage)
+			return Math.ceil(this.followedArtists.length / this.followedArtistsPerPage)
 		},
 		filteredKeys () {
-			return this.keys.filter(key => key !== 'Name')
+			return this.followedArtistKeys.filter(key => key !== 'Name')
 		},
 	},
 	mounted(){
@@ -312,13 +312,13 @@ export default {
 	methods: {
 		// Data Iterator Methods //
 		nextPage () {
-			if (this.page + 1 <= this.numberOfPages) this.page += 1
+			if (this.followedArtistPage + 1 <= this.numberOfPages) this.followedArtistPage += 1
 		},
 		formerPage () {
-			if (this.page - 1 >= 1) this.page -= 1
+			if (this.followedArtistPage - 1 >= 1) this.followedArtistPage -= 1
 		},
-		updateItemsPerPage (number) {
-			this.itemsPerPage = number
+		updateFollowedArtistsPerPage (number) {
+			this.followedArtistsPerPage = number
 		},
 		// Spotify Token Methods //
 		// spotifyOAuth(){
@@ -369,7 +369,7 @@ export default {
 						})
 					.then(response => {
 						console.log("getData() response: ", response.data)
-						this.items = response.data.artists.items
+						this.followedArtists = response.data.artists.items
 						}
 					)
 					.catch(error => console.log("getData() error caught: ", error))
