@@ -187,7 +187,6 @@ export default {
 	padding: 50px;
 	background-color: #fafafa;
 	border-radius: 30px;
-	border: 20px solid black;
 	max-width: 1000px;
 	font-family: 'Roboto', sans-serif;
 }

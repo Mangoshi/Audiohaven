@@ -34,23 +34,26 @@
 				</template>
 			</v-simple-table>
 		</v-container>
+		<!-- Spotify Login Button	-->
 		<v-container>
 			<!--	If there is no token == You're not logged-in to Spotify	-->
 			<div v-if="!spotifyLoggedIn">
-				<v-btn icon href="http://localhost:3000/spotify/login/">
+				<v-btn href="http://localhost:3000/spotify/login/">
 					<v-icon>mdi-spotify</v-icon> Log-in to Spotify
 				</v-btn>
 			</div>
 			<!--	Else if there is a token == You're logged-in to Spotify	-->
 			<div v-else>
-				<v-btn icon v-on:click="logoutSpotify()">
+				<v-btn v-on:click="logoutSpotify()">
 					<v-icon>mdi-spotify</v-icon> Log-out of Spotify
 				</v-btn>
 			</div>
 		</v-container>
+		<!--	Followed Artists Data Iterator	-->
 		<v-container>
 			<!--	If there is a token == You're logged-in to Spotify	-->
 			<div v-if="spotifyLoggedIn">
+				<h1>Artists You Follow</h1>
 				<v-data-iterator
 					:items="items"
 					:items-per-page.sync="itemsPerPage"
@@ -228,7 +231,7 @@ require('dotenv').config();
 
 export default {
 	name: "Spotify",
-	title: 'Spotify',
+	title: 'Spotify Sandbox',
 	components: {},
 	data(){
 		return{
@@ -358,7 +361,7 @@ export default {
 				let token = localStorage.getItem('spotify_access_token')
 				let baseURL = 'https://api.spotify.com/v1'
 				axios
-					.get(`${baseURL}/me/following?type=artist`,
+					.get(`${baseURL}/me/following?type=artist&limit=50`,
 						{
 							headers: {
 								"Authorization" : `Bearer ${token}`
