@@ -1,12 +1,29 @@
 <template>
 	<v-app id="app">
 
-    <!--Sidebar-->
-    <NavSideBar v-if="loggedIn"> </NavSideBar>
-    <!--End sidebar-->
+		<!--Sidebar-->
+		<v-navigation-drawer
+			v-model="drawer"
+			app
+		>
+			<v-list>
+				<v-list-item-group>
+					<!-- Home Page -->
+					<v-list-item class="mb-10" to="/">
+						<router-link to="/"><v-icon>mdi-home</v-icon>&nbsp;Home</router-link>
+					</v-list-item>
+					<!-- Spotify Page -->
+					<v-list-item class="mb-10" to="/">
+						<router-link to="Spotify"><v-icon>mdi-spotify</v-icon>&nbsp;Spotify</router-link>
+					</v-list-item>
+				</v-list-item-group>
+			</v-list>
+		</v-navigation-drawer>
+		<!--End sidebar-->
 
 		<!-- Navbar -->
 		<v-app-bar app>
+			<!--	TODO: Manage sidebar state https://stackoverflow.com/questions/40780730/vue-js-changing-props		-->
 			<v-app-bar-nav-icon v-if="$store.state.loggedIn" @click="drawer = !drawer"></v-app-bar-nav-icon>
 			<v-toolbar-title>AudioHaven API Playground - {{ currentRouteName }}</v-toolbar-title>
 			<v-spacer>
@@ -27,15 +44,11 @@
 
 <script>
 import { mapState } from 'vuex'
-import NavSideBar from '@/components/NavSideBar'
 
 export default {
 	name: 'App',
-  components: {
-    NavSideBar,
-  },
-  data: () => ({
-		drawer: null
+	data: () => ({
+		drawer: false
 	}),
 	created(){
 		if (localStorage.getItem('token')){
