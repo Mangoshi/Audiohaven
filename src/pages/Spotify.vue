@@ -139,7 +139,7 @@
 
 									<v-list dense>
 										<v-list-item
-											v-for="(key, index) in filteredKeys"
+											v-for="(key, index) in followedArtistFilteredKeys"
 											:key="index"
 										>
 											<v-list-item-content :class="{ 'purple--text': followedArtistSortBy === key }">
@@ -193,14 +193,14 @@
 							<v-spacer></v-spacer>
 
 							<span class="mr-4grey--text">
-								Page {{ followedArtistPage }} of {{ numberOfPages }}
+								Page {{ followedArtistPage }} of {{ numberOfFollowedArtistPages }}
 							</span>
 							<v-btn
 								fab
 								dark
 								color="purple darken-3"
 								class="mr-1"
-								@click="formerPage"
+								@click="formerFollowedArtistPage"
 							>
 								<v-icon>mdi-chevron-left</v-icon>
 							</v-btn>
@@ -209,7 +209,7 @@
 								dark
 								color="purple darken-3"
 								class="ml-1"
-								@click="nextPage"
+								@click="nextFollowedArtistPage"
 							>
 								<v-icon>mdi-chevron-right</v-icon>
 							</v-btn>
@@ -297,10 +297,10 @@ export default {
 	},
 	computed: {
 		// Data Iterator Computed Methods //
-		numberOfPages () {
+		numberOfFollowedArtistPages () {
 			return Math.ceil(this.followedArtists.length / this.followedArtistsPerPage)
 		},
-		filteredKeys () {
+		followedArtistFilteredKeys () {
 			return this.followedArtistKeys.filter(key => key !== 'Name')
 		},
 	},
@@ -311,10 +311,10 @@ export default {
 	},
 	methods: {
 		// Data Iterator Methods //
-		nextPage () {
-			if (this.followedArtistPage + 1 <= this.numberOfPages) this.followedArtistPage += 1
+		nextFollowedArtistPage () {
+			if (this.followedArtistPage + 1 <= this.numberOfFollowedArtistPages) this.followedArtistPage += 1
 		},
-		formerPage () {
+		formerFollowedArtistPage () {
 			if (this.followedArtistPage - 1 >= 1) this.followedArtistPage -= 1
 		},
 		updateFollowedArtistsPerPage (number) {
