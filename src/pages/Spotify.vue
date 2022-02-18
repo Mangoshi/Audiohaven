@@ -139,8 +139,8 @@
 
 									<v-list dense>
 										<v-list-item
-											v-for="(key, index) in followedArtistFilteredKeys"
-											:key="index"
+											v-for="(key, followedArtist) in followedArtistFilteredKeys"
+											:key="followedArtist"
 										>
 											<v-list-item-content :class="{ 'purple--text': followedArtistSortBy === key }">
 												{{ key }}:
@@ -181,8 +181,8 @@
 								</template>
 								<v-list>
 									<v-list-item
-										v-for="(number, index) in followedArtistsPerPageArray"
-										:key="index"
+										v-for="(number, followedArtist) in followedArtistsPerPageArray"
+										:key="followedArtist"
 										@click="updateFollowedArtistsPerPage(number)"
 									>
 										<v-list-item-title>{{ number }}</v-list-item-title>
