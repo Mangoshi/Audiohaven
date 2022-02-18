@@ -46,14 +46,19 @@
 			</transition>
 		</v-main>
 
+		<!-- Status Bar -->
+		<SystemBar></SystemBar>
+
 	</v-app>
 </template>
 
 <script>
 import { mapState } from 'vuex'
+import SystemBar from "@/components/SystemBar";
 
 export default {
 	name: 'App',
+	components: { SystemBar },
 	data: () => ({
 		drawer: false
 	}),
@@ -97,6 +102,7 @@ export default {
 	text-decoration: none;
 	color: black;
 }
+
 /* Utility Classes */
 
 .unselectable {
