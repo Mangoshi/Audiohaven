@@ -9,15 +9,20 @@
 	>
 		<v-container fluid>
 			<v-row justify="center">
-				<v-col cols="12" sm="6" md="6">
+				<v-col cols="12" sm="10" md="8" lg="6" xl="4">
 					<v-item-group class="loginBox">
 						<!-- If user is not logged in -->
-						<div v-if="!loggedIn">
+						<div v-if="!loggedIn" class="d-flex flex-column">
+							<!-- Logo -->
+							<v-img
+								:src="logo"
+								class="align-self-center"
+								width="300"
+							></v-img>
 							<!-- Login Form -->
-							<div v-if="formToggle">
-								<h1 class="testText">Welcome to AudioHaven</h1>
-								<h3 class="testText2">Please log in to start organising your music. </h3>
-								<p class="testText2"> Not a user (yet), why not sign up now.</p>
+							<div v-if="formToggle" class="text-center">
+								<h3 class="testText2 text-center">Please log in to start organising your music. </h3>
+								<p class="testText2 text-center"> Not a user (yet), why not sign up now.</p>
 								<br>
 								<v-form v-model="loginValid">
 									<v-text-field
@@ -53,8 +58,7 @@
 							</div>
 							<!-- Register Form -->
 							<div v-else>
-								<h1 class="testText">Welcome to AudioHaven</h1>
-								<h3 class="testText2">Please register to start organising your music. </h3>
+								<h3 class="testText2 text-center">Please register to start organising your music. </h3>
 								<br>
 								<v-form v-model="registerValid">
 									<v-text-field
@@ -92,9 +96,14 @@
 						</div>
 						<!-- If user is logged in -->
 						<div v-else>
-							<h2>
-								You are logged in.
-							</h2>
+							<!-- Logo -->
+							<div class="d-flex flex-column">
+								<v-img
+									class="align-self-center"
+									:src="logo"
+									width="400"
+								></v-img>
+							</div>
 						</div>
 					</v-item-group>
 				</v-col>
@@ -117,6 +126,7 @@ export default {
 			// Image data
 			photoHD: "",
 			photoSD: "",
+			logo: require("@/assets/1.png"),
 			// Form data
 			loginForm: {
 				username: "",
@@ -134,15 +144,21 @@ export default {
 			registerValid: false,
 			// Form validation rules
 			emailRules: [
+				// has to exist
 				v => !!v || 'E-mail is required',
+				// has to be valid = *@*
 				v => /.+@.+/.test(v) || 'E-mail must be valid',
 			],
 			passwordRules: [
+				// has to exist
 				v => !!v || 'Password is required',
+				// has to be greater than or equal to 5char
 				v => v.length >= 5 || 'Password must be more than 5 characters long',
 			],
 			usernameRules: [
+				// has to exist
 				v => !!v || 'Name is required',
+				// has to be greater than 1 character
 				v => v.length > 1 || 'Name must be more than 1 character long',
 			]
 		}
@@ -183,12 +199,11 @@ export default {
 <style>
 
 .loginBox{
-	margin-top: 12vw;
-	padding: 50px;
+	margin-top: 6vw;
+	padding: 30px;
 	background-color: #fafafa;
 	border-radius: 30px;
 	max-width: 1000px;
-	font-family: 'Roboto', sans-serif;
 }
 
 .testText {
