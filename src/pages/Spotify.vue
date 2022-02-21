@@ -49,6 +49,12 @@
 				</v-btn>
 			</div>
 		</v-container>
+		<div v-if="spotifyErrors">
+			<h2 style="color: red;">{{ spotifyErrors }}</h2>
+			<v-btn v-on:click="refreshSpotifyToken()">
+				<v-icon>mdi-spotify</v-icon> Refresh Token
+			</v-btn>
+		</div>
 		<!--	Followed Artists Data Iterator	-->
 		<v-container>
 			<!--	If there is a token == You're logged-in to Spotify	-->
@@ -293,6 +299,7 @@ export default {
 				'Popularity',
 			],
 			followedArtists: [],
+			spotifyErrors: "",
 		}
 	},
 	computed: {
@@ -356,6 +363,10 @@ export default {
 			// Set spotifyLoggedIn to true
 			this.spotifyLoggedIn = false;
 		},
+		refreshSpotifyToken(){
+			let refresh_token = localStorage.getItem('refresh_token')
+			router.push(`http://localhost:3000/spotify/refresh_token?refresh_token=${refresh_token}`)
+		},
 		getFollowedArtists(){
 			if(this.spotifyLoggedIn){
 				let token = localStorage.getItem('spotify_access_token')
@@ -372,7 +383,10 @@ export default {
 						this.followedArtists = response.data.artists.items
 						}
 					)
-					.catch(error => console.log("getData() error caught: ", error))
+					.catch(error => {
+						console.log("getData() error caught: ", error)
+						this.spotifyErrors = error.message
+					})
 			}
 		},
 	}
