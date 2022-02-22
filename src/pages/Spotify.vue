@@ -1,5 +1,6 @@
 <template>
 	<v-container fluid>
+
 		<v-container>
 			<v-simple-table>
 				<template v-slot:default>
@@ -34,6 +35,7 @@
 				</template>
 			</v-simple-table>
 		</v-container>
+
 		<!-- Spotify Login Button	-->
 		<v-container>
 			<!--	If there is no token == You're not logged-in to Spotify	-->
@@ -53,14 +55,32 @@
 				</v-btn>
 			</div>
 		</v-container>
+
 		<div v-if="spotifyErrors">
 			<h4 style="color: deeppink; background-color: #333; font-family: 'Courier New', monospace;">{{ spotifyErrors }}</h4>
 			<v-btn v-on:click="refreshSpotifyToken()">
 				<v-icon>mdi-spotify</v-icon> Refresh Token
 			</v-btn>
 		</div>
-		<!--	Followed Artists Data Iterator	-->
+
+		<!-- Module Selector -->
 		<v-container>
+			<v-radio-group
+				v-model="selectedModule"
+			>
+				<v-radio
+					label="My Followed Artists"
+					value="followedArtists"
+				></v-radio>
+				<v-radio
+					label="My Playlists"
+					value="myPlaylists"
+				></v-radio>
+			</v-radio-group>
+		</v-container>
+
+		<!--	Followed Artists Data Iterator	-->
+		<v-container v-if="selectedModule === 'followedArtists'">
 			<!--	If there is a token && no Spotify errors  -->
 			<div v-if="spotifyLoggedIn && !spotifyErrors">
 				<h1>Artists You Follow</h1>
@@ -232,6 +252,15 @@
 				</v-data-iterator>
 			</div>
 		</v-container>
+
+		<!--	My Playlists Module	-->
+		<v-container v-if="selectedModule === 'myPlaylists'">
+			<!--	If there is a token && no Spotify errors  -->
+			<div v-if="spotifyLoggedIn && !spotifyErrors">
+				<h1>Your Playlists</h1>
+			</div>
+		</v-container>
+
 	</v-container>
 </template>
 
@@ -298,7 +327,7 @@ export default {
 			spotifyLoggedIn: false,
 			spotifyErrors: "",
 			// Toggle Data
-			selectedDataIterator: "followedArtists",
+			selectedModule: "followedArtists",
 			// Followed Artists Data Iterator
 			followedArtistsPerPageArray: [4, 8, 12],
 			followedArtistSearch: '',
