@@ -56,11 +56,18 @@
 			</div>
 		</v-container>
 
+		<!-- Spotify Errors & Refresh Token Button -->
 		<div v-if="spotifyErrors">
 			<h4 style="color: deeppink; background-color: #333; font-family: 'Courier New', monospace;">{{ spotifyErrors }}</h4>
 			<v-btn v-on:click="refreshSpotifyToken()">
 				<v-icon>mdi-spotify</v-icon> Refresh Token
 			</v-btn>
+		</div>
+
+		<!-- Loader (shows when API request is loading) -->
+		<div v-if="isLoading">
+			<div class="lds-heart"><div></div></div>
+			<div>Loading... ({{refCount}})</div>
 		</div>
 
 		<!-- Module Selector -->
@@ -344,6 +351,8 @@ export default {
 			// TODO: Playlists Data Iterator
 			// TODO: Recommendations Data Iterator
 			// TODO: Playback Data
+			refCount: 0,
+			isLoading: false
 		}
 	},
 	computed: {
@@ -360,7 +369,47 @@ export default {
 		this.checkSpotifyLogin()
 		this.getFollowedArtists()
 	},
+	created() {
+		// When an axios request is made, intercept it and:
+		axios.interceptors.request.use((config) => {
+			// assign setLoading to true
+			this.setLoading(true);
+			// return request config
+			return config;
+			// Otherwise:
+		}, (error) => {
+			// assign setLoading to false
+			this.setLoading(false);
+			// return a Promise Object with given reason
+			return Promise.reject(error);
+		});
+
+		// When an axios response is received, intercept it and setLoading to false
+		axios.interceptors.response.use((response) => {
+			this.setLoading(false);
+			return response;
+		}, (error) => {
+			this.setLoading(false);
+			return Promise.reject(error);
+		});
+	},
 	methods: {
+		// Loading status method
+		setLoading(isLoading) {
+			// if loading
+			if (isLoading) {
+				// increment refCount
+				this.refCount++;
+				// assign isLoading to true
+				this.isLoading = true;
+			// else if refCount is higher than 1
+			} else if (this.refCount > 0) {
+				// decrement refCount
+				this.refCount--;
+				// assign isLoading to true/false depending on if more than 0 or not
+				this.isLoading = (this.refCount > 0);
+			}
+		},
 		// Data Iterator Methods //
 		nextFollowedArtistPage () {
 			if (this.followedArtistPage + 1 <= this.numberOfFollowedArtistPages) this.followedArtistPage += 1
@@ -463,5 +512,58 @@ export default {
 </script>
 
 <style>
-
+.lds-heart {
+	display: inline-block;
+	position: relative;
+	width: 80px;
+	height: 80px;
+	transform: rotate(45deg);
+	transform-origin: 40px 40px;
+}
+.lds-heart div {
+	top: 32px;
+	left: 32px;
+	position: absolute;
+	width: 32px;
+	height: 32px;
+	background: #fff;
+	animation: lds-heart 1.2s infinite cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+.lds-heart div:after,
+.lds-heart div:before {
+	content: " ";
+	position: absolute;
+	display: block;
+	width: 32px;
+	height: 32px;
+	background: #fff;
+}
+.lds-heart div:before {
+	left: -24px;
+	border-radius: 50% 0 0 50%;
+}
+.lds-heart div:after {
+	top: -24px;
+	border-radius: 50% 50% 0 0;
+}
+@keyframes lds-heart {
+	0% {
+		transform: scale(0.95);
+	}
+	5% {
+		transform: scale(1.1);
+	}
+	39% {
+		transform: scale(0.85);
+	}
+	45% {
+		transform: scale(1);
+	}
+	60% {
+		transform: scale(0.95);
+	}
+	100% {
+		transform: scale(0.9);
+	}
+}
 </style>
