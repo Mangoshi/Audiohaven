@@ -35,7 +35,6 @@ export default new Vuex.Store({
 					console.log(response.data)
 					context.commit('SET_LOGGED_IN_STATUS', true)
 					localStorage.setItem('token', response.data.token)
-					localStorage.setItem('username', response.data.username)
 				})
 				.catch(error =>{
 					console.log(error)
@@ -54,7 +53,6 @@ export default new Vuex.Store({
 					console.log(`register() response: ${response.data}`)
 					context.commit('SET_LOGGED_IN_STATUS', true)
 					localStorage.setItem('token', response.data.token)
-					localStorage.setItem('username', response.data.username)
 				})
 				.catch(error =>{
 					console.log(`register() error: ${error}`)
@@ -64,7 +62,8 @@ export default new Vuex.Store({
 		logout(context){
 			localStorage.removeItem('token')
 			context.commit('SET_LOGGED_IN_STATUS', false)
-			localStorage.removeItem('username')
+			localStorage.removeItem('spotify_access_token')
+			localStorage.removeItem('spotify_refresh_token')
 		}
 	}
 })

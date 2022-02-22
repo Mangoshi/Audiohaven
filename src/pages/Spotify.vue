@@ -21,7 +21,7 @@
 					</thead>
 					<tbody>
 					<tr
-						v-for="requestEntry in spotifyRequests"
+						v-for="requestEntry in spotifySampleRequests"
 						:key="requestEntry.type"
 						style="text-align: left"
 					>
@@ -47,18 +47,22 @@
 				<v-btn v-on:click="logoutSpotify()">
 					<v-icon>mdi-spotify</v-icon> Log-out of Spotify
 				</v-btn>
+				<!--  DEV FUNCTION: Invalidate token for easy 401 error testing  -->
+				<v-btn v-on:click="removeSpotifyToken()">
+					<v-icon>mdi-delete</v-icon> Remove access token
+				</v-btn>
 			</div>
 		</v-container>
 		<div v-if="spotifyErrors">
-			<h2 style="color: red;">{{ spotifyErrors }}</h2>
+			<h4 style="color: deeppink; background-color: #333; font-family: 'Courier New', monospace;">{{ spotifyErrors }}</h4>
 			<v-btn v-on:click="refreshSpotifyToken()">
 				<v-icon>mdi-spotify</v-icon> Refresh Token
 			</v-btn>
 		</div>
 		<!--	Followed Artists Data Iterator	-->
 		<v-container>
-			<!--	If there is a token == You're logged-in to Spotify	-->
-			<div v-if="spotifyLoggedIn">
+			<!--	If there is a token && no Spotify errors  -->
+			<div v-if="spotifyLoggedIn && !spotifyErrors">
 				<h1>Artists You Follow</h1>
 				<v-data-iterator
 					:items="followedArtists"
@@ -121,6 +125,7 @@
 						</v-toolbar>
 					</template>
 
+					<!-- Data Iterator Items -->
 					<template v-slot:default="props">
 						<v-row>
 							<v-col
@@ -135,11 +140,14 @@
 									<v-card-title class="subheading font-weight-bold">
 										{{ followedArtist.name }}
 									</v-card-title>
-									<v-img
-										:src="followedArtist.images[0].url"
-										:aspect-ratio="1"
-									>
-									</v-img>
+									<!-- Artist Artwork (Links to artist page on Spotify) -->
+									<a :href="followedArtist.external_urls.spotify" target="_blank">
+										<v-img
+											:src="followedArtist.images[0].url"
+											:aspect-ratio="1"
+										>
+										</v-img>
+									</a>
 
 									<v-divider></v-divider>
 
@@ -241,7 +249,8 @@ export default {
 	components: {},
 	data(){
 		return{
-			spotifyRequests: [
+			// Sample API Table Data
+			spotifySampleRequests: [
 				{
 					endpoint: 'N/A',
 					type: 'OAuth',
@@ -285,8 +294,12 @@ export default {
 					response: '[JSON] Snapshot ID.',
 				}
 			],
+			// Spotify Data
 			spotifyLoggedIn: false,
-			// Followed Artists Data Iterator //,
+			spotifyErrors: "",
+			// Toggle Data
+			selectedDataIterator: "followedArtists",
+			// Followed Artists Data Iterator
 			followedArtistsPerPageArray: [4, 8, 12],
 			followedArtistSearch: '',
 			followedArtistFilter: {},
@@ -299,7 +312,9 @@ export default {
 				'Popularity',
 			],
 			followedArtists: [],
-			spotifyErrors: "",
+			// TODO: Playlists Data Iterator
+			// TODO: Recommendations Data Iterator
+			// TODO: Playback Data
 		}
 	},
 	computed: {
@@ -363,9 +378,34 @@ export default {
 			// Set spotifyLoggedIn to true
 			this.spotifyLoggedIn = false;
 		},
+		removeSpotifyToken(){
+			// DEV FUNCTION //
+			// Remove access token
+			localStorage.setItem("spotify_access_token", "INVALID_TOKEN")
+			// Push "/spotify" to URL (to remove tokens if present)
+			router.push("/spotify")
+			// Go to current location (to refresh/reload page)
+			router.go(0)
+		},
 		refreshSpotifyToken(){
-			let refresh_token = localStorage.getItem('refresh_token')
-			router.push(`http://localhost:3000/spotify/refresh_token?refresh_token=${refresh_token}`)
+			let refresh_token = localStorage.getItem('spotify_refresh_token')
+			axios
+				.get(`http://localhost:3000/spotify/refresh_token?refresh_token=${refresh_token}`,{
+					headers: {
+						"Content-Type" : 'application/x-www-form-urlencoded'
+					}
+				})
+				.then(response => {
+					console.log("getData() response: ", response.data)
+					localStorage.setItem("spotify_access_token", response.data.access_token)
+					this.spotifyErrors = ""
+					this.getFollowedArtists()
+					}
+				)
+				.catch(error => {
+					console.log("getData() error caught: ", error)
+					this.spotifyErrors = error
+				})
 		},
 		getFollowedArtists(){
 			if(this.spotifyLoggedIn){
@@ -385,7 +425,7 @@ export default {
 					)
 					.catch(error => {
 						console.log("getData() error caught: ", error)
-						this.spotifyErrors = error.message
+						this.spotifyErrors = error
 					})
 			}
 		},
