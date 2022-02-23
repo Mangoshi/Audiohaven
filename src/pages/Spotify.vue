@@ -265,6 +265,64 @@
 			<!--	If there is a token && no Spotify errors  -->
 			<div v-if="spotifyLoggedIn && !spotifyErrors">
 				<h1>Your Playlists</h1>
+				<v-card>
+					<v-card-title>
+						Playlists
+						<v-spacer></v-spacer>
+						<v-text-field
+							v-model="playlistTableSearch"
+							append-icon="mdi-magnify"
+							label="Search"
+							single-line
+							hide-details
+						></v-text-field>
+					</v-card-title>
+					<!-- Table LOADING -->
+					<v-data-table
+						v-if="isLoading"
+						item-key="name"
+						loading
+						loading-text="Loading playlists... Please wait"
+					></v-data-table>
+					<!-- Table LOADED -->
+					<v-data-table
+						v-else
+						:headers="playlistTableHeaders"
+						:items="playlistTableItems"
+						:search="playlistTableSearch"
+						item-key="name"
+						single-expand
+						show-expand
+					>
+						<template v-slot:expanded-item="{ headers, item }">
+							<td :colspan="headers.length">
+								<v-row>
+									<v-col v-if="item.images[0]" cols="4">
+										<a :href="item.external_urls.spotify" target="_blank">
+											<v-img
+												:src="item.images[0].url"
+												aspect-ratio="1"
+												width="350"
+												class="ma-5"
+											></v-img>
+										</a>
+									</v-col>
+									<v-col v-else>
+										<a :href="item.external_urls.spotify" target="_blank">Link to playlist</a>
+									</v-col>
+									<v-col cols="6" v-if="item.description">
+										<v-card class="mt-5 mr-5">
+											<v-card-text>
+												{{ item.description }}
+											</v-card-text>
+										</v-card>
+									</v-col>
+									<v-col cols="2"></v-col>
+								</v-row>
+							</td>
+						</template>
+					</v-data-table>
+				</v-card>
 			</div>
 		</v-container>
 
@@ -348,7 +406,28 @@ export default {
 				'Popularity',
 			],
 			followedArtists: [],
-			// TODO: Playlists Data Iterator
+			// Playlists Table Data
+			playlistTableSearch: "",
+			playlistTableHeaders: [
+				{
+					text: 'Name',
+					value: 'name',
+					align: 'start'
+				},
+				{
+					text: 'Tracks',
+					value: 'tracks.total'
+				},
+				{
+					text: 'Collaborative',
+					value: 'collaborative'
+				},
+				{
+					text: 'Public',
+					value: 'public'
+				},
+			],
+			playlistTableItems: [],
 			// TODO: Recommendations Data Iterator
 			// TODO: Playback Data
 			refCount: 0,
@@ -368,6 +447,7 @@ export default {
 		this.checkTokens()
 		this.checkSpotifyLogin()
 		this.getFollowedArtists()
+		this.getUserPlaylists()
 	},
 	created() {
 		// When an axios request is made, intercept it and:
@@ -402,7 +482,7 @@ export default {
 				this.refCount++;
 				// assign isLoading to true
 				this.isLoading = true;
-			// else if refCount is higher than 1
+				// else if refCount is higher than 1
 			} else if (this.refCount > 0) {
 				// decrement refCount
 				this.refCount--;
@@ -435,7 +515,6 @@ export default {
 				// Store tokens in localStorage
 				localStorage.setItem("spotify_access_token", access_token)
 				localStorage.setItem("spotify_refresh_token", refresh_token)
-
 			} else {
 				// Otherwise, log the fact there are no tokens in the URL
 				console.log("No access/refresh token in URL!")
@@ -499,6 +578,30 @@ export default {
 					.then(response => {
 						console.log("getData() response: ", response.data)
 						this.followedArtists = response.data.artists.items
+						}
+					)
+					.catch(error => {
+						console.log("getData() error caught: ", error)
+						this.spotifyErrors = error
+					})
+			}
+		},
+		getUserPlaylists(){
+			if(this.spotifyLoggedIn){
+				let token = localStorage.getItem('spotify_access_token')
+				let baseURL = 'https://api.spotify.com/v1'
+				// TODO: Save User's ID to localStorage for use here!
+				let userID = 1174214454
+				axios
+					.get(`${baseURL}/users/${userID}/playlists`,
+						{
+							headers: {
+								"Authorization" : `Bearer ${token}`
+							}
+						})
+					.then(response => {
+						console.log("getData() response: ", response.data)
+						this.playlistTableItems = response.data.items
 						}
 					)
 					.catch(error => {
