@@ -70,300 +70,309 @@
 			<div>Loading... ({{refCount}})</div>
 		</div>
 
-		<!-- Module Selector -->
-		<v-container>
-			<v-radio-group
-				v-model="selectedModule"
-			>
-				<v-radio
-					label="My Followed Artists"
-					value="followedArtists"
-				></v-radio>
-				<v-radio
-					label="My Playlists"
-					value="myPlaylists"
-				></v-radio>
-			</v-radio-group>
-		</v-container>
-
-		<!--	Followed Artists Data Iterator	-->
-		<v-container v-if="selectedModule === 'followedArtists'">
-			<!--	If there is a token && no Spotify errors  -->
-			<div v-if="spotifyLoggedIn && !spotifyError">
-				<h1>Artists You Follow</h1>
-				<v-data-iterator
-					:items="followedArtists"
-					:items-per-page.sync="followedArtistsPerPage"
-					:page.sync="followedArtistPage"
-					:search="followedArtistSearch"
-					:sort-by="followedArtistSortBy.toLowerCase()"
-					:sort-desc="followedArtistSortDesc"
-					hide-default-footer
-				>
-					<template v-slot:header>
-						<v-toolbar
-							class="mb-1"
-							color="purple darken-3"
-							dark
-						>
-							<v-text-field
-								v-model="followedArtistSearch"
-								clearable
-								flat
-								hide-details
-								label="Search"
-								prepend-inner-icon="mdi-magnify"
-								solo-inverted
-							></v-text-field>
-							<template v-if="$vuetify.breakpoint.mdAndUp">
-								<v-spacer></v-spacer>
-								<v-select
-									v-model="followedArtistSortBy"
-									:items="followedArtistKeys"
-									flat
-									hide-details
-									label="Sort by"
-									prepend-inner-icon="mdi-magnify"
-									solo-inverted
-								></v-select>
-								<v-spacer></v-spacer>
-								<v-btn-toggle
-									v-model="followedArtistSortDesc"
-									mandatory
-								>
-									<v-btn
-										:value="false"
-										color="purple"
-										depressed
-										large
-									>
-										<v-icon>mdi-arrow-up</v-icon>
-									</v-btn>
-									<v-btn
-										:value="true"
-										color="purple"
-										depressed
-										large
-									>
-										<v-icon>mdi-arrow-down</v-icon>
-									</v-btn>
-								</v-btn-toggle>
-							</template>
-						</v-toolbar>
-					</template>
-
-					<!-- Data Iterator Items -->
-					<template v-slot:default="props">
-						<v-row>
-							<v-col
-								v-for="followedArtist in props.items"
-								:key="followedArtist.name"
-								cols="12"
-								lg="3"
-								md="4"
-								sm="6"
-							>
-								<v-card>
-									<v-card-title class="subheading font-weight-bold">
-										{{ followedArtist.name }}
-									</v-card-title>
-									<!-- Artist Artwork (Links to artist page on Spotify) -->
-									<a :href="followedArtist.external_urls.spotify" target="_blank">
-										<v-img
-											:aspect-ratio="1"
-											:src="followedArtist.images[0].url"
-										>
-										</v-img>
-									</a>
-
-									<v-divider></v-divider>
-
-									<v-list dense>
-										<v-list-item
-											v-for="(key, followedArtist) in followedArtistFilteredKeys"
-											:key="followedArtist"
-										>
-											<v-list-item-content :class="{ 'purple--text': followedArtistSortBy === key }">
-												{{ key }}:
-											</v-list-item-content>
-											<v-list-item-content
-												:class="{ 'purple--text': followedArtistSortBy === key }"
-												class="align-end"
-											>
-												{{ followedArtist[key.toLowerCase()] }}
-											</v-list-item-content>
-										</v-list-item>
-									</v-list>
-								</v-card>
-							</v-col>
-						</v-row>
-					</template>
-
-					<template v-slot:footer>
-						<v-row
-							align="center"
-							class="mt-2"
-							justify="center"
-						>
-							<span class="grey--text">Artists per page</span>
-							<v-menu offset-y>
-								<template v-slot:activator="{ on, attrs }">
-									<v-btn
-										class="ml-2"
-										color="primary"
-										dark
-										text
-										v-bind="attrs"
-										v-on="on"
-									>
-										{{ followedArtistsPerPage }}
-										<v-icon>mdi-chevron-down</v-icon>
-									</v-btn>
-								</template>
-								<v-list>
-									<v-list-item
-										v-for="(number, followedArtist) in followedArtistsPerPageArray"
-										:key="followedArtist"
-										@click="updateFollowedArtistsPerPage(number)"
-									>
-										<v-list-item-title>{{ number }}</v-list-item-title>
-									</v-list-item>
-								</v-list>
-							</v-menu>
-
-							<v-spacer></v-spacer>
-
-							<span class="mr-4grey--text">
-								Page {{ followedArtistPage }} of {{ numberOfFollowedArtistPages }}
-							</span>
-							<v-btn
-								class="mr-1"
-								color="purple darken-3"
-								dark
-								fab
-								@click="formerFollowedArtistPage"
-							>
-								<v-icon>mdi-chevron-left</v-icon>
-							</v-btn>
-							<v-btn
-								class="ml-1"
-								color="purple darken-3"
-								dark
-								fab
-								@click="nextFollowedArtistPage"
-							>
-								<v-icon>mdi-chevron-right</v-icon>
-							</v-btn>
-						</v-row>
-					</template>
-				</v-data-iterator>
-			</div>
-		</v-container>
-
-		<!--	My Playlists Module	-->
-		<v-container v-if="selectedModule === 'myPlaylists'">
-			<!--	If there is a token && no Spotify errors  -->
-			<div v-if="spotifyLoggedIn && !spotifyError">
-				<h1>Your Playlists</h1>
+		<v-row>
+			<v-col cols="0" md="1" lg="2"></v-col>
+			<v-col cols="12" md="10" lg="8">
+				<!-- Module Container -->
 				<v-card>
-					<v-card-title>
-						Playlists
-						<v-spacer></v-spacer>
-						<v-text-field
-							v-model="playlistTableSearch"
-							append-icon="mdi-magnify"
-							hide-details
-							label="Search"
-							single-line
-						></v-text-field>
-					</v-card-title>
-					<!-- Table LOADING -->
-					<v-data-table
-						v-if="isLoading"
-						item-key="name"
-						loading
-						loading-text="Loading playlists... Please wait"
-					></v-data-table>
-					<!-- Table LOADED -->
-					<v-data-table
-						v-else
-						v-model="playlistTableSelected"
-						:headers="playlistTableHeaders"
-						:items="playlistTableItems"
-						:search="playlistTableSearch"
-						:sort-by="playlistTableSort.toLowerCase()"
-						:sort-desc="playlistTableSortDesc"
-						checkbox-color="purple"
-						dense
-						expand-icon="mdi-music"
-						item-key="name"
-						no-data-text="No data! Are you signed in to Spotify?"
-						no-results-text="No playlists here :C"
-						show-expand
-						show-select
-						single-expand
-						single-select
-					>
+					<!-- Module Selector -->
+					<v-container>
+						<v-select
+							v-model="selectedModule"
+							:items="modules"
+							item-text="label"
+							item-value="value"
+							label="Module Selector"
+						>
+						</v-select>
+					</v-container>
 
-						<!--	Custom item colours using chips, set with item v-slots	-->
-						<template v-slot:item.tracks.total="{ item }">
-							<v-chip
-								:color="colorizeTableTracks(item.tracks.total)"
-								dark
-							>
-								{{ item.tracks.total }}
-							</v-chip>
-						</template>
-						<template v-slot:item.collaborative="{ item }">
-							<v-chip
-								:color="colorizeTableBooleans(item.collaborative)"
-								dark
-							>
-								{{ item.collaborative }}
-							</v-chip>
-						</template>
-						<template v-slot:item.public="{ item }">
-							<v-chip
-								:color="colorizeTableBooleans(item.public)"
-								dark
-							>
-								{{ item.public }}
-							</v-chip>
-						</template>
+					<!--	Followed Artists Data Iterator	-->
+					<v-container fluid v-if="selectedModule === 'followedArtists'">
+						<!--	If there is a token && no Spotify errors  -->
+						<div v-if="spotifyLoggedIn && !spotifyError">
+							<v-card>
+								<v-card-title>
+									Followed Artists
+								</v-card-title>
+								<v-data-iterator
+									:items="followedArtists"
+									:items-per-page.sync="followedArtistsPerPage"
+									:page.sync="followedArtistPage"
+									:search="followedArtistSearch"
+									:sort-by="followedArtistSortBy.toLowerCase()"
+									:sort-desc="followedArtistSortDesc"
+									hide-default-footer
+									class="pa-4"
+								>
+									<template v-slot:header>
+										<v-toolbar
+											class="mb-1"
+											color="purple darken-3"
+											dark
+										>
+											<v-text-field
+												v-model="followedArtistSearch"
+												clearable
+												flat
+												hide-details
+												label="Search"
+												prepend-inner-icon="mdi-magnify"
+												solo-inverted
+											></v-text-field>
+											<template v-if="$vuetify.breakpoint.mdAndUp">
+												<v-spacer></v-spacer>
+												<v-select
+													v-model="followedArtistSortBy"
+													:items="followedArtistKeys"
+													flat
+													hide-details
+													label="Sort by"
+													prepend-inner-icon="mdi-magnify"
+													solo-inverted
+												></v-select>
+												<v-spacer></v-spacer>
+												<v-btn-toggle
+													v-model="followedArtistSortDesc"
+													mandatory
+												>
+													<v-btn
+														:value="false"
+														color="purple"
+														depressed
+														large
+													>
+														<v-icon>mdi-arrow-up</v-icon>
+													</v-btn>
+													<v-btn
+														:value="true"
+														color="purple"
+														depressed
+														large
+													>
+														<v-icon>mdi-arrow-down</v-icon>
+													</v-btn>
+												</v-btn-toggle>
+											</template>
+										</v-toolbar>
+									</template>
 
-						<!--  Expanded row  -->
-						<template v-slot:expanded-item="{ headers, item }" v-slot:top>
-							<td :colspan="headers.length">
-								<v-row>
-									<v-col v-if="item.images[0]" cols="4">
-										<a :href="item.external_urls.spotify" target="_blank">
-											<v-img
-												:src="item.images[0].url"
-												aspect-ratio="1"
-												class="ma-5"
-												width="350"
-											></v-img>
-										</a>
-									</v-col>
-									<v-col v-else>
-										<a :href="item.external_urls.spotify" target="_blank">Link to playlist</a>
-									</v-col>
-									<v-col v-if="item.description" cols="6">
-										<v-card class="ma-5">
-											<v-card-text>
-												{{ item.description }}
-											</v-card-text>
-										</v-card>
-									</v-col>
-									<v-col cols="2"></v-col>
-								</v-row>
-							</td>
-						</template>
-					</v-data-table>
+									<!-- Data Iterator Items -->
+									<template v-slot:default="props">
+										<v-row>
+											<v-col
+												v-for="followedArtist in props.items"
+												:key="followedArtist.name"
+												cols="12"
+												lg="3"
+												md="4"
+												sm="6"
+											>
+												<v-card>
+													<v-card-title class="subheading font-weight-bold">
+														{{ followedArtist.name }}
+													</v-card-title>
+													<!-- Artist Artwork (Links to artist page on Spotify) -->
+													<a :href="followedArtist.external_urls.spotify" target="_blank">
+														<v-img
+															:aspect-ratio="1"
+															:src="followedArtist.images[0].url"
+														>
+														</v-img>
+													</a>
+
+													<v-divider></v-divider>
+
+													<v-list dense>
+														<v-list-item
+															v-for="(key, followedArtist) in followedArtistFilteredKeys"
+															:key="followedArtist"
+														>
+															<v-list-item-content :class="{ 'purple--text': followedArtistSortBy === key }">
+																{{ key }}:
+															</v-list-item-content>
+															<v-list-item-content
+																:class="{ 'purple--text': followedArtistSortBy === key }"
+																class="align-end"
+															>
+																{{ followedArtist[key.toLowerCase()] }}
+															</v-list-item-content>
+														</v-list-item>
+													</v-list>
+												</v-card>
+											</v-col>
+										</v-row>
+									</template>
+
+									<template v-slot:footer>
+										<v-row
+											align="center"
+											class="mt-2 ml-2"
+											justify="center"
+										>
+											<span class="grey--text">Artists per page</span>
+											<v-menu offset-y>
+												<template v-slot:activator="{ on, attrs }">
+													<v-btn
+														class="ml-2"
+														color="primary"
+														dark
+														text
+														v-bind="attrs"
+														v-on="on"
+													>
+														{{ followedArtistsPerPage }}
+														<v-icon>mdi-chevron-down</v-icon>
+													</v-btn>
+												</template>
+												<v-list>
+													<v-list-item
+														v-for="(number, followedArtist) in followedArtistsPerPageArray"
+														:key="followedArtist"
+														@click="updateFollowedArtistsPerPage(number)"
+													>
+														<v-list-item-title>{{ number }}</v-list-item-title>
+													</v-list-item>
+												</v-list>
+											</v-menu>
+
+											<v-spacer></v-spacer>
+
+											<span class="mr-4 grey--text">
+											Page {{ followedArtistPage }} of {{ numberOfFollowedArtistPages }}
+										</span>
+											<v-btn
+												class="mr-1"
+												color="purple darken-2"
+												dark
+												fab
+												@click="formerFollowedArtistPage"
+											>
+												<v-icon>mdi-chevron-left</v-icon>
+											</v-btn>
+											<v-btn
+												class="ml-1 mr-2"
+												color="purple darken-2"
+												dark
+												fab
+												@click="nextFollowedArtistPage"
+											>
+												<v-icon>mdi-chevron-right</v-icon>
+											</v-btn>
+										</v-row>
+									</template>
+								</v-data-iterator>
+							</v-card>
+						</div>
+					</v-container>
+
+					<!--	My Playlists Module	-->
+					<v-container fluid v-if="selectedModule === 'userPlaylists'">
+						<!--	If there is a token && no Spotify errors  -->
+						<div v-if="spotifyLoggedIn && !spotifyError">
+							<v-card>
+								<v-card-title>
+									Playlists
+									<v-spacer></v-spacer>
+									<v-text-field
+										v-model="playlistTableSearch"
+										append-icon="mdi-magnify"
+										hide-details
+										label="Search"
+										single-line
+									></v-text-field>
+								</v-card-title>
+								<!-- Table LOADING -->
+								<v-data-table
+									v-if="isLoading"
+									item-key="name"
+									loading
+									loading-text="Loading playlists... Please wait"
+									class="pa-4"
+								></v-data-table>
+								<!-- Table LOADED -->
+								<v-data-table
+									v-else
+									v-model="playlistTableSelected"
+									:headers="playlistTableHeaders"
+									:items="playlistTableItems"
+									:search="playlistTableSearch"
+									:sort-by="playlistTableSort.toLowerCase()"
+									:sort-desc="playlistTableSortDesc"
+									checkbox-color="purple"
+									dense
+									expand-icon="mdi-music"
+									item-key="name"
+									no-data-text="No data! Are you signed in to Spotify?"
+									no-results-text="No playlists here :C"
+									show-expand
+									show-select
+									single-expand
+									single-select
+								>
+
+									<!--	Custom item colours using chips, set with item v-slots	-->
+									<template v-slot:item.tracks.total="{ item }">
+										<v-chip
+											:color="colorizeTableTracks(item.tracks.total)"
+											dark
+										>
+											{{ item.tracks.total }}
+										</v-chip>
+									</template>
+									<template v-slot:item.collaborative="{ item }">
+										<v-chip
+											:color="colorizeTableBooleans(item.collaborative)"
+											dark
+										>
+											{{ item.collaborative }}
+										</v-chip>
+									</template>
+									<template v-slot:item.public="{ item }">
+										<v-chip
+											:color="colorizeTableBooleans(item.public)"
+											dark
+										>
+											{{ item.public }}
+										</v-chip>
+									</template>
+
+									<!--  Expanded row  -->
+									<template v-slot:expanded-item="{ headers, item }" v-slot:top>
+										<td :colspan="headers.length">
+											<v-row>
+												<v-col v-if="item.images[0]" cols="4">
+													<a :href="item.external_urls.spotify" target="_blank">
+														<v-img
+															:src="item.images[0].url"
+															aspect-ratio="1"
+															class="ma-5"
+															width="350"
+														></v-img>
+													</a>
+												</v-col>
+												<v-col v-else>
+													<a :href="item.external_urls.spotify" target="_blank">Link to playlist</a>
+												</v-col>
+												<v-col v-if="item.description" cols="6">
+													<v-card class="ma-5">
+														<v-card-text>
+															{{ item.description }}
+														</v-card-text>
+													</v-card>
+												</v-col>
+												<v-col cols="2"></v-col>
+											</v-row>
+										</td>
+									</template>
+								</v-data-table>
+							</v-card>
+						</div>
+					</v-container>
 				</v-card>
-			</div>
-		</v-container>
-
+			</v-col>
+			<v-col cols="0" md="1" lg="2"></v-col>
+		</v-row>
 	</v-container>
 </template>
 
@@ -429,8 +438,18 @@ export default {
 			// Spotify Data
 			spotifyLoggedIn: false,
 			spotifyError: "",
-			// Toggle Data
-			selectedModule: "myPlaylists",
+			// Module Data
+			selectedModule: "userPlaylists",
+			modules: [
+				{
+					label: "Your Playlists",
+					value: "userPlaylists"
+				},
+				{
+					label: "Followed Artists",
+					value: "followedArtists"
+				},
+			],
 			// Followed Artists Data Iterator
 			followedArtistsPerPageArray: [4, 8, 12],
 			followedArtistSearch: '',
