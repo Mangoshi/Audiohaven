@@ -57,8 +57,8 @@
 		</v-container>
 
 		<!-- Spotify Errors & Refresh Token Button -->
-		<div v-if="spotifyErrors">
-			<h4 style="color: deeppink; background-color: #333; font-family: 'Courier New', monospace;">{{ spotifyErrors }}</h4>
+		<div v-if="spotifyError">
+			<h4 style="color: deeppink; background-color: #333; font-family: 'Courier New', monospace;">{{ spotifyError }}</h4>
 			<v-btn v-on:click="refreshSpotifyToken()">
 				<v-icon>mdi-spotify</v-icon> Refresh Token
 			</v-btn>
@@ -89,7 +89,7 @@
 		<!--	Followed Artists Data Iterator	-->
 		<v-container v-if="selectedModule === 'followedArtists'">
 			<!--	If there is a token && no Spotify errors  -->
-			<div v-if="spotifyLoggedIn && !spotifyErrors">
+			<div v-if="spotifyLoggedIn && !spotifyError">
 				<h1>Artists You Follow</h1>
 				<v-data-iterator
 					:items="followedArtists"
@@ -102,29 +102,29 @@
 				>
 					<template v-slot:header>
 						<v-toolbar
-							dark
-							color="purple darken-3"
 							class="mb-1"
+							color="purple darken-3"
+							dark
 						>
 							<v-text-field
 								v-model="followedArtistSearch"
 								clearable
 								flat
-								solo-inverted
 								hide-details
-								prepend-inner-icon="mdi-magnify"
 								label="Search"
+								prepend-inner-icon="mdi-magnify"
+								solo-inverted
 							></v-text-field>
 							<template v-if="$vuetify.breakpoint.mdAndUp">
 								<v-spacer></v-spacer>
 								<v-select
 									v-model="followedArtistSortBy"
-									flat
-									solo-inverted
-									hide-details
 									:items="followedArtistKeys"
-									prepend-inner-icon="mdi-magnify"
+									flat
+									hide-details
 									label="Sort by"
+									prepend-inner-icon="mdi-magnify"
+									solo-inverted
 								></v-select>
 								<v-spacer></v-spacer>
 								<v-btn-toggle
@@ -132,18 +132,18 @@
 									mandatory
 								>
 									<v-btn
-										large
-										depressed
-										color="purple"
 										:value="false"
+										color="purple"
+										depressed
+										large
 									>
 										<v-icon>mdi-arrow-up</v-icon>
 									</v-btn>
 									<v-btn
-										large
-										depressed
-										color="purple"
 										:value="true"
+										color="purple"
+										depressed
+										large
 									>
 										<v-icon>mdi-arrow-down</v-icon>
 									</v-btn>
@@ -159,9 +159,9 @@
 								v-for="followedArtist in props.items"
 								:key="followedArtist.name"
 								cols="12"
-								sm="6"
-								md="4"
 								lg="3"
+								md="4"
+								sm="6"
 							>
 								<v-card>
 									<v-card-title class="subheading font-weight-bold">
@@ -170,8 +170,8 @@
 									<!-- Artist Artwork (Links to artist page on Spotify) -->
 									<a :href="followedArtist.external_urls.spotify" target="_blank">
 										<v-img
-											:src="followedArtist.images[0].url"
 											:aspect-ratio="1"
+											:src="followedArtist.images[0].url"
 										>
 										</v-img>
 									</a>
@@ -187,8 +187,8 @@
 												{{ key }}:
 											</v-list-item-content>
 											<v-list-item-content
-												class="align-end"
 												:class="{ 'purple--text': followedArtistSortBy === key }"
+												class="align-end"
 											>
 												{{ followedArtist[key.toLowerCase()] }}
 											</v-list-item-content>
@@ -201,18 +201,18 @@
 
 					<template v-slot:footer>
 						<v-row
-							class="mt-2"
 							align="center"
+							class="mt-2"
 							justify="center"
 						>
 							<span class="grey--text">Artists per page</span>
 							<v-menu offset-y>
 								<template v-slot:activator="{ on, attrs }">
 									<v-btn
+										class="ml-2"
+										color="primary"
 										dark
 										text
-										color="primary"
-										class="ml-2"
 										v-bind="attrs"
 										v-on="on"
 									>
@@ -237,19 +237,19 @@
 								Page {{ followedArtistPage }} of {{ numberOfFollowedArtistPages }}
 							</span>
 							<v-btn
-								fab
-								dark
-								color="purple darken-3"
 								class="mr-1"
+								color="purple darken-3"
+								dark
+								fab
 								@click="formerFollowedArtistPage"
 							>
 								<v-icon>mdi-chevron-left</v-icon>
 							</v-btn>
 							<v-btn
-								fab
-								dark
-								color="purple darken-3"
 								class="ml-1"
+								color="purple darken-3"
+								dark
+								fab
 								@click="nextFollowedArtistPage"
 							>
 								<v-icon>mdi-chevron-right</v-icon>
@@ -263,7 +263,7 @@
 		<!--	My Playlists Module	-->
 		<v-container v-if="selectedModule === 'myPlaylists'">
 			<!--	If there is a token && no Spotify errors  -->
-			<div v-if="spotifyLoggedIn && !spotifyErrors">
+			<div v-if="spotifyLoggedIn && !spotifyError">
 				<h1>Your Playlists</h1>
 				<v-card>
 					<v-card-title>
@@ -272,9 +272,9 @@
 						<v-text-field
 							v-model="playlistTableSearch"
 							append-icon="mdi-magnify"
+							hide-details
 							label="Search"
 							single-line
-							hide-details
 						></v-text-field>
 					</v-card-title>
 					<!-- Table LOADING -->
@@ -287,14 +287,52 @@
 					<!-- Table LOADED -->
 					<v-data-table
 						v-else
+						v-model="playlistTableSelected"
 						:headers="playlistTableHeaders"
 						:items="playlistTableItems"
 						:search="playlistTableSearch"
+						:sort-by="playlistTableSort.toLowerCase()"
+						:sort-desc="playlistTableSortDesc"
+						checkbox-color="purple"
+						dense
+						expand-icon="mdi-music"
 						item-key="name"
-						single-expand
+						no-data-text="No data! Are you signed in to Spotify?"
+						no-results-text="No playlists here :C"
 						show-expand
+						show-select
+						single-expand
+						single-select
 					>
-						<template v-slot:expanded-item="{ headers, item }">
+
+						<!--	Custom item colours using chips, set with item v-slots	-->
+						<template v-slot:item.tracks.total="{ item }">
+							<v-chip
+								:color="colorizeTableTracks(item.tracks.total)"
+								dark
+							>
+								{{ item.tracks.total }}
+							</v-chip>
+						</template>
+						<template v-slot:item.collaborative="{ item }">
+							<v-chip
+								:color="colorizeTableBooleans(item.collaborative)"
+								dark
+							>
+								{{ item.collaborative }}
+							</v-chip>
+						</template>
+						<template v-slot:item.public="{ item }">
+							<v-chip
+								:color="colorizeTableBooleans(item.public)"
+								dark
+							>
+								{{ item.public }}
+							</v-chip>
+						</template>
+
+						<!--  Expanded row  -->
+						<template v-slot:expanded-item="{ headers, item }" v-slot:top>
 							<td :colspan="headers.length">
 								<v-row>
 									<v-col v-if="item.images[0]" cols="4">
@@ -302,16 +340,16 @@
 											<v-img
 												:src="item.images[0].url"
 												aspect-ratio="1"
-												width="350"
 												class="ma-5"
+												width="350"
 											></v-img>
 										</a>
 									</v-col>
 									<v-col v-else>
 										<a :href="item.external_urls.spotify" target="_blank">Link to playlist</a>
 									</v-col>
-									<v-col cols="6" v-if="item.description">
-										<v-card class="mt-5 mr-5">
+									<v-col v-if="item.description" cols="6">
+										<v-card class="ma-5">
 											<v-card-text>
 												{{ item.description }}
 											</v-card-text>
@@ -390,9 +428,9 @@ export default {
 			],
 			// Spotify Data
 			spotifyLoggedIn: false,
-			spotifyErrors: "",
+			spotifyError: "",
 			// Toggle Data
-			selectedModule: "followedArtists",
+			selectedModule: "myPlaylists",
 			// Followed Artists Data Iterator
 			followedArtistsPerPageArray: [4, 8, 12],
 			followedArtistSearch: '',
@@ -408,26 +446,35 @@ export default {
 			followedArtists: [],
 			// Playlists Table Data
 			playlistTableSearch: "",
+			playlistTableSort: 'tracks.total',
+			playlistTableSortDesc: true,
 			playlistTableHeaders: [
 				{
 					text: 'Name',
 					value: 'name',
-					align: 'start'
+					align: 'start',
+					width: 400
 				},
 				{
 					text: 'Tracks',
 					value: 'tracks.total'
 				},
 				{
-					text: 'Collaborative',
+					text: 'Collab',
 					value: 'collaborative'
 				},
 				{
 					text: 'Public',
 					value: 'public'
 				},
+				// {
+				// 	text: 'View',
+				// 	sortable: false,
+				// 	value: 'id'
+				// },
 			],
 			playlistTableItems: [],
+			playlistTableSelected: [],
 			// TODO: Recommendations Data Iterator
 			// TODO: Playback Data
 			refCount: 0,
@@ -490,6 +537,7 @@ export default {
 				this.isLoading = (this.refCount > 0);
 			}
 		},
+
 		// Data Iterator Methods //
 		nextFollowedArtistPage () {
 			if (this.followedArtistPage + 1 <= this.numberOfFollowedArtistPages) this.followedArtistPage += 1
@@ -500,24 +548,36 @@ export default {
 		updateFollowedArtistsPerPage (number) {
 			this.followedArtistsPerPage = number
 		},
-		// Spotify Token Methods //
-		// spotifyOAuth(){
-		// 	axios("/spotify/login")
-		// }
+
+		// Data Table Methods //
+		colorizeTableTracks(tracks) {
+			if (tracks > 250) return 'red'
+			else if (tracks > 100) return 'orange'
+			else if (tracks <= 100 && tracks > 0) return 'green'
+			else return 'black'
+		},
+		colorizeTableBooleans(boolean) {
+			if (boolean) return 'green'
+			else return 'red'
+		},
+
+		// Spotify Token Management //
 		checkTokens(){
+			// If there is both an access & refresh token in the URL
 			if(this.$route.query.access_token && this.$route.query.refresh_token) {
 				// Assign tokens as variables
 				let access_token = this.$route.query.access_token
 				let refresh_token = this.$route.query.refresh_token
 				// Log tokens
-				console.log("Access Token: ", access_token)
-				console.log("Refresh Token: ", refresh_token)
+				console.log("Tokens received through redirect URL:")
+				console.log("Access Token", access_token)
+				console.log("Refresh Token", refresh_token)
 				// Store tokens in localStorage
 				localStorage.setItem("spotify_access_token", access_token)
 				localStorage.setItem("spotify_refresh_token", refresh_token)
 			} else {
 				// Otherwise, log the fact there are no tokens in the URL
-				console.log("No access/refresh token in URL!")
+				// console.log("No access/refresh token in URL!")
 			}
 		},
 		checkSpotifyLogin(){
@@ -553,22 +613,32 @@ export default {
 					}
 				})
 				.then(response => {
-					console.log("getData() response: ", response.data)
-					localStorage.setItem("spotify_access_token", response.data.access_token)
-					this.spotifyErrors = ""
-					this.getFollowedArtists()
+						// Log response
+						console.log("refreshSpotifyToken() response: ", response.data)
+						// Assign local storage access token to new access token
+						localStorage.setItem("spotify_access_token", response.data.access_token)
+						// Clear spotifyError message
+						this.spotifyError = ""
+						// Re-run anything that would have failed with an expired token
+						this.getFollowedArtists()
+						this.getUserPlaylists()
 					}
 				)
 				.catch(error => {
-					console.log("getData() error caught: ", error)
-					this.spotifyErrors = error
+					console.log("refreshSpotifyToken() error caught: ", error)
+					console.log("refreshSpotifyToken() error message: ", error.message)
+					this.spotifyError = error.message
 				})
 		},
+
+		// Spotify API Requests //
 		getFollowedArtists(){
+			// If user is logged-in
 			if(this.spotifyLoggedIn){
 				let token = localStorage.getItem('spotify_access_token')
 				let baseURL = 'https://api.spotify.com/v1'
 				axios
+					// GET request for followed artists, with the maximum limit of 50 set
 					.get(`${baseURL}/me/following?type=artist&limit=50`,
 						{
 							headers: {
@@ -576,23 +646,35 @@ export default {
 							}
 						})
 					.then(response => {
-						console.log("getData() response: ", response.data)
-						this.followedArtists = response.data.artists.items
+							// Log response
+							console.log("getFollowedArtists() response: ", response.data)
+							// Assign followedArtists to response.artists.items (followed artist array)
+							this.followedArtists = response.data.artists.items
 						}
 					)
 					.catch(error => {
-						console.log("getData() error caught: ", error)
-						this.spotifyErrors = error
+						// Log errors
+						console.log("getFollowedArtists() error caught: ", error)
+						console.log("getFollowedArtists() error message: ", error.message)
+						// Assign spotifyError string to the value of error.message
+						this.spotifyError = error.message
+						// If error is a 401 (token has likely expired)
+						if(error.message==="Request failed with status code 401"){
+							// Run refreshSpotifyToken() to get new access token
+							this.refreshSpotifyToken()
+						}
 					})
 			}
 		},
 		getUserPlaylists(){
+			// If user is logged-in
 			if(this.spotifyLoggedIn){
 				let token = localStorage.getItem('spotify_access_token')
 				let baseURL = 'https://api.spotify.com/v1'
 				// TODO: Save User's ID to localStorage for use here!
 				let userID = 1174214454
 				axios
+					// GET request using user's ID
 					.get(`${baseURL}/users/${userID}/playlists`,
 						{
 							headers: {
@@ -600,13 +682,23 @@ export default {
 							}
 						})
 					.then(response => {
-						console.log("getData() response: ", response.data)
-						this.playlistTableItems = response.data.items
+							// Log response
+							console.log("getUserPlaylists() response: ", response.data)
+							// Assign playlistTableItems to response.data.items (playlist array)
+							this.playlistTableItems = response.data.items
 						}
 					)
 					.catch(error => {
-						console.log("getData() error caught: ", error)
-						this.spotifyErrors = error
+						// Log error
+						console.log("getUserPlaylists() error caught: ", error)
+						console.log("getUserPlaylists() error message: ", error.message)
+						// Assign spotifyError string to the value of error.message
+						this.spotifyError = error.message
+						// If error is a 401 (token has likely expired)
+						if(error.message==="Request failed with status code 401"){
+							// Run refreshSpotifyToken() to get new access token
+							this.refreshSpotifyToken()
+						}
 					})
 			}
 		},
@@ -615,6 +707,7 @@ export default {
 </script>
 
 <style>
+/* https://loading.io/css/ heart CSS */
 .lds-heart {
 	display: inline-block;
 	position: relative;
