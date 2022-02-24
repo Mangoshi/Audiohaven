@@ -70,7 +70,7 @@
 			<div>Loading... ({{refCount}})</div>
 		</div>
 
-		<v-row>
+		<v-row v-if="spotifyLoggedIn && !spotifyError">
 			<v-col cols="0" md="1" lg="2"></v-col>
 			<v-col cols="12" md="10" lg="8">
 				<!-- Module Container -->
@@ -269,119 +269,115 @@
 					<!--	My Playlists Module	-->
 					<v-container fluid v-if="selectedModule === 'userPlaylists'">
 						<!--	If there is a token && no Spotify errors  -->
-						<div v-if="spotifyLoggedIn && !spotifyError">
-							<v-card>
-								<v-card-title>
-									Playlists
-									<v-spacer></v-spacer>
-									<v-text-field
-										v-if="playlistLayer === 1"
-										v-model="playlistTableSearch_L1"
-										append-icon="mdi-magnify"
-										hide-details
-										label="Search"
-										single-line
-									></v-text-field>
-									<v-text-field
-										v-else
-										v-model="playlistTableSearch_L2"
-										append-icon="mdi-magnify"
-										hide-details
-										label="Search"
-										single-line
-									></v-text-field>
-								</v-card-title>
-								<!-- Table LOADING -->
-								<v-data-table
-									v-if="isLoading"
-									item-key="name"
-									loading
-									loading-text="Loading playlists... Please wait"
-									class="pa-4"
-								></v-data-table>
-								<!-- Table LOADED -->
-								<v-data-table
-									v-else
-									:v-model="playlistLayer === 1 ? playlistTableItems_L1 : playlistTableItems_L2"
-									:headers="playlistLayer === 1 ? playlistTableHeaders_L1 : playlistTableHeaders_L2"
-									:items="playlistLayer === 1 ? playlistTableItems_L1 : playlistTableItems_L2"
-									:search="playlistLayer === 1 ? playlistTableSearch_L1 : playlistTableSearch_L2"
-									:sort-by="playlistLayer === 1 ? playlistTableSort_L1.toLowerCase() : playlistTableSort_L2.toLowerCase()"
-									:sort-desc="playlistLayer === 1 ? playlistTableSortDesc_L1 : playlistTableSortDesc_L2"
-									checkbox-color="purple"
-									dense
-									expand-icon="mdi-music"
-									item-key="name"
-									no-data-text="No data! Are you signed in to Spotify?"
-									no-results-text="No playlists here :C"
-									show-expand
-									show-select
-									single-expand
-									single-select
-								>
-									<!--	Customizing items under the name column 	-->
-									<template v-if="playlistLayer === 1" v-slot:item.name="{ item }">
-										<v-btn text @click="viewSpotifyPlaylist(item.id)">
-											{{ item.name }}
-										</v-btn>
-									</template>
-									<!--	Custom item colours using chips, set with v-slots	-->
-									<template v-if="playlistLayer === 1" v-slot:item.tracks.total="{ item }">
-										<v-chip
-											:color="colorizeTableTracks(item.tracks.total)"
-											dark
-										>
-											{{ item.tracks.total }}
-										</v-chip>
-									</template>
-									<template v-if="playlistLayer === 1" v-slot:item.collaborative="{ item }">
-										<v-chip
-											:color="colorizeTableBooleans(item.collaborative)"
-											dark
-										>
-											{{ item.collaborative }}
-										</v-chip>
-									</template>
-									<template v-if="playlistLayer === 1" v-slot:item.public="{ item }">
-										<v-chip
-											:color="colorizeTableBooleans(item.public)"
-											dark
-										>
-											{{ item.public }}
-										</v-chip>
-									</template>
-
-									<!--  Expanded row  -->
-									<template v-if="playlistLayer === 1" v-slot:expanded-item="{ headers, item }" v-slot:top>
-										<td :colspan="headers.length">
-											<v-row>
-												<v-col v-if="item.images[0]" cols="4">
-													<a :href="item.external_urls.spotify" target="_blank">
-														<v-img
-															:src="item.images[0].url"
-															aspect-ratio="1"
-															class="ma-5"
-															width="350"
-														></v-img>
-													</a>
-												</v-col>
-												<v-col v-else>
-													<a :href="item.external_urls.spotify" target="_blank">Link to playlist</a>
-												</v-col>
-												<v-col v-if="item.description" cols="6">
-													<v-card class="ma-5">
-														<v-card-text>
-															{{ item.description }}
-														</v-card-text>
-													</v-card>
-												</v-col>
-												<v-col cols="2"></v-col>
-											</v-row>
-										</td>
-									</template>
-								</v-data-table>
-							</v-card>
-						</div>
+						<v-card>
+							<v-card-title>
+								<v-btn
+									icon
+									v-if="playlistLayer !== 0"
+									class="mr-2"
+									@click="playlistLayer = playlistLayer-1"
+								><v-icon>mdi-arrow-left</v-icon>
+								</v-btn>
+								Playlists
+								<v-spacer></v-spacer>
+								<v-text-field
+									v-if="playlistLayer === 0"
+									v-model="playlistTable[0].Search"
+									append-icon="mdi-magnify"
+									hide-details
+									label="Search"
+									single-line
+								></v-text-field>
+								<v-text-field
+									v-if="playlistLayer === 1"
+									v-model="playlistTable[1].Search"
+									append-icon="mdi-magnify"
+									hide-details
+									label="Search"
+									single-line
+								></v-text-field>
+							</v-card-title>
+							<!-- Table LOADING -->
+							<v-data-table
+								v-if="isLoading"
+								item-key="name"
+								loading
+								loading-text="Loading playlists... Please wait"
+								class="pa-4"
+							></v-data-table>
+							<!-- Table LOADED -->
+							<v-data-table
+								v-else
+								:v-model="playlistTable[playlistLayer].Selected"
+								:headers="playlistTable[playlistLayer].Headers"
+								:items="playlistTable[playlistLayer].Items"
+								:search="playlistTable[playlistLayer].Search"
+								:sort-by="playlistTable[playlistLayer].Sort.toLowerCase()"
+								:sort-desc="playlistTable[playlistLayer].SortDesc"
+								checkbox-color="purple"
+								dense
+								expand-icon="mdi-music"
+								item-key="name"
+								no-data-text="No data! Are you signed in to Spotify?"
+								no-results-text="No playlists here :C"
+								show-expand
+								show-select
+								single-expand
+								single-select
+							>
+								<!--				Layer One Customization				-->
+								<!--	Customizing items under the name column 	-->
+								<template v-if="playlistLayer === 0" v-slot:item.name="{ item }">
+									<v-btn text @click="viewSpotifyPlaylist(item.id)">
+										{{ item.name }}
+									</v-btn>
+								</template>
+								<!--	Custom item colours using chips, set with v-slots	-->
+								<template v-if="playlistLayer === 0" v-slot:item.tracks.total="{ item }">
+									<v-chip :color="colorizeTableTracks(item.tracks.total)" dark>
+										{{ item.tracks.total }}
+									</v-chip>
+								</template>
+								<template v-if="playlistLayer === 0" v-slot:item.collaborative="{ item }">
+									<v-chip :color="colorizeTableBooleans(item.collaborative)" dark>
+										{{ item.collaborative }}
+									</v-chip>
+								</template>
+								<template v-if="playlistLayer === 0" v-slot:item.public="{ item }">
+									<v-chip :color="colorizeTableBooleans(item.public)" dark>
+										{{ item.public }}
+									</v-chip>
+								</template>
+								<!--  Expanded row  -->
+								<template v-if="playlistLayer === 0" v-slot:expanded-item="{ headers, item }" v-slot:top>
+									<td :colspan="headers.length">
+										<v-row>
+											<v-col v-if="item.images[0]" cols="4">
+												<a :href="item.external_urls.spotify" target="_blank">
+													<v-img
+														:src="item.images[0].url"
+														aspect-ratio="1"
+														class="ma-5"
+														width="350"
+													></v-img>
+												</a>
+											</v-col>
+											<v-col v-else>
+												<a :href="item.external_urls.spotify" target="_blank">Link to playlist</a>
+											</v-col>
+											<v-col v-if="item.description" cols="6">
+												<v-card class="ma-5">
+													<v-card-text>
+														{{ item.description }}
+													</v-card-text>
+												</v-card>
+											</v-col>
+											<v-col cols="2"></v-col>
+										</v-row>
+									</td>
+								</template>
+							</v-data-table>
+						</v-card>
 					</v-container>
 				</v-card>
 			</v-col>
@@ -479,61 +475,64 @@ export default {
 				'Popularity',
 			],
 			followedArtists: [],
-			// Playlist Table Selector //
-			playlistLayer: 1,
-			// Playlists Table Data (Layer 1) //
-			playlistTableSearch_L1: "",
-			playlistTableSort_L1: 'tracks.total',
-			playlistTableSortDesc_L1: true,
-			playlistTableHeaders_L1: [
+			// Playlist Data Table //
+			playlistLayer: 0,
+			playlistTable: [
 				{
-					text: 'Name',
-					value: 'name',
-					align: 'start',
-					width: 400
+					// Playlists Table Data (Layer One) //
+					// < Each item is a playlist > //
+					Search: "",
+					Sort: 'tracks.total',
+					SortDesc: true,
+					Headers: [
+						{
+							text: 'Name',
+							value: 'name',
+							align: 'start',
+							width: 400
+						},
+						{
+							text: 'Tracks',
+							value: 'tracks.total'
+						},
+						{
+							text: 'Collab',
+							value: 'collaborative'
+						},
+						{
+							text: 'Public',
+							value: 'public'
+						},
+					],
+					Items: [],
+					Selected: [],
 				},
 				{
-					text: 'Tracks',
-					value: 'tracks.total'
-				},
-				{
-					text: 'Collab',
-					value: 'collaborative'
-				},
-				{
-					text: 'Public',
-					value: 'public'
-				},
-				// {
-				// 	text: 'View',
-				// 	sortable: false,
-				// 	value: 'id'
-				// },
+					// Playlists Table Data (Layer Two) //
+					// < Each item is a track > //
+					Search: "",
+					Sort: 'added_at',
+					Desc: true,
+					Headers: [
+						{
+							text: 'Title',
+							value: 'track.name',
+							align: 'start',
+							width: 200
+						},
+						{
+							text: 'Artist',
+							value: 'track.artists[0].name'
+						},
+						{
+							text: 'Added',
+							value: 'added_at'
+						},
+					],
+					Items: [],
+					Selected: [],
+				}
 			],
-			playlistTableItems_L1: [],
-			playlistTableSelected_L1: [],
-			// Playlists Table Data (Layer 2) //
-			playlistTableSearch_L2: "",
-			playlistTableSort_L2: 'added_at',
-			playlistTableSortDesc_L2: true,
-			playlistTableHeaders_L2: [
-				{
-					text: 'Title',
-					value: 'track.name',
-					align: 'start',
-					width: 200
-				},
-				{
-					text: 'Artist',
-					value: 'track.artists[0].name'
-				},
-				{
-					text: 'Added',
-					value: 'added_at'
-				},
-			],
-			playlistTableItems_L2: [],
-			playlistTableSelected_L2: [],
 			// TODO: Recommendations Data Iterator
 			// TODO: Playback Data
 			refCount: 0,
@@ -752,25 +751,26 @@ export default {
 			}
 		},
 		// Function for getting user's saved playlists
-		getUserPlaylists(){
+		getUserPlaylists(playlist_id) {
+			let token = localStorage.getItem('spotify_access_token')
+			let baseURL = 'https://api.spotify.com/v1'
+
 			// If user is logged-in
-			if(this.spotifyLoggedIn){
-				let token = localStorage.getItem('spotify_access_token')
-				let baseURL = 'https://api.spotify.com/v1'
+			if (this.spotifyLoggedIn && this.playlistLayer === 0) {
 				let userID = localStorage.getItem('spotify_user_id')
 				axios
 					// GET request using user's ID
 					.get(`${baseURL}/users/${userID}/playlists`,
 						{
 							headers: {
-								"Authorization" : `Bearer ${token}`
+								"Authorization": `Bearer ${token}`
 							}
 						})
 					.then(response => {
 							// Log response
 							console.log("getUserPlaylists() response: ", response.data)
 							// Assign playlistTableItems to response.data.items (playlist array)
-							this.playlistTableItems_L1 = response.data.items
+							this.playlistTable[0].Items = response.data.items
 						}
 					)
 					.catch(error => {
@@ -780,43 +780,46 @@ export default {
 						// Assign spotifyError string to the value of error.message
 						this.spotifyError = error.message
 						// If error is a 401 (token has likely expired)
-						if(error.message==="Request failed with status code 401"){
+						if (error.message === "Request failed with status code 401") {
 							// Run refreshSpotifyToken() to get new access token
 							this.refreshSpotifyToken()
 						}
 					})
 			}
-		},
-		viewSpotifyPlaylist(id){
-			console.log(`viewSpotifyPlaylist(${id}) executed.`)
-			// If user is logged-in
-			if(this.spotifyLoggedIn){
-				let token = localStorage.getItem('spotify_access_token')
-				let baseURL = 'https://api.spotify.com/v1'
-				axios
-					.get(`${baseURL}/playlists/${id}/tracks`,
-						{
-							headers: {
-								"Authorization" : `Bearer ${token}`
-							}
-						})
-					.then(response => {
-							console.log("viewSpotifyPlaylist() response: ", response.data)
-							this.playlistTableItems_L2 = response.data.items
-							this.playlistLayer++
-						}
-					)
-					.catch(error => {
-						// Log error
-						console.log("viewSpotifyPlaylist() error caught: ", error)
-						console.log("viewSpotifyPlaylist() error message: ", error.message)
-						// Assign spotifyError string to the value of error.message
-						this.spotifyError = error.message
-						this.playlistLayer--
-					})
+			if(this.spotifyLoggedIn && this.playlistLayer === 1) {
+				console.log(playlist_id)
 			}
+	},
+	viewSpotifyPlaylist(id){
+		console.log(`viewSpotifyPlaylist(${id}) executed.`)
+		// If user is logged-in
+		if(this.spotifyLoggedIn){
+			let token = localStorage.getItem('spotify_access_token')
+			let baseURL = 'https://api.spotify.com/v1'
+			axios
+				.get(`${baseURL}/playlists/${id}/tracks`,
+					{
+						headers: {
+							"Authorization" : `Bearer ${token}`
+						}
+					})
+				.then(response => {
+						console.log("viewSpotifyPlaylist() response: ", response.data)
+						this.playlistTable[1].Items = response.data.items
+						this.playlistLayer++
+					}
+				)
+				.catch(error => {
+					// Log error
+					console.log("viewSpotifyPlaylist() error caught: ", error)
+					console.log("viewSpotifyPlaylist() error message: ", error.message)
+					// Assign spotifyError string to the value of error.message
+					this.spotifyError = error.message
+					this.playlistLayer--
+				})
 		}
 	}
+}
 }
 </script>
 
