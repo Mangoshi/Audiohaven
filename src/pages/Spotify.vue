@@ -302,12 +302,12 @@
 								<!-- Table LOADED -->
 								<v-data-table
 									v-else
-									:v-model="appendLayer('playlistTableSelected')"
-									:headers="appendLayer('playlistTableHeaders')"
-									:items="appendLayer('playlistTableItems')"
-									:search="appendLayer('playlistTableSearch')"
+									:v-model="playlistLayer === 1 ? playlistTableItems_L1 : playlistTableItems_L2"
+									:headers="playlistLayer === 1 ? playlistTableHeaders_L1 : playlistTableHeaders_L2"
+									:items="playlistLayer === 1 ? playlistTableItems_L1 : playlistTableItems_L2"
+									:search="playlistLayer === 1 ? playlistTableSearch_L1 : playlistTableSearch_L2"
 									:sort-by="playlistLayer === 1 ? playlistTableSort_L1.toLowerCase() : playlistTableSort_L2.toLowerCase()"
-									:sort-desc="appendLayer('playlistTableSortDesc')"
+									:sort-desc="playlistLayer === 1 ? playlistTableSortDesc_L1 : playlistTableSortDesc_L2"
 									checkbox-color="purple"
 									dense
 									expand-icon="mdi-music"
@@ -619,11 +619,6 @@ export default {
 		colorizeTableBooleans(boolean) {
 			if (boolean) return 'green'
 			else return 'red'
-		},
-		appendLayer(variable) {
-			let tempObject = {}
-			let newVariable = `${variable}_L${this.playlistLayer}`;
-			return tempObject[newVariable]
 		},
 		// Spotify Token Management //
 		checkTokens(){
