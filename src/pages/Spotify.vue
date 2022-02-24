@@ -328,7 +328,7 @@
 								<!--				Layer One Customization				-->
 								<!--	Customizing items under the name column 	-->
 								<template v-if="playlistLayer === 0" v-slot:item.name="{ item }">
-									<v-btn text @click="viewSpotifyPlaylist(item.id)">
+									<v-btn text @click="getUserPlaylists(item)">
 										{{ item.name }}
 									</v-btn>
 								</template>
@@ -751,12 +751,12 @@ export default {
 			}
 		},
 		// Function for getting user's saved playlists
-		getUserPlaylists(playlist_id) {
+		getUserPlaylists(selectedPlaylist) {
 			let token = localStorage.getItem('spotify_access_token')
 			let baseURL = 'https://api.spotify.com/v1'
 
-			// If user is logged-in
-			if (this.spotifyLoggedIn && this.playlistLayer === 0) {
+			// If user is logged-in & no playlist was passed
+			if (this.spotifyLoggedIn && !selectedPlaylist) {
 				let userID = localStorage.getItem('spotify_user_id')
 				axios
 					// GET request using user's ID
@@ -786,40 +786,37 @@ export default {
 						}
 					})
 			}
-			if(this.spotifyLoggedIn && this.playlistLayer === 1) {
-				console.log(playlist_id)
+			// If user is logged-in & a playlist was passed (selected by user)
+			if(this.spotifyLoggedIn && selectedPlaylist) {
+				console.log(`getUserPlaylists(${selectedPlaylist.id}): '${selectedPlaylist.name}' executed.`)
+				// If user is logged-in
+				if(this.spotifyLoggedIn){
+					let token = localStorage.getItem('spotify_access_token')
+					let baseURL = 'https://api.spotify.com/v1'
+					axios
+						.get(`${baseURL}/playlists/${selectedPlaylist.id}/tracks`,
+							{
+								headers: {
+									"Authorization" : `Bearer ${token}`
+								}
+							})
+						.then(response => {
+								console.log("response: ", response.data)
+								// If we get a response, assign the second layer of playlistTable to it
+								this.playlistTable[1].Items = response.data.items
+								// Increment playlistLayer so the vuetify table changes too
+								this.playlistLayer++
+							}
+						)
+						.catch(error => {
+							console.log("error caught: ", error)
+							console.log("error message: ", error.message)
+							this.spotifyError = error.message
+						})
+				}
 			}
-	},
-	viewSpotifyPlaylist(id){
-		console.log(`viewSpotifyPlaylist(${id}) executed.`)
-		// If user is logged-in
-		if(this.spotifyLoggedIn){
-			let token = localStorage.getItem('spotify_access_token')
-			let baseURL = 'https://api.spotify.com/v1'
-			axios
-				.get(`${baseURL}/playlists/${id}/tracks`,
-					{
-						headers: {
-							"Authorization" : `Bearer ${token}`
-						}
-					})
-				.then(response => {
-						console.log("viewSpotifyPlaylist() response: ", response.data)
-						this.playlistTable[1].Items = response.data.items
-						this.playlistLayer++
-					}
-				)
-				.catch(error => {
-					// Log error
-					console.log("viewSpotifyPlaylist() error caught: ", error)
-					console.log("viewSpotifyPlaylist() error message: ", error.message)
-					// Assign spotifyError string to the value of error.message
-					this.spotifyError = error.message
-					this.playlistLayer--
-				})
-		}
+		},
 	}
-}
 }
 </script>
 
