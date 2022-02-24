@@ -1,7 +1,7 @@
 <template>
 	<v-container fluid>
 
-		<v-container>
+		<v-container v-if="sampleTableEnabled">
 			<v-simple-table>
 				<template v-slot:default>
 					<thead>
@@ -275,7 +275,16 @@
 									Playlists
 									<v-spacer></v-spacer>
 									<v-text-field
-										v-model="playlistTableSearch"
+										v-if="playlistLayer === 1"
+										v-model="playlistTableSearch_L1"
+										append-icon="mdi-magnify"
+										hide-details
+										label="Search"
+										single-line
+									></v-text-field>
+									<v-text-field
+										v-else
+										v-model="playlistTableSearch_L2"
 										append-icon="mdi-magnify"
 										hide-details
 										label="Search"
@@ -293,12 +302,12 @@
 								<!-- Table LOADED -->
 								<v-data-table
 									v-else
-									v-model="playlistTableSelected"
-									:headers="playlistTableHeaders"
-									:items="playlistTableItems"
-									:search="playlistTableSearch"
-									:sort-by="playlistTableSort.toLowerCase()"
-									:sort-desc="playlistTableSortDesc"
+									:v-model="appendLayer('playlistTableSelected')"
+									:headers="appendLayer('playlistTableHeaders')"
+									:items="appendLayer('playlistTableItems')"
+									:search="appendLayer('playlistTableSearch')"
+									:sort-by="playlistLayer === 1 ? playlistTableSort_L1.toLowerCase() : playlistTableSort_L2.toLowerCase()"
+									:sort-desc="appendLayer('playlistTableSortDesc')"
 									checkbox-color="purple"
 									dense
 									expand-icon="mdi-music"
@@ -310,9 +319,14 @@
 									single-expand
 									single-select
 								>
-
-									<!--	Custom item colours using chips, set with item v-slots	-->
-									<template v-slot:item.tracks.total="{ item }">
+									<!--	Customizing items under the name column 	-->
+									<template v-if="playlistLayer === 1" v-slot:item.name="{ item }">
+										<v-btn text @click="viewSpotifyPlaylist(item.id)">
+											{{ item.name }}
+										</v-btn>
+									</template>
+									<!--	Custom item colours using chips, set with v-slots	-->
+									<template v-if="playlistLayer === 1" v-slot:item.tracks.total="{ item }">
 										<v-chip
 											:color="colorizeTableTracks(item.tracks.total)"
 											dark
@@ -320,7 +334,7 @@
 											{{ item.tracks.total }}
 										</v-chip>
 									</template>
-									<template v-slot:item.collaborative="{ item }">
+									<template v-if="playlistLayer === 1" v-slot:item.collaborative="{ item }">
 										<v-chip
 											:color="colorizeTableBooleans(item.collaborative)"
 											dark
@@ -328,7 +342,7 @@
 											{{ item.collaborative }}
 										</v-chip>
 									</template>
-									<template v-slot:item.public="{ item }">
+									<template v-if="playlistLayer === 1" v-slot:item.public="{ item }">
 										<v-chip
 											:color="colorizeTableBooleans(item.public)"
 											dark
@@ -338,7 +352,7 @@
 									</template>
 
 									<!--  Expanded row  -->
-									<template v-slot:expanded-item="{ headers, item }" v-slot:top>
+									<template v-if="playlistLayer === 1" v-slot:expanded-item="{ headers, item }" v-slot:top>
 										<td :colspan="headers.length">
 											<v-row>
 												<v-col v-if="item.images[0]" cols="4">
@@ -390,7 +404,8 @@ export default {
 	components: {},
 	data(){
 		return{
-			// Sample API Table Data
+			// Sample API Table Data //
+			sampleTableEnabled: false,
 			spotifySampleRequests: [
 				{
 					endpoint: 'N/A',
@@ -435,11 +450,11 @@ export default {
 					response: '[JSON] Snapshot ID.',
 				}
 			],
-			// Spotify Data
+			// Spotify Data //
 			spotifyLoggedIn: false,
 			spotifyError: "",
 			spotifyUserData: {},
-			// Module Data
+			// Module Data //
 			selectedModule: "userPlaylists",
 			modules: [
 				{
@@ -451,7 +466,7 @@ export default {
 					value: "followedArtists"
 				},
 			],
-			// Followed Artists Data Iterator
+			// Followed Artists Data Iterator //
 			followedArtistsPerPageArray: [4, 8, 12],
 			followedArtistSearch: '',
 			followedArtistFilter: {},
@@ -464,11 +479,13 @@ export default {
 				'Popularity',
 			],
 			followedArtists: [],
-			// Playlists Table Data
-			playlistTableSearch: "",
-			playlistTableSort: 'tracks.total',
-			playlistTableSortDesc: true,
-			playlistTableHeaders: [
+			// Playlist Table Selector //
+			playlistLayer: 1,
+			// Playlists Table Data (Layer 1) //
+			playlistTableSearch_L1: "",
+			playlistTableSort_L1: 'tracks.total',
+			playlistTableSortDesc_L1: true,
+			playlistTableHeaders_L1: [
 				{
 					text: 'Name',
 					value: 'name',
@@ -493,8 +510,30 @@ export default {
 				// 	value: 'id'
 				// },
 			],
-			playlistTableItems: [],
-			playlistTableSelected: [],
+			playlistTableItems_L1: [],
+			playlistTableSelected_L1: [],
+			// Playlists Table Data (Layer 2) //
+			playlistTableSearch_L2: "",
+			playlistTableSort_L2: 'added_at',
+			playlistTableSortDesc_L2: true,
+			playlistTableHeaders_L2: [
+				{
+					text: 'Title',
+					value: 'track.name',
+					align: 'start',
+					width: 200
+				},
+				{
+					text: 'Artist',
+					value: 'track.artists[0].name'
+				},
+				{
+					text: 'Added',
+					value: 'added_at'
+				},
+			],
+			playlistTableItems_L2: [],
+			playlistTableSelected_L2: [],
 			// TODO: Recommendations Data Iterator
 			// TODO: Playback Data
 			refCount: 0,
@@ -581,7 +620,11 @@ export default {
 			if (boolean) return 'green'
 			else return 'red'
 		},
-
+		appendLayer(variable) {
+			let tempObject = {}
+			let newVariable = `${variable}_L${this.playlistLayer}`;
+			return tempObject[newVariable]
+		},
 		// Spotify Token Management //
 		checkTokens(){
 			// If there is both an access & refresh token in the URL
@@ -653,6 +696,7 @@ export default {
 		},
 
 		// Spotify API Requests //
+		// Function for getting profile data from the user
 		getUserData(){
 			if(this.spotifyLoggedIn) {
 				let token = localStorage.getItem('spotify_access_token')
@@ -677,6 +721,7 @@ export default {
 					})
 			}
 		},
+		// Function for getting user's followed artists
 		getFollowedArtists(){
 			// If user is logged-in
 			if(this.spotifyLoggedIn){
@@ -711,6 +756,7 @@ export default {
 					})
 			}
 		},
+		// Function for getting user's saved playlists
 		getUserPlaylists(){
 			// If user is logged-in
 			if(this.spotifyLoggedIn){
@@ -729,7 +775,7 @@ export default {
 							// Log response
 							console.log("getUserPlaylists() response: ", response.data)
 							// Assign playlistTableItems to response.data.items (playlist array)
-							this.playlistTableItems = response.data.items
+							this.playlistTableItems_L1 = response.data.items
 						}
 					)
 					.catch(error => {
@@ -746,6 +792,35 @@ export default {
 					})
 			}
 		},
+		viewSpotifyPlaylist(id){
+			console.log(`viewSpotifyPlaylist(${id}) executed.`)
+			// If user is logged-in
+			if(this.spotifyLoggedIn){
+				let token = localStorage.getItem('spotify_access_token')
+				let baseURL = 'https://api.spotify.com/v1'
+				axios
+					.get(`${baseURL}/playlists/${id}/tracks`,
+						{
+							headers: {
+								"Authorization" : `Bearer ${token}`
+							}
+						})
+					.then(response => {
+							console.log("viewSpotifyPlaylist() response: ", response.data)
+							this.playlistTableItems_L2 = response.data.items
+							this.playlistLayer++
+						}
+					)
+					.catch(error => {
+						// Log error
+						console.log("viewSpotifyPlaylist() error caught: ", error)
+						console.log("viewSpotifyPlaylist() error message: ", error.message)
+						// Assign spotifyError string to the value of error.message
+						this.spotifyError = error.message
+						this.playlistLayer--
+					})
+			}
+		}
 	}
 }
 </script>
