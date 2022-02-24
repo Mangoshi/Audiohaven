@@ -323,7 +323,6 @@
 								show-expand
 								show-select
 								single-expand
-								single-select
 							>
 								<!--				Layer One Customization				-->
 								<!--	Customizing items under the name column 	-->
@@ -376,6 +375,27 @@
 										</v-row>
 									</td>
 								</template>
+
+								<!--				Layer Two Customization				-->
+								<!--	Customizing items under the title column 	-->
+								<template v-if="playlistLayer === 1" v-slot:item.track.name="{ item }">
+									<!--	Play button for track 	-->
+									<!--	TODO: Implement pause/play functionality 	-->
+									<v-btn icon @click="playTrack(item.track.id)">
+										<v-icon>mdi-play</v-icon>
+									</v-btn>
+									<!--	Link to track 	-->
+									<v-btn text>
+										<a :href="item.track.external_urls.spotify" class="black--text text-decoration-none text-capitalize">
+											{{ item.track.name }}
+										</a>
+									</v-btn>
+								</template>
+								<!--	Customizing items under the title column 	-->
+								<template v-if="playlistLayer === 1" v-slot:item.added_at="{ item }">
+										{{ dateParser(item.added_at) }}
+								</template>
+
 							</v-data-table>
 						</v-card>
 					</v-container>
@@ -512,21 +532,22 @@ export default {
 					// < Each item is a track > //
 					Search: "",
 					Sort: 'added_at',
-					Desc: true,
+					SortDesc: true,
 					Headers: [
 						{
 							text: 'Title',
 							value: 'track.name',
 							align: 'start',
-							width: 200
+							width: 300
 						},
 						{
 							text: 'Artist',
-							value: 'track.artists[0].name'
+							value: 'track.artists[0].name',
 						},
 						{
 							text: 'Added',
-							value: 'added_at'
+							value: 'added_at',
+							align: 'right'
 						},
 					],
 					Items: [],
@@ -618,6 +639,10 @@ export default {
 		colorizeTableBooleans(boolean) {
 			if (boolean) return 'green'
 			else return 'red'
+		},
+		dateParser(date){
+			const parsedDate = new Date(date)
+			return(`${parsedDate.getDate()}-${parsedDate.getMonth() +1}-${parsedDate.getFullYear()}`)
 		},
 		// Spotify Token Management //
 		checkTokens(){
