@@ -438,6 +438,7 @@ export default {
 			// Spotify Data
 			spotifyLoggedIn: false,
 			spotifyError: "",
+			spotifyUserData: {},
 			// Module Data
 			selectedModule: "userPlaylists",
 			modules: [
@@ -512,6 +513,7 @@ export default {
 	mounted(){
 		this.checkTokens()
 		this.checkSpotifyLogin()
+		this.getUserData()
 		this.getFollowedArtists()
 		this.getUserPlaylists()
 	},
@@ -651,6 +653,30 @@ export default {
 		},
 
 		// Spotify API Requests //
+		getUserData(){
+			if(this.spotifyLoggedIn) {
+				let token = localStorage.getItem('spotify_access_token')
+				let baseURL = 'https://api.spotify.com/v1'
+				axios
+					.get(`${baseURL}/me/`,
+						{
+							headers: {
+								"Authorization": `Bearer ${token}`
+							}
+						})
+					.then(response => {
+							console.log("getUserData() response: ", response.data)
+							this.spotifyUserData = response.data
+							localStorage.setItem('spotify_user_id', response.data.id)
+						}
+					)
+					.catch(error => {
+						console.log("getUserData() error caught: ", error)
+						console.log("getUserData() error message: ", error.message)
+						this.spotifyError = error.message
+					})
+			}
+		},
 		getFollowedArtists(){
 			// If user is logged-in
 			if(this.spotifyLoggedIn){
@@ -690,8 +716,7 @@ export default {
 			if(this.spotifyLoggedIn){
 				let token = localStorage.getItem('spotify_access_token')
 				let baseURL = 'https://api.spotify.com/v1'
-				// TODO: Save User's ID to localStorage for use here!
-				let userID = 1174214454
+				let userID = localStorage.getItem('spotify_user_id')
 				axios
 					// GET request using user's ID
 					.get(`${baseURL}/users/${userID}/playlists`,
