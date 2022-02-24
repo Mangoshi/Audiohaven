@@ -33,8 +33,10 @@
 			<v-spacer>
 
 			</v-spacer>
+			<!--	System-bar toggle button	-->
+			<v-btn icon @click="toggleSystemBar()"><v-icon>mdi-play-pause</v-icon></v-btn>
 			<!--	Dark/Light mode toggle button	-->
-			<v-btn icon style="margin-right: 10px" class=""><v-icon>mdi-brightness-4</v-icon></v-btn>
+			<v-btn icon style="margin-right: 15px"><v-icon>mdi-brightness-4</v-icon></v-btn>
 			<!--	Log-out button (bg colour = accent & text colour = black)	-->
 			<v-btn v-if="$store.state.loggedIn" class="accent black--text" @click="logout()">Log Out</v-btn>
 		</v-app-bar>
@@ -47,7 +49,7 @@
 		</v-main>
 
 		<!-- Status Bar -->
-		<SystemBar></SystemBar>
+		<SystemBar v-if="systemBar"></SystemBar>
 
 	</v-app>
 </template>
@@ -60,7 +62,8 @@ export default {
 	name: 'App',
 	components: { SystemBar },
 	data: () => ({
-		drawer: false
+		drawer: false,
+		systemBar: false
 	}),
 	created(){
 		if (localStorage.getItem('token')){
@@ -74,6 +77,9 @@ export default {
 			this.$store.dispatch('logout')
 			this.$router.replace("/")
 		},
+		toggleSystemBar() {
+				this.systemBar = !this.systemBar
+		}
 	},
 	computed: {
 		currentRouteName() {
