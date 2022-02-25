@@ -386,23 +386,24 @@
 										<v-icon>mdi-play</v-icon>
 									</v-btn>
 									<!--	Link to track 	-->
-									<v-btn text>
-										<a :href="item.track.external_urls.spotify" target="_blank" class="black--text text-decoration-none text-capitalize">
+									<a :href="item.track.external_urls.spotify" target="_blank" class="black--text text-decoration-none">
+										<v-btn text class="text-capitalize">
 											{{ item.track.name }}
-										</a>
-									</v-btn>
+										</v-btn>
+									</a>
+
 								</template>
 								<!--	Customizing items under the artist column 	-->
 								<template v-if="playlistLayer === 1" v-slot:item.track.artists[0].name="{ item }">
-									<v-btn text>
-										<a :href="item.track.artists[0].external_urls.spotify" target="_blank" class="black--text text-decoration-none text-capitalize">
+									<a :href="item.track.artists[0].external_urls.spotify" target="_blank" class="black--text text-decoration-none">
+										<v-btn text class="text-capitalize">
 											{{ item.track.artists[0].name }}
-										</a>
-									</v-btn>
+										</v-btn>
+									</a>
 								</template>
 								<!--	Customizing items under the added column 	-->
 								<template v-if="playlistLayer === 1" v-slot:item.added_at="{ item }">
-										{{ dateParser(item.added_at) }}
+									{{ dateParser(item.added_at) }}
 								</template>
 								<!--  Layer Two Expanded row  -->
 								<template v-if="playlistLayer === 1" v-slot:expanded-item="{ headers, item }" v-slot:top>
