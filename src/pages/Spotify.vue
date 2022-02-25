@@ -70,7 +70,7 @@
 			<div>Loading... ({{refCount}})</div>
 		</div>
 
-		<v-row v-if="spotifyLoggedIn && !spotifyError">
+		<v-row v-if="spotifyLoggedIn && spotifyError!=='Request failed with status code 401'">
 			<v-col cols="0" md="1" lg="2"></v-col>
 			<v-col cols="12" md="10" lg="8">
 				<!-- Module Container -->
@@ -381,7 +381,7 @@
 								<template v-if="playlistLayer === 1" v-slot:item.track.name="{ item }">
 									<!--	Play button for track 	-->
 									<!--	TODO: Implement pause/play functionality 	-->
-									<v-btn icon @click="playTrack(item.track.id)">
+									<v-btn icon @click="playSpotifyTrack(item)">
 										<v-icon>mdi-play</v-icon>
 									</v-btn>
 									<!--	Link to track 	-->
@@ -841,6 +841,33 @@ export default {
 				}
 			}
 		},
+		// TODO: Buy Spotify premium? ;_;
+		playSpotifyTrack(selected) {
+			console.log(`playSpotifyTrack(${selected.track.name})`)
+			let token = localStorage.getItem('spotify_access_token')
+			let baseURL = 'https://api.spotify.com/v1'
+			console.log(selected.track.uri)
+			let postData = {
+				"uri" : selected.track.uri
+			}
+			axios
+				.post(`${baseURL}/me/player/queue`, postData,
+					{
+						headers: {
+							"Authorization" : `Bearer ${token}`
+						}
+					})
+				.then(response => {
+						console.log("playSpotifyTrack() response: ", response.data)
+					}
+				)
+				.catch(error => {
+					console.log("playSpotifyTrack() error caught: ", error)
+					console.log("playSpotifyTrack() error message: ", error.message)
+					this.spotifyError = `${error.message}...\n
+						Spotify wants our money for this feature :C`
+				})
+		}
 	}
 }
 </script>
