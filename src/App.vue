@@ -2,31 +2,27 @@
 	<v-app id="app">
 
 		<!--Sidebar-->
-		<!--	TODO: Manage sidebar state https://stackoverflow.com/questions/40780730/vue-js-changing-props		-->
-		<v-navigation-drawer
-			v-model="drawer"
-			app
-		>
-			<v-list>
-				<!-- Sidebar link list -->
-				<v-list-item-group>
-					<!-- Home Page -->
-					<v-list-item class="mb-10 sideLink" to="/">
-						<router-link to="/"><v-icon size="36" color="purple">mdi-home</v-icon>&nbsp;Home</router-link>
-					</v-list-item>
-					<!-- Spotify Page -->
-					<v-list-item class="mb-10 sideLink" to="Spotify">
-						<router-link to="Spotify"><v-icon size="36" color="green">mdi-spotify</v-icon>&nbsp;Spotify</router-link>
-					</v-list-item>
-				</v-list-item-group>
-			</v-list>
-		</v-navigation-drawer>
+		<!--	side-bar-value is the prop used to control the sidebar state	-->
+		<!--	v-click-outside is a Vuetify directive allowing for a handler, -->
+		<!--	invoked when the user clicks outside the target element. -->
+		<!--	handler = function executed when user clicks outside the sidebar -->
+		<!--	include = in this case, includes any element with class="include"	-->
+		<!--	eg: the button used to open the sidebar must be included, or it fires the event on-click	-->
+		<NavSideBar
+			:side-bar-value="sideBar"
+			v-click-outside="{ handler: onClickOutside, include: include }"
+		> <!--
+			TODO: Figure out how to assign sideBar to 'false' when a router link is clicked..
+			Have tried it on NavSideBar.vue scope but it doesn't change the value here..
+			Also tried swapping it on mounted & created on both, nada.
+			-->
+		</NavSideBar>
 		<!--End sidebar-->
 
 		<!-- Navbar -->
 		<v-app-bar app>
 			<!-- Sidebar hamburger button (only active when logged in) -->
-			<v-app-bar-nav-icon v-if="$store.state.loggedIn" @click="drawer = !drawer"></v-app-bar-nav-icon>
+			<v-app-bar-nav-icon v-if="$store.state.loggedIn" @click="toggleSideBar()" class="included"></v-app-bar-nav-icon>
 			<!-- Page title : x + {{ route's title }} -->
 			<v-toolbar-title>AudioHaven 🛠 {{ currentRouteName }}</v-toolbar-title>
 			<!-- Spacer -->
@@ -34,7 +30,7 @@
 
 			</v-spacer>
 			<!--	System-bar toggle button	-->
-			<v-btn icon @click="toggleSystemBar()"><v-icon>mdi-play-pause</v-icon></v-btn>
+			<v-btn v-if="$store.state.loggedIn" icon @click="toggleSystemBar()"><v-icon>mdi-play-pause</v-icon></v-btn>
 			<!--	Dark/Light mode toggle button	-->
 			<v-btn icon style="margin-right: 15px"><v-icon>mdi-brightness-4</v-icon></v-btn>
 			<!--	Log-out button (bg colour = accent & text colour = black)	-->
@@ -56,13 +52,14 @@
 
 <script>
 import { mapState } from 'vuex'
-import SystemBar from "@/components/SystemBar";
+import SystemBar from "./components/SystemBar";
+import NavSideBar from "./components/NavSideBar";
 
 export default {
 	name: 'App',
-	components: { SystemBar },
+	components: { SystemBar, NavSideBar },
 	data: () => ({
-		drawer: false,
+		sideBar: false,
 		systemBar: false
 	}),
 	created(){
@@ -79,7 +76,17 @@ export default {
 		},
 		toggleSystemBar() {
 				this.systemBar = !this.systemBar
-		}
+		},
+		toggleSideBar() {
+			this.sideBar = !this.sideBar
+		},
+		onClickOutside() {
+			if(this.sideBar)
+			this.sideBar = false
+		},
+		include() {
+			return [document.querySelector('.included')]
+		},
 	},
 	computed: {
 		currentRouteName() {

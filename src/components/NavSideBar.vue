@@ -1,18 +1,15 @@
 <template>
-	<!--Sidebar-->
-	<v-navigation-drawer
-		v-model="drawer"
-		app
-	>
+	<v-navigation-drawer app :value="sideBarValue">
 		<v-list>
+			<!-- Sidebar link list -->
 			<v-list-item-group>
 				<!-- Home Page -->
-				<v-list-item class="mb-10" to="/">
-					<router-link to="/"><v-icon>mdi-home</v-icon>&nbsp;Home</router-link>
+				<v-list-item class="mb-10 sideLink" to="/" @click="sideBarValue=!sideBarValue">
+					<router-link to="/"><v-icon size="36" color="purple">mdi-home</v-icon>&nbsp;Home</router-link>
 				</v-list-item>
 				<!-- Spotify Page -->
-				<v-list-item class="mb-10" to="/">
-					<router-link to="Spotify"><v-icon>mdi-spotify</v-icon>&nbsp;Spotify</router-link>
+				<v-list-item class="mb-10 sideLink" to="Spotify" @click="sideBarValue=!sideBarValue">
+					<router-link to="Spotify"><v-icon size="36" color="green">mdi-spotify</v-icon>&nbsp;Spotify</router-link>
 				</v-list-item>
 			</v-list-item-group>
 		</v-list>
@@ -22,9 +19,10 @@
 <script>
 export default {
 	name: "NavSideBar",
-	props: {
-		drawer: Boolean
+	methods: {
+
 	},
+	props: ['sideBarValue']
 }
 </script>
 
