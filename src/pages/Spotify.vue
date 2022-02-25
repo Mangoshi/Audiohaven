@@ -71,8 +71,8 @@
 		</div>
 
 		<v-row v-if="spotifyLoggedIn && spotifyError!=='Request failed with status code 401'">
-			<v-col cols="0" md="1" lg="2"></v-col>
-			<v-col cols="12" md="10" lg="8">
+			<v-col cols="0" lg="2" md="1"></v-col>
+			<v-col cols="12" lg="8" md="10">
 				<!-- Module Container -->
 				<v-card>
 					<!-- Module Selector -->
@@ -88,7 +88,7 @@
 					</v-container>
 
 					<!--	Followed Artists Data Iterator	-->
-					<v-container fluid v-if="selectedModule === 'followedArtists'">
+					<v-container v-if="selectedModule === 'followedArtists'" fluid>
 						<!--	If there is a token && no Spotify errors  -->
 						<div v-if="spotifyLoggedIn && !spotifyError">
 							<v-card>
@@ -102,8 +102,8 @@
 									:search="followedArtistSearch"
 									:sort-by="followedArtistSortBy.toLowerCase()"
 									:sort-desc="followedArtistSortDesc"
-									hide-default-footer
 									class="pa-4"
+									hide-default-footer
 								>
 									<template v-slot:header>
 										<v-toolbar
@@ -267,14 +267,14 @@
 					</v-container>
 
 					<!--	My Playlists Module	-->
-					<v-container fluid v-if="selectedModule === 'userPlaylists'">
+					<v-container v-if="selectedModule === 'userPlaylists'" fluid>
 						<!--	If there is a token && no Spotify errors  -->
 						<v-card>
 							<v-card-title>
 								<v-btn
-									icon
 									v-if="playlistLayer !== 0"
 									class="mr-2"
+									icon
 									@click="playlistLayer = playlistLayer-1"
 								><v-icon>mdi-arrow-left</v-icon>
 								</v-btn>
@@ -300,21 +300,21 @@
 							<!-- Table LOADING -->
 							<v-data-table
 								v-if="isLoading"
+								class="pa-4"
 								item-key="name"
 								loading
 								loading-text="Loading playlists... Please wait"
-								class="pa-4"
 							></v-data-table>
 							<!-- Table LOADED -->
 							<!-- TODO: Fix row expansion within dynamic data-table -->
 							<v-data-table
 								v-else
-								:v-model="playlistTable[playlistLayer].Selected"
 								:headers="playlistTable[playlistLayer].Headers"
 								:items="playlistTable[playlistLayer].Items"
 								:search="playlistTable[playlistLayer].Search"
 								:sort-by="playlistTable[playlistLayer].Sort.toLowerCase()"
 								:sort-desc="playlistTable[playlistLayer].SortDesc"
+								:v-model="playlistTable[playlistLayer].Selected"
 								checkbox-color="purple"
 								dense
 								expand-icon="mdi-music"
@@ -325,10 +325,11 @@
 								show-select
 								single-expand
 							>
+
 								<!--				Layer One Customization				-->
 								<!--	Customizing items under the name column 	-->
 								<template v-if="playlistLayer === 0" v-slot:item.name="{ item }">
-									<v-btn text @click="getUserPlaylists(item)" class="text-capitalize">
+									<v-btn class="text-capitalize" text @click="getUserPlaylists(item)">
 										{{ item.name }}
 									</v-btn>
 								</template>
@@ -386,17 +387,24 @@
 										<v-icon>mdi-play</v-icon>
 									</v-btn>
 									<!--	Link to track 	-->
-									<a :href="item.track.external_urls.spotify" target="_blank" class="black--text text-decoration-none">
-										<v-btn text class="text-capitalize">
+									<a
+										:href="item.track.external_urls.spotify"
+										class="black--text text-decoration-none"
+										target="_blank"
+									>
+										<v-btn class="text-capitalize" text>
 											{{ item.track.name }}
 										</v-btn>
 									</a>
-
 								</template>
 								<!--	Customizing items under the artist column 	-->
 								<template v-if="playlistLayer === 1" v-slot:item.track.artists[0].name="{ item }">
-									<a :href="item.track.artists[0].external_urls.spotify" target="_blank" class="black--text text-decoration-none">
-										<v-btn text class="text-capitalize">
+									<a
+										:href="item.track.artists[0].external_urls.spotify"
+										class="black--text text-decoration-none"
+										target="_blank"
+									>
+										<v-btn class="text-capitalize" text>
 											{{ item.track.artists[0].name }}
 										</v-btn>
 									</a>
@@ -443,7 +451,7 @@
 					</v-container>
 				</v-card>
 			</v-col>
-			<v-col cols="0" md="1" lg="2"></v-col>
+			<v-col cols="0" lg="2" md="1"></v-col>
 		</v-row>
 	</v-container>
 </template>
