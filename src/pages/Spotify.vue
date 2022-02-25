@@ -306,6 +306,7 @@
 								class="pa-4"
 							></v-data-table>
 							<!-- Table LOADED -->
+							<!-- TODO: Fix row expansion within dynamic data-table -->
 							<v-data-table
 								v-else
 								:v-model="playlistTable[playlistLayer].Selected"
@@ -327,7 +328,7 @@
 								<!--				Layer One Customization				-->
 								<!--	Customizing items under the name column 	-->
 								<template v-if="playlistLayer === 0" v-slot:item.name="{ item }">
-									<v-btn text @click="getUserPlaylists(item)">
+									<v-btn text @click="getUserPlaylists(item)" class="text-capitalize">
 										{{ item.name }}
 									</v-btn>
 								</template>
@@ -347,7 +348,7 @@
 										{{ item.public }}
 									</v-chip>
 								</template>
-								<!--  Expanded row  -->
+								<!--  Layer One Expanded row  -->
 								<template v-if="playlistLayer === 0" v-slot:expanded-item="{ headers, item }" v-slot:top>
 									<td :colspan="headers.length">
 										<v-row>
@@ -386,14 +387,54 @@
 									</v-btn>
 									<!--	Link to track 	-->
 									<v-btn text>
-										<a :href="item.track.external_urls.spotify" class="black--text text-decoration-none text-capitalize">
+										<a :href="item.track.external_urls.spotify" target="_blank" class="black--text text-decoration-none text-capitalize">
 											{{ item.track.name }}
 										</a>
 									</v-btn>
 								</template>
-								<!--	Customizing items under the title column 	-->
+								<!--	Customizing items under the artist column 	-->
+								<template v-if="playlistLayer === 1" v-slot:item.track.artists[0].name="{ item }">
+									<v-btn text>
+										<a :href="item.track.artists[0].external_urls.spotify" target="_blank" class="black--text text-decoration-none text-capitalize">
+											{{ item.track.artists[0].name }}
+										</a>
+									</v-btn>
+								</template>
+								<!--	Customizing items under the added column 	-->
 								<template v-if="playlistLayer === 1" v-slot:item.added_at="{ item }">
 										{{ dateParser(item.added_at) }}
+								</template>
+								<!--  Layer Two Expanded row  -->
+								<template v-if="playlistLayer === 1" v-slot:expanded-item="{ headers, item }" v-slot:top>
+									<td :colspan="headers.length">
+										<v-row>
+											<v-col v-if="item.track.album.images[0].url" cols="4">
+												<a :href="item.track.preview_url" target="_blank">
+													<v-img
+														:src="item.track.album.images[0].url"
+														aspect-ratio="1"
+														class="ma-5"
+														width="350"
+													></v-img>
+												</a>
+											</v-col>
+											<v-col v-else>
+												<a :href="item.track.preview_url" target="_blank">Link to playlist</a>
+											</v-col>
+											<v-col v-if="item.track.album.name" cols="6">
+												<v-card class="ma-5">
+													<v-card-text>
+														<small>Album:</small> {{ item.track.album.name }}
+														<br>
+														<small>Artist:</small> {{ item.track.artists[0].name }}
+														<br>
+														<small>Track:</small> {{ item.track.name }}
+													</v-card-text>
+												</v-card>
+											</v-col>
+											<v-col cols="2"></v-col>
+										</v-row>
+									</td>
 								</template>
 
 							</v-data-table>
@@ -631,14 +672,14 @@ export default {
 
 		// Data Table Methods //
 		colorizeTableTracks(tracks) {
-			if (tracks > 250) return 'red'
-			else if (tracks > 100) return 'orange'
-			else if (tracks <= 100 && tracks > 0) return 'green'
-			else return 'black'
+			if (tracks > 250) return 'purple'
+			else if (tracks > 100) return 'purple darken-2'
+			else if (tracks <= 100 && tracks > 0) return 'purple darken-4'
+			else return '#333'
 		},
 		colorizeTableBooleans(boolean) {
-			if (boolean) return 'green'
-			else return 'red'
+			if (boolean) return 'purple darken-4'
+			else return '#333'
 		},
 		dateParser(date){
 			const parsedDate = new Date(date)
