@@ -306,27 +306,30 @@
 								loading-text="Loading playlists... Please wait"
 							></v-data-table>
 							<!-- Table LOADED -->
-							<!-- TODO: Fix row expansion within dynamic data-table -->
+							<!--  TODO: Fix row expansion within dynamic data-table -->
+							<!--  Item-key was the main issue, but have that fixed now  -->
+							<!--  Current problem is that layer 0 expansion is now broken..  -->
+							<!--  Hard-coding it to name / track.name works but not dynamically?  -->
 							<v-data-table
-								v-else
-								:headers="playlistTable[playlistLayer].Headers"
-								:items="playlistTable[playlistLayer].Items"
-								:search="playlistTable[playlistLayer].Search"
-								:sort-by="playlistTable[playlistLayer].Sort.toLowerCase()"
-								:sort-desc="playlistTable[playlistLayer].SortDesc"
-								:v-model="playlistTable[playlistLayer].Selected"
-								checkbox-color="purple"
-								dense
-								expand-icon="mdi-music"
-								item-key="name"
-								no-data-text="No data! Are you signed in to Spotify?"
-								no-results-text="No playlists here :C"
-								show-expand
-								show-select
-								single-expand
-							>
+							v-else
+							:headers="playlistTable[playlistLayer].Headers"
+							:items="playlistTable[playlistLayer].Items"
+							:search="playlistTable[playlistLayer].Search"
+							:sort-by="playlistTable[playlistLayer].Sort.toLowerCase()"
+							:sort-desc="playlistTable[playlistLayer].SortDesc"
+							:v-model="playlistTable[playlistLayer].Selected"
+							checkbox-color="purple"
+							dense
+							expand-icon="mdi-music"
+							:item-key="playlistTable[playlistLayer].Headers[0].value"
+							no-data-text="No data! Are you signed in to Spotify?"
+							no-results-text="No playlists here :C"
+							show-expand
+							show-select
+							single-expand
+						>
 
-								<!--				Layer One Customization				-->
+							<!--				Layer One Customization				-->
 								<!--	Customizing items under the name column 	-->
 								<template v-if="playlistLayer === 0" v-slot:item.name="{ item }">
 									<v-btn class="text-capitalize" text @click="getUserPlaylists(item)">
