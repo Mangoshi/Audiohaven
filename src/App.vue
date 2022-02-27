@@ -2,7 +2,6 @@
 	<v-app id="app">
 
 		<!--Sidebar-->
-		<!--	TODO: Manage sidebar state https://stackoverflow.com/questions/40780730/vue-js-changing-props		-->
 		<v-navigation-drawer
 			v-model="drawer"
 			app

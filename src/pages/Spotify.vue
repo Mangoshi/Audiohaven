@@ -304,12 +304,6 @@
 								loading-text="Loading playlists... Please wait"
 							></v-data-table>
 							<!-- Table LOADED -->
-							<!--  TODO: Fix row expansion within dynamic data-table -->
-							<!--  Item-key was the main issue, but have that fixed now  -->
-							<!--  Current problem is that layer 0 expansion is now broken..  -->
-							<!--  Hard-coding it to name / track.name works but not dynamically?  -->
-							<!--  Another problem: since we're using name as key, duplicate titles cause search to crash.. -->
-							<!--  Yet ID has been tricky, and seemed to fail a lot more than value (O_O) -->
 							<v-data-table
 								v-else
 								:expanded.sync="playlistTable[playlistLayer].Expanded"
@@ -357,7 +351,8 @@
 								<!--	Customizing items under the title column 	-->
 								<template v-if="playlistLayer === 1" v-slot:item.track.name="{ item }">
 									<!--	Play button for track 	-->
-									<!--	TODO: Implement pause/play functionality 	-->
+									<!--	TODO: Implement pause/play functionality? -->
+									<!--  ( May require hacky code without Spotify Premium.. ) -->
 									<v-btn icon @click="playSpotifyTrack(item)">
 										<v-icon>mdi-play</v-icon>
 									</v-btn>
