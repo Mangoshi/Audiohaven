@@ -279,29 +279,24 @@
 								><v-icon>mdi-arrow-left</v-icon>
 								</v-btn>
 								Playlists
-								<v-spacer></v-spacer>
 								<v-text-field
-									v-if="playlistLayer === 0"
-									v-model="playlistTable[0].Search"
+									v-model="playlistTable[playlistLayer].Search"
 									append-icon="mdi-magnify"
+									class="pl-8 pr-8 mt-n3"
 									hide-details
 									label="Search"
 									single-line
 								></v-text-field>
-								<v-text-field
-									v-if="playlistLayer === 1"
-									v-model="playlistTable[1].Search"
-									append-icon="mdi-magnify"
-									hide-details
-									label="Search"
-									single-line
-								></v-text-field>
+								<v-switch
+									v-model="playlistTable[playlistLayer].singleExpand"
+									class="mb-n3"
+									label="Single expand"
+								></v-switch>
 							</v-card-title>
 							<!-- Table LOADING -->
 							<v-data-table
 								v-if="isLoading"
-								class="pa-4"
-								item-key="name"
+								:item-key="playlistTable[playlistLayer].Headers[0].value"
 								loading
 								loading-text="Loading playlists... Please wait"
 							></v-data-table>
@@ -310,26 +305,27 @@
 							<!--  Item-key was the main issue, but have that fixed now  -->
 							<!--  Current problem is that layer 0 expansion is now broken..  -->
 							<!--  Hard-coding it to name / track.name works but not dynamically?  -->
+							<!--  Another problem: since we're using name as key, duplicate titles cause search to crash.. -->
+							<!--  Yet ID has been tricky, and seemed to fail a lot more than value (O_O) -->
 							<v-data-table
-							v-else
-							:headers="playlistTable[playlistLayer].Headers"
-							:items="playlistTable[playlistLayer].Items"
-							:search="playlistTable[playlistLayer].Search"
-							:sort-by="playlistTable[playlistLayer].Sort.toLowerCase()"
-							:sort-desc="playlistTable[playlistLayer].SortDesc"
-							:v-model="playlistTable[playlistLayer].Selected"
-							checkbox-color="purple"
-							dense
-							expand-icon="mdi-music"
-							:item-key="playlistTable[playlistLayer].Headers[0].value"
-							no-data-text="No data! Are you signed in to Spotify?"
-							no-results-text="No playlists here :C"
-							show-expand
-							show-select
-							single-expand
-						>
-
-							<!--				Layer One Customization				-->
+								v-else
+								:expanded.sync="playlistTable[playlistLayer].Expanded"
+								:headers="playlistTable[playlistLayer].Headers"
+								:item-key="playlistTable[playlistLayer].Headers[0].value"
+								:items="playlistTable[playlistLayer].Items"
+								:search="playlistTable[playlistLayer].Search"
+								:single-expand="playlistTable[playlistLayer].singleExpand"
+								:sort-by="playlistTable[playlistLayer].Sort.toLowerCase()"
+								:sort-desc="playlistTable[playlistLayer].SortDesc"
+								:v-model="playlistTable[playlistLayer].Selected"
+								checkbox-color="purple"
+								expand-icon="mdi-music"
+								no-data-text="No data! Are you signed in to Spotify?"
+								no-results-text="No results :C"
+								show-expand
+								show-select
+							>
+								<!--				Layer One Customization				-->
 								<!--	Customizing items under the name column 	-->
 								<template v-if="playlistLayer === 0" v-slot:item.name="{ item }">
 									<v-btn class="text-capitalize" text @click="getUserPlaylists(item)">
@@ -579,6 +575,8 @@ export default {
 					],
 					Items: [],
 					Selected: [],
+					singleExpand: true,
+					Expanded: [],
 				},
 				{
 					// Playlists Table Data (Layer Two) //
@@ -605,6 +603,8 @@ export default {
 					],
 					Items: [],
 					Selected: [],
+					singleExpand: true,
+					Expanded: [],
 				}
 			],
 			// TODO: Recommendations Data Iterator
