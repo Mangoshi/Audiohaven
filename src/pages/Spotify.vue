@@ -283,17 +283,17 @@
 									v-model="playlistTable[playlistLayer].Search"
 									append-icon="mdi-magnify"
 									class="pl-8 pr-8 mt-n3"
+									clearable
+									color="purple"
 									hide-details
 									label="Search"
 									single-line
-									clearable
-									color="purple"
 								></v-text-field>
 								<v-switch
 									v-model="playlistTable[playlistLayer].singleExpand"
 									class="mb-n3"
-									label="Single expand"
 									color="purple"
+									label="Single expand"
 								></v-switch>
 							</v-card-title>
 							<!-- Table LOADING -->
@@ -328,6 +328,7 @@
 								show-expand
 								show-select
 							>
+
 								<!--				Layer One Customization				-->
 								<!--	Customizing items under the name column 	-->
 								<template v-if="playlistLayer === 0" v-slot:item.name="{ item }">
@@ -350,66 +351,6 @@
 									<v-chip :color="colorizeTableBooleans(item.public)" dark>
 										{{ item.public }}
 									</v-chip>
-								</template>
-								<!--  Layer One Expanded row  -->
-								<template v-slot:expanded-item="{ headers, item }" v-slot:top>
-
-									<td :colspan="headers.length">
-										<div v-if="playlistLayer === 0">
-											<v-row>
-												<v-col v-if="item.images[0]" cols="4">
-													<a :href="item.external_urls.spotify" target="_blank">
-														<v-img
-															:src="item.images[0].url"
-															aspect-ratio="1"
-															class="ma-5"
-															width="350"
-														></v-img>
-													</a>
-												</v-col>
-												<v-col v-else>
-													<a :href="item.external_urls.spotify" target="_blank">Link to playlist</a>
-												</v-col>
-												<v-col v-if="item.description" cols="6">
-													<v-card class="ma-5">
-														<v-card-text>
-															{{ item.description }}
-														</v-card-text>
-													</v-card>
-												</v-col>
-												<v-col cols="2"></v-col>
-											</v-row>
-										</div>
-										<div v-else>
-											<v-row>
-												<v-col v-if="item.track.album.images[0].url" cols="4">
-													<a :href="item.track.preview_url" target="_blank">
-														<v-img
-															:src="item.track.album.images[0].url"
-															aspect-ratio="1"
-															class="ma-5"
-															width="350"
-														></v-img>
-													</a>
-												</v-col>
-												<v-col v-else>
-													<a :href="item.track.preview_url" target="_blank">Link to playlist</a>
-												</v-col>
-												<v-col v-if="item.track.album.name" cols="6">
-													<v-card class="ma-5">
-														<v-card-text>
-															<small>Album:</small> {{ item.track.album.name }}
-															<br>
-															<small>Artist:</small> {{ item.track.artists[0].name }}
-															<br>
-															<small>Track:</small> {{ item.track.name }}
-														</v-card-text>
-													</v-card>
-												</v-col>
-												<v-col cols="2"></v-col>
-											</v-row>
-										</div>
-									</td>
 								</template>
 
 								<!--				Layer Two Customization				-->
@@ -447,8 +388,70 @@
 								<template v-if="playlistLayer === 1" v-slot:item.added_at="{ item }">
 									{{ dateParser(item.added_at) }}
 								</template>
-							</v-data-table>
 
+								<!--  Data Table: Expanded Rows  -->
+								<!--  Layer One  -->
+								<template v-slot:expanded-item="{ headers, item }" v-slot:top>
+									<td :colspan="headers.length">
+										<div v-if="playlistLayer === 0">
+											<v-row>
+												<v-col v-if="item.images[0]" cols="4">
+													<a :href="item.external_urls.spotify" target="_blank">
+														<v-img
+															:src="item.images[0].url"
+															aspect-ratio="1"
+															class="ma-5"
+															width="350"
+														></v-img>
+													</a>
+												</v-col>
+												<v-col v-else>
+													<a :href="item.external_urls.spotify" target="_blank">Link to playlist</a>
+												</v-col>
+												<v-col v-if="item.description" cols="6">
+													<v-card class="ma-5">
+														<v-card-text>
+															{{ item.description }}
+														</v-card-text>
+													</v-card>
+												</v-col>
+												<v-col cols="2"></v-col>
+											</v-row>
+										</div>
+										<!--  Layer Two  -->
+										<div v-else>
+											<v-row>
+												<v-col v-if="item.track.album.images[0].url" cols="4">
+													<a :href="item.track.preview_url" target="_blank">
+														<v-img
+															:src="item.track.album.images[0].url"
+															aspect-ratio="1"
+															class="ma-5"
+															width="350"
+														></v-img>
+													</a>
+												</v-col>
+												<v-col v-else>
+													<a :href="item.track.preview_url" target="_blank">Link to playlist</a>
+												</v-col>
+												<v-col v-if="item.track.album.name" cols="6">
+													<v-card class="ma-5">
+														<v-card-text>
+															<small>Album:</small> {{ item.track.album.name }}
+															<br>
+															<small>Artist:</small> {{ item.track.artists[0].name }}
+															<br>
+															<small>Track:</small> {{ item.track.name }}
+														</v-card-text>
+													</v-card>
+												</v-col>
+												<v-col cols="2"></v-col>
+											</v-row>
+										</div>
+									</td>
+								</template>
+
+							</v-data-table>
 						</v-card>
 					</v-container>
 				</v-card>
@@ -558,6 +561,11 @@ export default {
 					SortDesc: true,
 					Headers: [
 						{
+							text: 'ID',
+							value: 'id',
+							align: ' d-none' // ' d-none' hides the column but keeps the search ability
+						},
+						{
 							text: 'Name',
 							value: 'name',
 							align: 'start',
@@ -588,6 +596,11 @@ export default {
 					Sort: 'added_at',
 					SortDesc: true,
 					Headers: [
+						{
+							text: 'ID',
+							value: 'track.id',
+							align: ' d-none'
+						},
 						{
 							text: 'Title',
 							value: 'track.name',
