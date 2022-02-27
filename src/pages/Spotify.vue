@@ -286,11 +286,14 @@
 									hide-details
 									label="Search"
 									single-line
+									clearable
+									color="purple"
 								></v-text-field>
 								<v-switch
 									v-model="playlistTable[playlistLayer].singleExpand"
 									class="mb-n3"
 									label="Single expand"
+									color="purple"
 								></v-switch>
 							</v-card-title>
 							<!-- Table LOADING -->
@@ -349,31 +352,63 @@
 									</v-chip>
 								</template>
 								<!--  Layer One Expanded row  -->
-								<template v-if="playlistLayer === 0" v-slot:expanded-item="{ headers, item }" v-slot:top>
+								<template v-slot:expanded-item="{ headers, item }" v-slot:top>
+
 									<td :colspan="headers.length">
-										<v-row>
-											<v-col v-if="item.images[0]" cols="4">
-												<a :href="item.external_urls.spotify" target="_blank">
-													<v-img
-														:src="item.images[0].url"
-														aspect-ratio="1"
-														class="ma-5"
-														width="350"
-													></v-img>
-												</a>
-											</v-col>
-											<v-col v-else>
-												<a :href="item.external_urls.spotify" target="_blank">Link to playlist</a>
-											</v-col>
-											<v-col v-if="item.description" cols="6">
-												<v-card class="ma-5">
-													<v-card-text>
-														{{ item.description }}
-													</v-card-text>
-												</v-card>
-											</v-col>
-											<v-col cols="2"></v-col>
-										</v-row>
+										<div v-if="playlistLayer === 0">
+											<v-row>
+												<v-col v-if="item.images[0]" cols="4">
+													<a :href="item.external_urls.spotify" target="_blank">
+														<v-img
+															:src="item.images[0].url"
+															aspect-ratio="1"
+															class="ma-5"
+															width="350"
+														></v-img>
+													</a>
+												</v-col>
+												<v-col v-else>
+													<a :href="item.external_urls.spotify" target="_blank">Link to playlist</a>
+												</v-col>
+												<v-col v-if="item.description" cols="6">
+													<v-card class="ma-5">
+														<v-card-text>
+															{{ item.description }}
+														</v-card-text>
+													</v-card>
+												</v-col>
+												<v-col cols="2"></v-col>
+											</v-row>
+										</div>
+										<div v-else>
+											<v-row>
+												<v-col v-if="item.track.album.images[0].url" cols="4">
+													<a :href="item.track.preview_url" target="_blank">
+														<v-img
+															:src="item.track.album.images[0].url"
+															aspect-ratio="1"
+															class="ma-5"
+															width="350"
+														></v-img>
+													</a>
+												</v-col>
+												<v-col v-else>
+													<a :href="item.track.preview_url" target="_blank">Link to playlist</a>
+												</v-col>
+												<v-col v-if="item.track.album.name" cols="6">
+													<v-card class="ma-5">
+														<v-card-text>
+															<small>Album:</small> {{ item.track.album.name }}
+															<br>
+															<small>Artist:</small> {{ item.track.artists[0].name }}
+															<br>
+															<small>Track:</small> {{ item.track.name }}
+														</v-card-text>
+													</v-card>
+												</v-col>
+												<v-col cols="2"></v-col>
+											</v-row>
+										</div>
 									</td>
 								</template>
 
@@ -412,40 +447,8 @@
 								<template v-if="playlistLayer === 1" v-slot:item.added_at="{ item }">
 									{{ dateParser(item.added_at) }}
 								</template>
-								<!--  Layer Two Expanded row  -->
-								<template v-if="playlistLayer === 1" v-slot:expanded-item="{ headers, item }" v-slot:top>
-									<td :colspan="headers.length">
-										<v-row>
-											<v-col v-if="item.track.album.images[0].url" cols="4">
-												<a :href="item.track.preview_url" target="_blank">
-													<v-img
-														:src="item.track.album.images[0].url"
-														aspect-ratio="1"
-														class="ma-5"
-														width="350"
-													></v-img>
-												</a>
-											</v-col>
-											<v-col v-else>
-												<a :href="item.track.preview_url" target="_blank">Link to playlist</a>
-											</v-col>
-											<v-col v-if="item.track.album.name" cols="6">
-												<v-card class="ma-5">
-													<v-card-text>
-														<small>Album:</small> {{ item.track.album.name }}
-														<br>
-														<small>Artist:</small> {{ item.track.artists[0].name }}
-														<br>
-														<small>Track:</small> {{ item.track.name }}
-													</v-card-text>
-												</v-card>
-											</v-col>
-											<v-col cols="2"></v-col>
-										</v-row>
-									</td>
-								</template>
-
 							</v-data-table>
+
 						</v-card>
 					</v-container>
 				</v-card>
@@ -565,12 +568,12 @@ export default {
 							value: 'tracks.total'
 						},
 						{
-							text: 'Collab',
-							value: 'collaborative'
-						},
-						{
 							text: 'Public',
 							value: 'public'
+						},
+						{
+							text: 'Collab',
+							value: 'collaborative'
 						},
 					],
 					Items: [],
