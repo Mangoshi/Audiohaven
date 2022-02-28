@@ -35,7 +35,7 @@
 			<!--	System-bar toggle button	-->
 			<v-btn icon @click="toggleSystemBar()"><v-icon>mdi-play-pause</v-icon></v-btn>
 			<!--	Dark/Light mode toggle button	-->
-			<v-btn icon style="margin-right: 15px"><v-icon>mdi-brightness-4</v-icon></v-btn>
+			<v-btn icon @click="toggleDarkMode()" style="margin-right: 15px"><v-icon>mdi-brightness-4</v-icon></v-btn>
 			<!--	Log-out button (bg colour = accent & text colour = black)	-->
 			<v-btn v-if="$store.state.loggedIn" class="accent black--text" @click="logout()">Log Out</v-btn>
 		</v-app-bar>
@@ -62,7 +62,8 @@ export default {
 	components: { SystemBar },
 	data: () => ({
 		drawer: false,
-		systemBar: false
+		systemBar: false,
+		darkMode: false
 	}),
 	created(){
 		if (localStorage.getItem('token')){
@@ -78,7 +79,11 @@ export default {
 		},
 		toggleSystemBar() {
 				this.systemBar = !this.systemBar
-		}
+		},
+		toggleDarkMode() {
+			this.$vuetify.theme.dark = !this.$vuetify.theme.dark;
+			this.darkMode = !this.darkMode;
+		},
 	},
 	computed: {
 		currentRouteName() {
