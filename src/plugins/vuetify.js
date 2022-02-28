@@ -2,22 +2,24 @@ import Vue from 'vue'
 import Vuetify from 'vuetify'
 import 'vuetify/dist/vuetify.min.css'
 
+import colors from 'vuetify/lib/util/colors'
+
 Vue.use(Vuetify)
 
 const opts = {
 	theme: {
 		themes: {
 			light: {
-				bg: '#d9d7d5',
-				text: '#3f4142',
-				accent: '#f06292'
+				primary: '#d9d7d5',
+				secondary: '#3f4142',
+				accent: colors.pink.lighten2
 			},
 			dark: {
-				bg: '#3f4142',
-				text: '#d9d7d5',
-				accent: '#933051'
-			}
-		},
+				primary: '#3f4142',
+				secondary: '#ffffff',
+				accent: colors.pink.darken2
+			},
+		}
 	}
 }
 

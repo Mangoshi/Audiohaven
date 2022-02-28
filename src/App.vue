@@ -37,7 +37,7 @@
 			<!--	Dark/Light mode toggle button	-->
 			<v-btn icon @click="toggleDarkMode()" style="margin-right: 15px"><v-icon>mdi-brightness-4</v-icon></v-btn>
 			<!--	Log-out button (bg colour = accent & text colour = black)	-->
-			<v-btn v-if="$store.state.loggedIn" class="accent black--text" @click="logout()">Log Out</v-btn>
+			<v-btn v-if="$store.state.loggedIn" class="accent secondary--text" @click="logout()">Log Out</v-btn>
 		</v-app-bar>
 
 		<!-- Router View -->
@@ -62,8 +62,7 @@ export default {
 	components: { SystemBar },
 	data: () => ({
 		drawer: false,
-		systemBar: false,
-		darkMode: false
+		systemBar: false
 	}),
 	created(){
 		if (localStorage.getItem('token')){
@@ -71,6 +70,9 @@ export default {
 		} else {
 			this.$store.commit('SET_LOGGED_IN_STATUS', false)
 		}
+	},
+	mounted(){
+		this.$vuetify.theme.dark = this.$store.state.darkMode
 	},
 	methods: {
 		logout() {
@@ -81,8 +83,8 @@ export default {
 				this.systemBar = !this.systemBar
 		},
 		toggleDarkMode() {
-			this.$vuetify.theme.dark = !this.$vuetify.theme.dark;
-			this.darkMode = !this.darkMode;
+				this.$store.commit('SWITCH_THEME')
+				this.$vuetify.theme.dark = this.$store.state.darkMode
 		},
 	},
 	computed: {

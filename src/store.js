@@ -8,6 +8,7 @@ export default new Vuex.Store({
 	// state: Store's data
 	state: {
 		loggedIn: false,
+		darkMode: false,
 		errors: {},
 	},
 	// getters:
@@ -19,7 +20,10 @@ export default new Vuex.Store({
 		},
 		SET_ERRORS(state, errors){
 			state.errors = errors
-		}
+		},
+		SWITCH_THEME(state) {
+			state.darkMode = !state.darkMode
+		},
 	},
 	// actions: Store's methods
 	actions:{
