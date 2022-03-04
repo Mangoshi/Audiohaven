@@ -1,21 +1,24 @@
 <template>
-	<v-app id="app">
+	<v-app id="app" :style="cssProps">
 
 		<!--Sidebar-->
 		<v-navigation-drawer
 			v-model="drawer"
 			app
+			color="primary"
 		>
 			<v-list>
 				<!-- Sidebar link list -->
 				<v-list-item-group>
 					<!-- Home Page -->
-					<v-list-item class="mb-10 sideLink" to="/">
-						<router-link to="/"><v-icon size="36" color="purple">mdi-home</v-icon>&nbsp;Home</router-link>
+					<v-list-item class="mb-10 sideLink secondary--text" to="/">
+						<v-icon color="purple" size="36">mdi-home</v-icon>&nbsp;
+						Home
 					</v-list-item>
 					<!-- Spotify Page -->
-					<v-list-item class="mb-10 sideLink" to="Spotify">
-						<router-link to="Spotify"><v-icon size="36" color="green">mdi-spotify</v-icon>&nbsp;Spotify</router-link>
+					<v-list-item class="mb-10 sideLink secondary--text" to="Spotify">
+						<v-icon color="green" size="36">mdi-spotify</v-icon>&nbsp;
+						Spotify
 					</v-list-item>
 				</v-list-item-group>
 			</v-list>
@@ -23,7 +26,7 @@
 		<!--End sidebar-->
 
 		<!-- Navbar -->
-		<v-app-bar app>
+		<v-app-bar app color="primary">
 			<!-- Sidebar hamburger button (only active when logged in) -->
 			<v-app-bar-nav-icon v-if="$store.state.loggedIn" @click="drawer = !drawer"></v-app-bar-nav-icon>
 			<!-- Page title : x + {{ route's title }} -->
@@ -35,14 +38,14 @@
 			<!--	System-bar toggle button	-->
 			<v-btn icon @click="toggleSystemBar()"><v-icon>mdi-play-pause</v-icon></v-btn>
 			<!--	Dark/Light mode toggle button	-->
-			<v-btn icon @click="toggleDarkMode()" style="margin-right: 15px"><v-icon>mdi-brightness-4</v-icon></v-btn>
+			<v-btn icon style="margin-right: 15px" @click="toggleDarkMode()"><v-icon>mdi-theme-light-dark</v-icon></v-btn>
 			<!--	Log-out button (bg colour = accent & text colour = black)	-->
 			<v-btn v-if="$store.state.loggedIn" class="accent secondary--text" @click="logout()">Log Out</v-btn>
 		</v-app-bar>
 
 		<!-- Router View -->
 		<v-main>
-			<transition name="fade" mode="out-in">
+			<transition mode="out-in" name="fade">
 				<router-view></router-view>
 			</transition>
 		</v-main>
@@ -65,14 +68,21 @@ export default {
 		systemBar: false
 	}),
 	created(){
-		if (localStorage.getItem('token')){
+		if (localStorage.getItem('audiohaven_token')){
 			this.$store.commit('SET_LOGGED_IN_STATUS', true)
 		} else {
 			this.$store.commit('SET_LOGGED_IN_STATUS', false)
 		}
 	},
 	mounted(){
-		this.$vuetify.theme.dark = this.$store.state.darkMode
+		const darkMode = localStorage.getItem("audiohaven_darkMode");
+		// If our localStorage contains anything under 'audiohaven_darkMode'
+		if (darkMode) {
+			this.$vuetify.theme.dark = darkMode === "true";
+			// This is a simplified way of writing:
+			// if (darkMode) { this.$vuetify.theme.dark = true }
+			// else { this.$vuetify.theme.dark = false }
+		}
 	},
 	methods: {
 		logout() {
@@ -80,11 +90,14 @@ export default {
 			this.$router.replace("/")
 		},
 		toggleSystemBar() {
-				this.systemBar = !this.systemBar
+			this.systemBar = !this.systemBar
 		},
 		toggleDarkMode() {
-				this.$store.commit('SWITCH_THEME')
-				this.$vuetify.theme.dark = this.$store.state.darkMode
+			// Toggle $vuetify.theme.dark boolean
+			this.$vuetify.theme.dark = !this.$vuetify.theme.dark
+			// Set localStorage 'audiohaven_darkMode' to value of $vuetify.theme.dark boolean
+			// Using toString() because localStorage is saved in a key-value pair, [String : String] in this case
+			localStorage.setItem("audiohaven_darkMode",this.$vuetify.theme.dark.toString())
 		},
 	},
 	computed: {
@@ -109,7 +122,7 @@ export default {
 	color: #2c3e50;
 }
 
-.sideLink:link *{
+.sideLink:link{
 	font-size: 24px;
 	text-decoration: none;
 	color: black;

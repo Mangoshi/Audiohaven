@@ -1,12 +1,12 @@
 <template>
 	<v-system-bar
+		app
 		height="64"
 		style="padding:10px"
-		app
 	>
 		<!-- Message -->
-		<h3 v-if="!systemBarMessage" class="black--text consoleFont">Ayyyy 👽</h3>
-		<h3 v-else class="black--text consoleFont">{{ systemBarMessage }}</h3>
+		<h3 v-if="!systemBarMessage" class="secondary--text consoleFont">Hello 👽</h3>
+		<h3 v-else class="secondary--text consoleFont">{{ systemBarMessage }}</h3>
 
 		<!-- Seekbar -->
 		<v-slider
@@ -18,10 +18,10 @@
 			class="playbackSeekbar"
 			inverse-label
 			readonly
-			thumb-color="black"
+			thumb-color="secondary"
 			thumb-label
-			track-color="green"
-			track-fill-color="black"
+			track-color="secondary"
+			track-fill-color="green"
 		></v-slider>
 
 		<!-- Playback Controls -->

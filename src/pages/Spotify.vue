@@ -1,5 +1,5 @@
 <template>
-	<v-container fluid>
+	<v-container :style="cssProps" fluid>
 
 		<v-container v-if="sampleTableEnabled">
 			<v-simple-table>
@@ -108,7 +108,7 @@
 									<template v-slot:header>
 										<v-toolbar
 											class="mb-1"
-											color="purple darken-3"
+											color="accent"
 											dark
 										>
 											<v-text-field
@@ -138,7 +138,7 @@
 												>
 													<v-btn
 														:value="false"
-														color="purple"
+														color="accent"
 														depressed
 														large
 													>
@@ -146,7 +146,7 @@
 													</v-btn>
 													<v-btn
 														:value="true"
-														color="purple"
+														color="accent"
 														depressed
 														large
 													>
@@ -632,6 +632,27 @@ export default {
 		followedArtistFilteredKeys () {
 			return this.followedArtistKeys.filter(key => key !== 'Name')
 		},
+		// making CSS color variables out of vuetify.js custom themes
+		cssProps() {
+			// create themeColors object
+			var themeColors = {}
+			// if dark mode is off,
+			if (this.darkMode === false) {
+				// for each color key in themes.light, add to themeColors, adding '--v-' to the start of the key
+				// then assign this key the value of the color
+				Object.keys(this.$vuetify.theme.themes.light).forEach((color) => {
+					themeColors[`--v-${color}`] = this.$vuetify.theme.themes.light[color]
+				})
+				// else if dark mode is on
+			} else {
+				// fill themeColors with the colors from themes.dark instead
+				Object.keys(this.$vuetify.theme.themes.dark).forEach((color) => {
+					themeColors[`--v-${color}`] = this.$vuetify.theme.themes.dark[color]
+				})
+			}
+			// return themeColors object
+			return themeColors
+		},
 	},
 	mounted(){
 		this.checkTokens()
@@ -952,7 +973,7 @@ export default {
 	position: absolute;
 	width: 32px;
 	height: 32px;
-	background: #fff;
+	background-color: var(--v-accent);
 	animation: lds-heart 1.2s infinite cubic-bezier(0.215, 0.61, 0.355, 1);
 }
 .lds-heart div:after,
@@ -962,7 +983,7 @@ export default {
 	display: block;
 	width: 32px;
 	height: 32px;
-	background: #fff;
+	background-color: var(--v-accent);
 }
 .lds-heart div:before {
 	left: -24px;
