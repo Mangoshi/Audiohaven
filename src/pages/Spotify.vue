@@ -40,7 +40,7 @@
 		<v-container>
 			<!--	If there is no token == You're not logged-in to Spotify	-->
 			<div v-if="!spotifyLoggedIn">
-				<v-btn href="http://localhost:3000/spotify/login/">
+				<v-btn :href="spotifyBaseUrl()">
 					<v-icon>mdi-spotify</v-icon> Log-in to Spotify
 				</v-btn>
 			</div>
@@ -751,6 +751,9 @@ export default {
 		checkSpotifyLogin(){
 			// If spotify_access_token exists, spotifyLoggedIn = true, else spotifyLoggedIn = false
 			this.spotifyLoggedIn = !!localStorage.getItem("spotify_access_token");
+		},
+		spotifyBaseUrl(){
+			return process.env.VUE_APP_BASE_URL+"/spotify/login"
 		},
 		logoutSpotify(){
 			// Remove tokens
