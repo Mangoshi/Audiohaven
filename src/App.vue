@@ -38,7 +38,7 @@
 			<!--	System-bar toggle button	-->
 			<v-btn icon @click="toggleSystemBar()"><v-icon>mdi-play-pause</v-icon></v-btn>
 			<!--	Dark/Light mode toggle button	-->
-			<v-btn icon style="margin-right: 15px" @click="toggleDarkMode()"><v-icon>mdi-brightness-4</v-icon></v-btn>
+			<v-btn icon style="margin-right: 15px" @click="toggleDarkMode()"><v-icon>mdi-theme-light-dark</v-icon></v-btn>
 			<!--	Log-out button (bg colour = accent & text colour = black)	-->
 			<v-btn v-if="$store.state.loggedIn" class="accent secondary--text" @click="logout()">Log Out</v-btn>
 		</v-app-bar>
@@ -68,14 +68,21 @@ export default {
 		systemBar: false
 	}),
 	created(){
-		if (localStorage.getItem('token')){
+		if (localStorage.getItem('audiohaven_token')){
 			this.$store.commit('SET_LOGGED_IN_STATUS', true)
 		} else {
 			this.$store.commit('SET_LOGGED_IN_STATUS', false)
 		}
 	},
 	mounted(){
-		this.$vuetify.theme.dark = this.$store.state.darkMode
+		const darkMode = localStorage.getItem("darkMode");
+		if (darkMode) {
+			if (darkMode === "true") {
+				this.$vuetify.theme.dark = true;
+			} else {
+				this.$vuetify.theme.dark = false;
+			}
+		}
 	},
 	methods: {
 		logout() {
@@ -86,8 +93,8 @@ export default {
 			this.systemBar = !this.systemBar
 		},
 		toggleDarkMode() {
-			this.$store.commit('SWITCH_THEME')
-			this.$vuetify.theme.dark = this.$store.state.darkMode
+			this.$vuetify.theme.dark = !this.$vuetify.theme.dark
+			localStorage.setItem("darkMode",this.$vuetify.theme.dark.toString())
 		},
 	},
 	computed: {
