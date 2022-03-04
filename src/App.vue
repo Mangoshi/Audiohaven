@@ -76,12 +76,12 @@ export default {
 	},
 	mounted(){
 		const darkMode = localStorage.getItem("audiohaven_darkMode");
+		// If our localStorage contains anything under 'audiohaven_darkMode'
 		if (darkMode) {
-			if (darkMode === "true") {
-				this.$vuetify.theme.dark = true;
-			} else {
-				this.$vuetify.theme.dark = false;
-			}
+			this.$vuetify.theme.dark = darkMode === "true";
+			// This is a simplified way of writing:
+			// if (darkMode) { this.$vuetify.theme.dark = true }
+			// else { this.$vuetify.theme.dark = false }
 		}
 	},
 	methods: {
@@ -93,7 +93,10 @@ export default {
 			this.systemBar = !this.systemBar
 		},
 		toggleDarkMode() {
+			// Toggle $vuetify.theme.dark boolean
 			this.$vuetify.theme.dark = !this.$vuetify.theme.dark
+			// Set localStorage 'audiohaven_darkMode' to value of $vuetify.theme.dark boolean
+			// Using toString() because localStorage is saved in a key-value pair, [String : String] in this case
 			localStorage.setItem("audiohaven_darkMode",this.$vuetify.theme.dark.toString())
 		},
 	},
