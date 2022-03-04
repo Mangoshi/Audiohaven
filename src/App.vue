@@ -75,7 +75,7 @@ export default {
 		}
 	},
 	mounted(){
-		const darkMode = localStorage.getItem("darkMode");
+		const darkMode = localStorage.getItem("audiohaven_darkMode");
 		if (darkMode) {
 			if (darkMode === "true") {
 				this.$vuetify.theme.dark = true;
@@ -94,7 +94,7 @@ export default {
 		},
 		toggleDarkMode() {
 			this.$vuetify.theme.dark = !this.$vuetify.theme.dark
-			localStorage.setItem("darkMode",this.$vuetify.theme.dark.toString())
+			localStorage.setItem("audiohaven_darkMode",this.$vuetify.theme.dark.toString())
 		},
 	},
 	computed: {
