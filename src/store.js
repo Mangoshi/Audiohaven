@@ -19,7 +19,7 @@ export default new Vuex.Store({
 		},
 		SET_ERRORS(state, errors){
 			state.errors = errors
-		}
+		},
 	},
 	// actions: Store's methods
 	actions:{
@@ -34,7 +34,7 @@ export default new Vuex.Store({
 				.then(response =>{
 					console.log(response.data)
 					context.commit('SET_LOGGED_IN_STATUS', true)
-					localStorage.setItem('token', response.data.token)
+					localStorage.setItem('audiohaven_token', response.data.token)
 				})
 				.catch(error =>{
 					console.log(error)
@@ -52,7 +52,7 @@ export default new Vuex.Store({
 				.then(response =>{
 					console.log(`register() response: ${response.data}`)
 					context.commit('SET_LOGGED_IN_STATUS', true)
-					localStorage.setItem('token', response.data.token)
+					localStorage.setItem('audiohaven_token', response.data.token)
 				})
 				.catch(error =>{
 					console.log(`register() error: ${error}`)
@@ -60,10 +60,11 @@ export default new Vuex.Store({
 				})
 		},
 		logout(context){
-			localStorage.removeItem('token')
+			localStorage.removeItem('audiohaven_token')
 			context.commit('SET_LOGGED_IN_STATUS', false)
 			localStorage.removeItem('spotify_access_token')
 			localStorage.removeItem('spotify_refresh_token')
+			localStorage.removeItem('spotify_user_id')
 		}
 	}
 })
