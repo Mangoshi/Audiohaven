@@ -12,5 +12,8 @@ jobs:
         username: 'Mangoshi'
         reponame: 'Audiohaven-Sandbox'
         token: ${{ secrets.GITHUB_TOKEN }}
+        gitemail: 'mangoshimonks@gmail.com'
+        gitname: 'BuildVue'
+        gitmsg: 'Deploy build_vue Workflow'
       env:
         VUE_APP_BASE_URL: ${{ secrets.VUE_APP_BASE_URL }}
