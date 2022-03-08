@@ -390,6 +390,10 @@
 									<td :colspan="headers.length">
 										<div v-if="playlistLayer === 0">
 											<v-row>
+												<!-- To-be Spotify embed -->
+												<iframe :src="`${item.uri}`" width="500" height="80" frameborder="0" allowtransparency="true"></iframe>
+											</v-row>
+											<v-row>
 												<v-col v-if="item.images[0]" cols="4">
 													<a :href="item.external_urls.spotify" target="_blank">
 														<v-img
@@ -415,6 +419,10 @@
 										</div>
 										<!--  Layer Two  -->
 										<div v-else>
+											<v-row>
+												<!-- To-be Spotify embed -->
+												<iframe :src="`${item.track.uri}`" width="500" height="80" frameborder="0" allowtransparency="true"></iframe>
+											</v-row>
 											<v-row>
 												<v-col v-if="item.track.album.images[0].url" cols="4">
 													<a :href="item.track.preview_url" target="_blank">
@@ -924,6 +932,10 @@ export default {
 									console.log("error caught: ", error)
 									console.log("error message: ", error.message)
 									this.spotifyError = error.message
+									if (error.message === "Request failed with status code 401") {
+										// Run refreshSpotifyToken() to get new access token
+										this.refreshSpotifyToken()
+									}
 								})
 						}
 					}
@@ -953,7 +965,7 @@ export default {
 				)
 				.catch(error => {
 					console.log("playSpotifyTrack() error caught: ", error.response, "\n Message: ", error.response.data.error.message)
-					this.spotifyError = `${error.message}...`
+					this.spotifyError = `${error.response.data.error.message}...`
 				})
 		}
 	}
