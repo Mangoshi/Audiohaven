@@ -657,7 +657,6 @@ export default {
 	mounted(){
 		this.checkTokens()
 		this.checkSpotifyLogin()
-		this.getUserData()
 		this.getFollowedArtists()
 		this.getUserPlaylists()
 	},
@@ -743,6 +742,8 @@ export default {
 				// Store tokens in localStorage
 				localStorage.setItem("spotify_access_token", access_token)
 				localStorage.setItem("spotify_refresh_token", refresh_token)
+				// Get user's profile data
+				this.getUserData()
 			} else {
 				// Otherwise, log the fact there are no tokens in the URL
 				// console.log("No access/refresh token in URL!")
@@ -814,8 +815,8 @@ export default {
 						})
 					.then(response => {
 							console.log("getUserData() response: ", response.data)
-							this.spotifyUserData = response.data
 							localStorage.setItem('spotify_user_id', response.data.id)
+							this.spotifyUserData = response.data
 						}
 					)
 					.catch(error => {
@@ -863,66 +864,72 @@ export default {
 		// Function for getting user's saved playlists
 		getUserPlaylists(selectedPlaylist) {
 			let token = localStorage.getItem('spotify_access_token')
+			let userID = localStorage.getItem('spotify_user_id')
 			let baseURL = 'https://api.spotify.com/v1'
-
-			// If user is logged-in & no playlist was passed
-			if (this.spotifyLoggedIn && !selectedPlaylist) {
-				let userID = localStorage.getItem('spotify_user_id')
-				axios
-					// GET request using user's ID
-					.get(`${baseURL}/users/${userID}/playlists`,
-						{
-							headers: {
-								"Authorization": `Bearer ${token}`
-							}
-						})
-					.then(response => {
-							// Log response
-							console.log("getUserPlaylists() response: ", response.data)
-							// Assign playlistTableItems to response.data.items (playlist array)
-							this.playlistTable[0].Items = response.data.items
-						}
-					)
-					.catch(error => {
-						// Log error
-						console.log("getUserPlaylists() error caught: ", error)
-						console.log("getUserPlaylists() error message: ", error.message)
-						// Assign spotifyError string to the value of error.message
-						this.spotifyError = error.message
-						// If error is a 401 (token has likely expired)
-						if (error.message === "Request failed with status code 401") {
-							// Run refreshSpotifyToken() to get new access token
-							this.refreshSpotifyToken()
-						}
-					})
-			}
-			// If user is logged-in & a playlist was passed (selected by user)
-			if(this.spotifyLoggedIn && selectedPlaylist) {
-				console.log(`getUserPlaylists(${selectedPlaylist.id}): '${selectedPlaylist.name}' executed.`)
-				// If user is logged-in
-				if(this.spotifyLoggedIn){
-					let token = localStorage.getItem('spotify_access_token')
-					let baseURL = 'https://api.spotify.com/v1'
-					axios
-						.get(`${baseURL}/playlists/${selectedPlaylist.id}/tracks`,
-							{
-								headers: {
-									"Authorization" : `Bearer ${token}`
+			if (this.spotifyLoggedIn){
+				if(userID !== null && userID !== ""){
+					// If user is logged-in & no playlist was passed
+					if (!selectedPlaylist) {
+						axios
+							// GET request using user's ID
+							.get(`${baseURL}/users/${userID}/playlists`,
+								{
+									headers: {
+										"Authorization": `Bearer ${token}`
+									}
+								})
+							.then(response => {
+									// Log response
+									console.log("getUserPlaylists() response: ", response.data)
+									// Assign playlistTableItems to response.data.items (playlist array)
+									this.playlistTable[0].Items = response.data.items
+								}
+							)
+							.catch(error => {
+								// Log error
+								console.log("getUserPlaylists() error caught: ", error)
+								console.log("getUserPlaylists() error message: ", error.message)
+								// Assign spotifyError string to the value of error.message
+								this.spotifyError = error.message
+								// If error is a 401 (token has likely expired)
+								if (error.message === "Request failed with status code 401") {
+									// Run refreshSpotifyToken() to get new access token
+									this.refreshSpotifyToken()
 								}
 							})
-						.then(response => {
-								console.log("response: ", response.data)
-								// If we get a response, assign the second layer of playlistTable to it
-								this.playlistTable[1].Items = response.data.items
-								// Increment playlistLayer so the vuetify table changes too
-								this.playlistLayer++
-							}
-						)
-						.catch(error => {
-							console.log("error caught: ", error)
-							console.log("error message: ", error.message)
-							this.spotifyError = error.message
-						})
+					}
+					// If user is logged-in & a playlist was passed (selected by user)
+					if(selectedPlaylist) {
+						console.log(`getUserPlaylists(${selectedPlaylist.id}): '${selectedPlaylist.name}' executed.`)
+						// If user is logged-in
+						if(this.spotifyLoggedIn){
+							let token = localStorage.getItem('spotify_access_token')
+							let baseURL = 'https://api.spotify.com/v1'
+							axios
+								.get(`${baseURL}/playlists/${selectedPlaylist.id}/tracks`,
+									{
+										headers: {
+											"Authorization" : `Bearer ${token}`
+										}
+									})
+								.then(response => {
+										console.log("response: ", response.data)
+										// If we get a response, assign the second layer of playlistTable to it
+										this.playlistTable[1].Items = response.data.items
+										// Increment playlistLayer so the vuetify table changes too
+										this.playlistLayer++
+									}
+								)
+								.catch(error => {
+									console.log("error caught: ", error)
+									console.log("error message: ", error.message)
+									this.spotifyError = error.message
+								})
+						}
+					}
+				} else {
+					this.spotifyError = "No user ID found.. Refresh?"
+					this.getUserData()
 				}
 			}
 		},
@@ -931,26 +938,22 @@ export default {
 			console.log(`playSpotifyTrack(${selected.track.name})`)
 			let token = localStorage.getItem('spotify_access_token')
 			let baseURL = 'https://api.spotify.com/v1'
-			console.log(selected.track.uri)
-			let postData = {
-				"uri" : selected.track.uri
-			}
 			axios
-				.post(`${baseURL}/me/player/queue`, postData,
+				.post(`${baseURL}/me/player/queue?uri=spotify:track:${selected.track.id}`,
+					{},
 					{
 						headers: {
 							"Authorization" : `Bearer ${token}`
 						}
 					})
 				.then(response => {
-						console.log("playSpotifyTrack() response: ", response.data)
+						console.log("playSpotifyTrack() SUCCESS! \n Response: ", response.data)
+						this.spotifyError = ""
 					}
 				)
 				.catch(error => {
-					console.log("playSpotifyTrack() error caught: ", error)
-					console.log("playSpotifyTrack() error message: ", error.message)
-					this.spotifyError = `${error.message}...\n
-						Spotify wants our money for this feature :C`
+					console.log("playSpotifyTrack() error caught: ", error.response, "\n Message: ", error.response.data.error.message)
+					this.spotifyError = `${error.message}...`
 				})
 		}
 	}
