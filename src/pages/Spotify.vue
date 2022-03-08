@@ -346,6 +346,63 @@
 										{{ item.public }}
 									</v-chip>
 								</template>
+								<!-- Making delete buttons under delete column -->
+								<template v-if="playlistLayer === 0" v-slot:item.delete="{ item }">
+									<!--	Spotify Delete Dialog	-->
+									<v-dialog
+										v-model="spotifyDeleteDialog"
+										width="500"
+									>
+										<!--	Delete dialog gets activated by...	-->
+										<template v-slot:activator="{ on, attrs }">
+											<!--	...this button	-->
+											<v-btn
+												color="red"
+												icon
+												v-bind="attrs"
+												v-on="on"
+											>
+												<!--	The button uses this icon	-->
+												<v-icon>mdi-delete</v-icon>
+											</v-btn>
+										</template>
+
+										<!-- Dialog box card -->
+										<v-card>
+
+											<v-card-title class="text-h5 red">
+												Are you sure?
+											</v-card-title>
+
+											<v-card-text class="mt-2">
+												This will delete {{ item.name }} from your playlists.
+												This is a permanent, irreversible action.
+												You won't be able to retrieve the contents of this playlist, unless it was made by someone else.
+											</v-card-text>
+
+											<v-divider></v-divider>
+
+											<!-- Dialog options -->
+											<v-card-actions>
+												<v-spacer></v-spacer>
+												<v-btn
+													color="secondary"
+													text
+													@click="spotifyDeleteDialog = false"
+												>
+													Go Back!
+												</v-btn>
+												<v-btn
+													color="red"
+													text
+													@click="deleteSpotifyPlaylist(item)"
+												>
+													Delete
+												</v-btn>
+											</v-card-actions>
+										</v-card>
+									</v-dialog>
+								</template>
 
 								<!--				Layer Two Customization				-->
 								<!--	Customizing items under the title column 	-->
@@ -383,6 +440,12 @@
 								<template v-if="playlistLayer === 1" v-slot:item.added_at="{ item }">
 									{{ dateParser(item.added_at) }}
 								</template>
+								<!-- Making remove buttons under remove column -->
+								<template v-if="playlistLayer === 1" v-slot:item.remove="{ item }">
+									<v-btn icon @click="removeSpotifyTrackFromPlaylist(item)">
+										<v-icon>mdi-delete</v-icon>
+									</v-btn>
+								</template>
 
 								<!--  Data Table: Expanded Rows  -->
 								<!--  Layer One  -->
@@ -391,7 +454,7 @@
 										<div v-if="playlistLayer === 0">
 											<v-row>
 												<!-- To-be Spotify embed -->
-												<iframe :src="`${item.uri}`" width="500" height="80" frameborder="0" allowtransparency="true"></iframe>
+												<iframe :src="`${item.uri}`" allowtransparency="true" frameborder="0" height="80" width="500"></iframe>
 											</v-row>
 											<v-row>
 												<v-col v-if="item.images[0]" cols="4">
@@ -421,7 +484,7 @@
 										<div v-else>
 											<v-row>
 												<!-- To-be Spotify embed -->
-												<iframe :src="`${item.track.uri}`" width="500" height="80" frameborder="0" allowtransparency="true"></iframe>
+												<iframe :src="`${item.track.uri}`" allowtransparency="true" frameborder="0" height="80" width="500"></iframe>
 											</v-row>
 											<v-row>
 												<v-col v-if="item.track.album.images[0].url" cols="4">
@@ -528,6 +591,7 @@ export default {
 			spotifyLoggedIn: false,
 			spotifyError: "",
 			spotifyUserData: {},
+			spotifyDeleteDialog: false,
 			// Module Data //
 			selectedModule: "userPlaylists",
 			modules: [
@@ -586,6 +650,11 @@ export default {
 							text: 'Collab',
 							value: 'collaborative'
 						},
+						{
+							text: 'Delete',
+							value: 'delete',
+							sortable: false
+						},
 					],
 					Items: [],
 					Selected: [],
@@ -618,6 +687,11 @@ export default {
 							text: 'Added',
 							value: 'added_at',
 							align: 'right'
+						},
+						{
+							text: 'Remove',
+							value: 'remove',
+							sortable: false
 						},
 					],
 					Items: [],
@@ -945,7 +1019,6 @@ export default {
 				}
 			}
 		},
-		// TODO: Buy Spotify premium? ;_;
 		playSpotifyTrack(selected) {
 			console.log(`playSpotifyTrack(${selected.track.name})`)
 			let token = localStorage.getItem('spotify_access_token')
@@ -967,6 +1040,9 @@ export default {
 					console.log("playSpotifyTrack() error caught: ", error.response, "\n Message: ", error.response.data.error.message)
 					this.spotifyError = `${error.response.data.error.message}...`
 				})
+		},
+		deleteSpotifyPlaylist(){
+			this.spotifyDeleteDialog = false
 		}
 	}
 }
