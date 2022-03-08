@@ -38,7 +38,7 @@ export default new Vuex.Store({
 				})
 				.catch(error =>{
 					console.log(error)
-					console.log(error.response.data.message)
+					context.commit('SET_ERRORS', error)
 				})
 		},
 		register(context, credentials){

@@ -45,6 +45,7 @@
 										type="password"
 									/>
 									<small v-if="errors.password" class="align-left unselectable errorMessage">{{errors.password[0]}}</small>
+									<small v-if="errors.message" class="unselectable errorMessage">{{errors.message}}</small>
 								</v-form>
 								<br>
 								<v-btn class="mr-2" color="primary" large @click="toggleForm()">Register</v-btn>
@@ -85,6 +86,7 @@
 										type="password"
 									/>
 									<small v-if="errors.password" class="unselectable errorMessage">{{errors.password[0]}}</small>
+									<small v-if="errors.message" class="unselectable errorMessage">{{errors.message}}</small>
 								</v-form>
 								<br>
 								<v-btn class="mr-2" color="primary" large @click="toggleForm()">Login</v-btn>
@@ -183,6 +185,7 @@ export default {
 		},
 		toggleForm(){
 			this.formToggle = !this.formToggle
+			this.$store.commit('SET_ERRORS', '')
 		},
 		themedLogo(){
 			if(!this.$vuetify.theme.dark){
@@ -217,6 +220,10 @@ export default {
 	color: #423F3F;
 	text-align: left;
 	font-weight: 300;
+}
+
+.errorMessage{
+	color: hotpink;
 }
 
 </style>
