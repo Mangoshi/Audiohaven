@@ -26,15 +26,6 @@
 								<br>
 								<v-form v-model="loginValid">
 									<v-text-field
-										v-model="loginForm.username"
-										:rules="usernameRules"
-										color="accent"
-										filled
-										placeholder="username"
-										required
-										type="text"
-									/>
-									<v-text-field
 										v-model="loginForm.email"
 										:rules="emailRules"
 										color="accent"
@@ -56,12 +47,12 @@
 									<small v-if="errors.password" class="align-left unselectable errorMessage">{{errors.password[0]}}</small>
 								</v-form>
 								<br>
-								<v-btn class="mr-2 text--primary" color="primary" large @click="toggleForm()">Register</v-btn>
-								<v-btn class="ml-2 text--primary" color="accent" large @click="login(loginForm)">Login</v-btn>
+								<v-btn class="mr-2" color="primary" large @click="toggleForm()">Register</v-btn>
+								<v-btn class="secondary--text ml-2" color="accent" large @click="login(loginForm)">Login</v-btn>
 							</div>
 							<!-- Register Form -->
 							<div v-else>
-								<h3 class="testText2 text-center">Please register to start organising your music. </h3>
+								<h3 class="testText2 text-center text--primary">Please register to start organising your music. </h3>
 								<br>
 								<v-form v-model="registerValid">
 									<v-text-field
@@ -96,7 +87,7 @@
 									<small v-if="errors.password" class="unselectable errorMessage">{{errors.password[0]}}</small>
 								</v-form>
 								<br>
-								<v-btn class="mr-2" color="secondary" large @click="toggleForm()">Login</v-btn>
+								<v-btn class="mr-2" color="primary" large @click="toggleForm()">Login</v-btn>
 								<v-btn class="secondary--text ml-2" color="accent" large @click="register(registerForm)">Register</v-btn>
 							</div>
 						</div>
@@ -134,7 +125,6 @@ export default {
 			photoSD: "",
 			// Form data
 			loginForm: {
-				username: "",
 				email: "",
 				password: "",
 			},

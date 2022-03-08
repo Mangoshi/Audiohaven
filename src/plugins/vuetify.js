@@ -12,12 +12,20 @@ const opts = {
 			light: {
 				primary: '#d9d7d5',
 				secondary: '#3f4142',
-				accent: colors.purple.lighten3
+				accent: {
+					base: colors.purple.lighten2,
+					lighter: colors.purple.lighten4,
+					darker: colors.purple
+				}
 			},
 			dark: {
 				primary: '#3f4142',
 				secondary: '#d9d7d5',
-				accent: colors.purple.darken4
+				accent: {
+					base: colors.purple.darken2,
+					lighter: colors.purple,
+					darker: colors.purple.darken4
+				}
 			},
 		}
 	}
