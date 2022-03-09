@@ -57,8 +57,10 @@
 		</v-container>
 
 		<!-- Spotify Errors & Refresh Token Button -->
-		<div v-if="spotifyError">
-			<h4 style="color: deeppink; background-color: #333; font-family: 'Courier New', monospace;">{{ spotifyError }}</h4>
+		<div v-if="spotifyStatusMessage">
+			<h4 style="color: deeppink; background-color: #333; font-family: 'Courier New', monospace;">{{
+					spotifyStatusMessage
+				}}</h4>
 			<v-btn v-on:click="refreshSpotifyToken()">
 				<v-icon>mdi-spotify</v-icon> Refresh Token
 			</v-btn>
@@ -70,7 +72,7 @@
 			<div>Loading... ({{refCount}})</div>
 		</div>
 
-		<v-row v-if="spotifyLoggedIn && spotifyError!=='Request failed with status code 401'">
+		<v-row v-if="spotifyLoggedIn && spotifyStatusMessage!=='Request failed with status code 401'">
 			<v-col cols="0" lg="2" md="1"></v-col>
 			<v-col cols="12" lg="8" md="10">
 				<!-- Module Container -->
@@ -90,7 +92,7 @@
 					<!--	Followed Artists Data Iterator	-->
 					<v-container v-if="selectedModule === 'followedArtists'" fluid>
 						<!--	If there is a token && no Spotify errors  -->
-						<div v-if="spotifyLoggedIn && !spotifyError">
+						<div v-if="spotifyLoggedIn && !spotifyStatusMessage">
 							<v-card>
 								<v-card-title>
 									Followed Artists
@@ -348,60 +350,15 @@
 								</template>
 								<!-- Making delete buttons under delete column -->
 								<template v-if="playlistLayer === 0" v-slot:item.delete="{ item }">
-									<!--	Spotify Delete Dialog	-->
-									<v-dialog
-										v-model="spotifyDeleteDialog"
-										width="500"
+									<!-- Delete button -->
+									<v-btn
+										color="red"
+										icon
+										@click="unfollowSpotifyPlaylist(item)"
 									>
-										<!--	Delete dialog gets activated by...	-->
-										<template v-slot:activator="{ on, attrs }">
-											<!--	...this button	-->
-											<v-btn
-												color="red"
-												icon
-												v-bind="attrs"
-												v-on="on"
-											>
-												<!--	The button uses this icon	-->
-												<v-icon>mdi-delete</v-icon>
-											</v-btn>
-										</template>
-
-										<!-- Dialog box card -->
-										<v-card>
-
-											<v-card-title class="text-h5 red">
-												Are you sure?
-											</v-card-title>
-
-											<v-card-text class="mt-2">
-												This will delete {{ item.name }} from your playlists.
-												This is a permanent, irreversible action.
-												You won't be able to retrieve the contents of this playlist, unless it was made by someone else.
-											</v-card-text>
-
-											<v-divider></v-divider>
-
-											<!-- Dialog options -->
-											<v-card-actions>
-												<v-spacer></v-spacer>
-												<v-btn
-													color="secondary"
-													text
-													@click="spotifyDeleteDialog = false"
-												>
-													Go Back!
-												</v-btn>
-												<v-btn
-													color="red"
-													text
-													@click="deleteSpotifyPlaylist(item)"
-												>
-													Delete
-												</v-btn>
-											</v-card-actions>
-										</v-card>
-									</v-dialog>
+										<!--	The button uses this icon	-->
+										<v-icon>mdi-delete</v-icon>
+									</v-btn>
 								</template>
 
 								<!--				Layer Two Customization				-->
@@ -410,7 +367,7 @@
 									<!--	Play button for track 	-->
 									<!--	TODO: Implement pause/play functionality? -->
 									<!--  ( May require hacky code without Spotify Premium.. ) -->
-									<v-btn icon @click="playSpotifyTrack(item)">
+									<v-btn icon @click="queueSpotifyTrack(item)">
 										<v-icon>mdi-play</v-icon>
 									</v-btn>
 									<!--	Link to track 	-->
@@ -589,9 +546,8 @@ export default {
 			],
 			// Spotify Data //
 			spotifyLoggedIn: false,
-			spotifyError: "",
+			spotifyStatusMessage: "",
 			spotifyUserData: {},
-			spotifyDeleteDialog: false,
 			// Module Data //
 			selectedModule: "userPlaylists",
 			modules: [
@@ -869,7 +825,7 @@ export default {
 						// Assign local storage access token to new access token
 						localStorage.setItem("spotify_access_token", response.data.access_token)
 						// Clear spotifyError message
-						this.spotifyError = ""
+						this.spotifyStatusMessage = ""
 						// Re-run anything that would have failed with an expired token
 						this.getFollowedArtists()
 						this.getUserPlaylists()
@@ -878,7 +834,7 @@ export default {
 				.catch(error => {
 					console.log("refreshSpotifyToken() error caught: ", error)
 					console.log("refreshSpotifyToken() error message: ", error.message)
-					this.spotifyError = error.message
+					this.spotifyStatusMessage = error.message
 				})
 		},
 
@@ -904,7 +860,7 @@ export default {
 					.catch(error => {
 						console.log("getUserData() error caught: ", error)
 						console.log("getUserData() error message: ", error.message)
-						this.spotifyError = error.message
+						this.spotifyStatusMessage = error.message
 					})
 			}
 		},
@@ -934,7 +890,7 @@ export default {
 						console.log("getFollowedArtists() error caught: ", error)
 						console.log("getFollowedArtists() error message: ", error.message)
 						// Assign spotifyError string to the value of error.message
-						this.spotifyError = error.message
+						this.spotifyStatusMessage = error.message
 						// If error is a 401 (token has likely expired)
 						if(error.message==="Request failed with status code 401"){
 							// Run refreshSpotifyToken() to get new access token
@@ -972,7 +928,7 @@ export default {
 								console.log("getUserPlaylists() error caught: ", error)
 								console.log("getUserPlaylists() error message: ", error.message)
 								// Assign spotifyError string to the value of error.message
-								this.spotifyError = error.message
+								this.spotifyStatusMessage = error.message
 								// If error is a 401 (token has likely expired)
 								if (error.message === "Request failed with status code 401") {
 									// Run refreshSpotifyToken() to get new access token
@@ -1005,7 +961,7 @@ export default {
 								.catch(error => {
 									console.log("error caught: ", error)
 									console.log("error message: ", error.message)
-									this.spotifyError = error.message
+									this.spotifyStatusMessage = error.message
 									if (error.message === "Request failed with status code 401") {
 										// Run refreshSpotifyToken() to get new access token
 										this.refreshSpotifyToken()
@@ -1014,13 +970,13 @@ export default {
 						}
 					}
 				} else {
-					this.spotifyError = "No user ID found.. Refresh?"
+					this.spotifyStatusMessage = "No user ID found.. Refresh?"
 					this.getUserData()
 				}
 			}
 		},
-		playSpotifyTrack(selected) {
-			console.log(`playSpotifyTrack(${selected.track.name})`)
+		queueSpotifyTrack(selected) {
+			console.log(`queueSpotifyTrack(${selected.track.name})`)
 			let token = localStorage.getItem('spotify_access_token')
 			let baseURL = 'https://api.spotify.com/v1'
 			axios
@@ -1032,17 +988,43 @@ export default {
 						}
 					})
 				.then(response => {
-						console.log("playSpotifyTrack() SUCCESS! \n Response: ", response.data)
-						this.spotifyError = ""
+						console.log("queueSpotifyTrack() SUCCESS! \n Response: ", response.data)
+						this.spotifyStatusMessage = `Successfully added ${selected.track.name} to queue`
 					}
 				)
 				.catch(error => {
 					console.log("playSpotifyTrack() error caught: ", error.response, "\n Message: ", error.response.data.error.message)
-					this.spotifyError = `${error.response.data.error.message}...`
+					this.spotifyStatusMessage = `${error.response.data.error.message}...`
 				})
 		},
-		deleteSpotifyPlaylist(){
-			this.spotifyDeleteDialog = false
+		unfollowSpotifyPlaylist(playlist){
+			if (confirm(`Are you sure you want to unfollow ${playlist.name}?`)) {
+				// Delete it!
+				console.log(`Playlist '${playlist.name}' unfollow confirmed.`);
+				// Unfollow Playlist Request
+				let token = localStorage.getItem('spotify_access_token')
+				let baseURL = 'https://api.spotify.com/v1'
+				axios
+					.delete(`${baseURL}/playlists/${playlist.id}/followers`,
+						{
+							headers: {
+								"Authorization" : `Bearer ${token}`
+							}
+						})
+					.then(response => {
+							console.log("unfollowSpotifyPlaylist() SUCCESS! \n Response: ", response.data)
+							this.spotifyStatusMessage = `Successfully unfollowed ${playlist.name}`
+							this.getUserPlaylists()
+						}
+					)
+					.catch(error => {
+						console.log("unfollowSpotifyPlaylist() error caught: ", error.response, "\n Message: ", error.response.data.error.message)
+						this.spotifyStatusMessage = `${error.response.data.error.message}...`
+					})
+			} else {
+				// Do nothing!
+				console.log(`Playlist '${playlist.name}' unfollow cancelled.`);
+			}
 		}
 	}
 }
