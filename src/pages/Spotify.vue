@@ -849,7 +849,6 @@ export default {
 						// time_signature: false,
 						// valence: false,
 					},
-
 				// The following accept values between 0 -> 1 (eg. 0.35)
 				// How acoustic the tracks are
 				max_acousticness: null,
@@ -907,6 +906,7 @@ export default {
 				min_time_signature: null,
 				target_time_signature: null,
 			},
+			recommendedTracks: [],
 			// TODO: Playback Data
 			refCount: 0,
 			isLoading: false
@@ -1074,7 +1074,7 @@ export default {
 						console.log("refreshSpotifyToken() response: ", response.data)
 						// Assign local storage access token to new access token
 						localStorage.setItem("spotify_access_token", response.data.access_token)
-						// Clear spotifyError message
+						// Clear spotifyStatusMessage message
 						this.spotifyStatusMessage = ""
 						// Re-run anything that would have failed with an expired token
 						this.getFollowedArtists()
@@ -1139,7 +1139,7 @@ export default {
 						// Log errors
 						console.log("getFollowedArtists() error caught: ", error)
 						console.log("getFollowedArtists() error message: ", error.message)
-						// Assign spotifyError string to the value of error.message
+						// Assign spotifyStatusMessage string to the value of error.message
 						this.spotifyStatusMessage = error.message
 						// If error is a 401 (token has likely expired)
 						if(error.message==="Request failed with status code 401"){
@@ -1178,7 +1178,7 @@ export default {
 								// Log error
 								console.log("getUserPlaylists() error caught: ", error)
 								console.log("getUserPlaylists() error message: ", error.message)
-								// Assign spotifyError string to the value of error.message
+								// Assign spotifyStatusMessage string to the value of error.message
 								this.spotifyStatusMessage = error.message
 								// If error is a 401 (token has likely expired)
 								if (error.message === "Request failed with status code 401") {
@@ -1317,7 +1317,9 @@ export default {
 		// TODO: Multiple track removal
 		// Function for generating recommendations
 		generateRecommendations(formData){
+			// filter sliderParameter array by enabled sliders only (inserts into enabledSliders array)
 			let enabledSliders = formData.optionalParams.sliderParams.filter(slider => slider.enabled !== false)
+			// lots of logging for testing purposes
 			console.log(enabledSliders)
 			console.log("Query Output:")
 			console.log(`?limit=${formData.optionalParams.limitSelected}`)
@@ -1325,17 +1327,28 @@ export default {
 			enabledSliders.forEach(slider =>
 				console.log(`&${slider.type}_${slider.parameter}=${slider.value}`)
 			)
+			// if required parameters are empty on arrival...
 			if(formData.requiredParams.seed_artists===""){
 				console.log("Required params not filled!")
+				this.spotifyStatusMessage = "You must pick an artist before we can generate any recommendations!"
 			} else {
+				// else if required parameters were passed...
 				console.log("Required params filled! Executing request...")
 				let token = localStorage.getItem('spotify_access_token')
 				let baseURL = 'https://api.spotify.com/v1'
+				// '?limit=x' starts off the recommendation URL queries (although it is optional)
 				let limit = `?limit=${formData.optionalParams.limitSelected}`
+				// next up is '&seed_artists=x' - this is required
 				let artist = `&seed_artists=${formData.requiredParams.seed_artists}`
+				// initialising sliderQueries as a String
 				let sliderQueries = ""
+				// for each enabled slider, format as '&type_param=value'
+				// then on each loop, auto-increment (concatenate)
+				// this gives us our desired '&type_param=value&type_param=value...' chain
 				enabledSliders.forEach(slider => (sliderQueries += `&${slider.type}_${slider.parameter}=${slider.value}`))
-				console.log(sliderQueries)
+				// log sliderQueries for testing purposes
+				if(sliderQueries!==""){console.log(sliderQueries)}
+				// finally, make axios GET request using limit, artist, and sliderQueries variables
 				axios
 					.get(`${baseURL}/recommendations${limit}${artist}${sliderQueries}`,
 						{
@@ -1345,11 +1358,15 @@ export default {
 						})
 					.then(response => {
 							console.log("generateRecommendations() response: ", response.data)
+							// assign recommendedTracks variable to response.tracks array
+							this.recommendedTracks = response.data.tracks
+							// clear the spotifyStatusMessage
+							this.spotifyStatusMessage = ""
 						}
 					)
 					.catch(error => {
 						console.log("generateRecommendations() error caught: ", error)
-						// Assign spotifyError string to the value of error.message
+						// Assign spotifyStatusMessage string to the value of error.message
 						this.spotifyStatusMessage = error.message
 						// If error is a 401 (token has likely expired)
 						if(error.message==="Request failed with status code 401"){
