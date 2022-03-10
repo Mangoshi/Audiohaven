@@ -517,40 +517,38 @@
 						<v-row>
 							<v-col
 								v-for="slider in recommendationsForm.optionalParams.sliderParams"
-								:key="slider.parameter"
+								:key="slider.param"
 								class="mr-2"
 								cols="2">
 								<v-checkbox
 									v-model="slider.enabled"
 									:label="slider.label"
+									class="text-capitalize"
+									color="accent"
+								></v-checkbox>
+							</v-col>
+							<!--	 Special sliders		-->
+							<v-col
+								v-for="slider in recommendationsForm.optionalParams.specialSliders"
+								:key="slider.param"
+								class="mr-2"
+								cols="2">
+								<v-checkbox
+									v-model="slider.enabled"
+									:label="slider.label"
+									class="text-capitalize"
 									color="accent"
 								></v-checkbox>
 							</v-col>
 						</v-row>
 						<!-- Parameter controls -->
-						<v-divider></v-divider>
+						<v-divider class="mb-15"></v-divider>
 						<v-row
 							v-for="slider in recommendationsForm.optionalParams.sliderParams"
-							:key="slider.parameter"
-							class="mt-10"
+							:key="slider.param"
 						>
-							<v-col v-if="slider.enabled" cols="10" md="8">
-								<v-slider
-									v-model="slider.value"
-									:append-icon="slider.icon"
-									:label="slider.label"
-									:max="slider.max"
-									:min="slider.min"
-									:step="slider.step"
-									thumb-color="accent"
-									thumb-label="always"
-									ticks="always"
-									track-color="primary"
-									track-fill-color="green"
-								></v-slider>
-							</v-col>
-							<v-col v-if="slider.enabled" class="mt-n3" cols="2" md="4">
-								<v-radio-group v-model="slider.type" row>
+							<v-col v-if="slider.enabled" class="mt-n4" cols="1">
+								<v-radio-group v-model="slider.type" dense row>
 									<v-radio
 										color="accent"
 										label="Equal"
@@ -567,6 +565,70 @@
 										value="max"
 									></v-radio>
 								</v-radio-group>
+							</v-col>
+							<v-col v-if="slider.enabled" cols="9">
+								<v-slider
+									v-model="slider.value"
+									:append-icon="slider.icon"
+									:max="slider.max"
+									:min="slider.min"
+									:step="slider.step"
+									class="ml-6 mr-n3"
+									thumb-color="accent"
+									thumb-label="always"
+									ticks="always"
+									track-color="primary"
+									track-fill-color="green"
+								>
+									<template v-if="(slider.param)==='key'" v-slot:thumb-label="item">
+										{{ keyDoctor(item.value) }}
+									</template>
+								</v-slider>
+							</v-col>
+							<v-col v-if="slider.enabled" class="mt-1" cols="2">
+								<p class="text-left">{{ slider.label }}</p>
+							</v-col>
+						</v-row>
+						<v-row
+							v-for="slider in recommendationsForm.optionalParams.specialSliders"
+							:key="slider.param"
+						>
+							<v-col v-if="slider.enabled" class="mt-n4" cols="1">
+								<v-radio-group v-model="slider.type" dense row>
+									<v-radio
+										color="accent"
+										label="Equal"
+										value="target"
+									></v-radio>
+									<v-radio
+										color="accent"
+										label="Min"
+										value="min"
+									></v-radio>
+									<v-radio
+										color="accent"
+										label="Max"
+										value="max"
+									></v-radio>
+								</v-radio-group>
+							</v-col>
+							<v-col v-if="slider.enabled" cols="9">
+								<v-slider
+									v-model="slider.value"
+									:append-icon="slider.icon"
+									:max="slider.max"
+									:min="slider.min"
+									:step="slider.step"
+									class="ml-6 mr-n3"
+									thumb-color="accent"
+									thumb-label="always"
+									ticks="always"
+									track-color="primary"
+									track-fill-color="green"
+								></v-slider>
+							</v-col>
+							<v-col v-if="slider.enabled" class="mt-1" cols="2">
+								<p class="text-left">{{ slider.label }}</p>
 							</v-col>
 						</v-row>
 						<v-row>
@@ -812,10 +874,12 @@ export default {
 						market: "",
 						// SLIDER PARAMETERS //
 						sliderParams: [
+							// The following accept values between 0 -> 1 (eg. 0.35) //
 							{
+								// How acoustic the tracks are
 								enabled: false,
-								parameter: "acousticness",
-								label: "Acousticness",
+								label: "Acoustic",
+								param: "acousticness",
 								type: "target",
 								value: null,
 								icon: "mdi-guitar-acoustic",
@@ -824,9 +888,10 @@ export default {
 								step: 0.1,
 							},
 							{
+								// How "danceable" the tracks are
 								enabled: false,
-								parameter: "danceability",
-								label: "Danceability",
+								label: "Danceable",
+								param: "danceability",
 								type: "target",
 								value: null,
 								icon: "mdi-dance-pole",
@@ -834,77 +899,132 @@ export default {
 								max: 1,
 								step: 0.1
 							},
+							{
+								// How energetic the tracks are
+								enabled: false,
+								label: "Energy",
+								param: "energy",
+								type: "target",
+								value: null,
+								icon: "mdi-flash",
+								min: 0,
+								max: 1,
+								step: 0.1
+							},
+							{
+								// How instrumental the tracks are
+								enabled: false,
+								label: "Instrumental",
+								param: "instrumentalness",
+								type: "target",
+								value: null,
+								icon: "mdi-instrument-triangle",
+								min: 0,
+								max: 1,
+								step: 0.1
+							},
+							{
+								// How live the tracks sound
+								enabled: false,
+								label: "Live",
+								param: "liveness",
+								type: "target",
+								value: null,
+								icon: "mdi-instrument-triangle",
+								min: 0,
+								max: 1,
+								step: 0.1
+							},
+							{
+								// The loudness of the tracks
+								enabled: false,
+								label: "Loud",
+								param: "loudness",
+								type: "target",
+								value: null,
+								icon: "mdi-instrument-triangle",
+								min: 0,
+								max: 1,
+								step: 0.1
+							},
+							{
+								// How much speech is in the tracks
+								enabled: false,
+								label: "Speech",
+								param: "speechiness",
+								type: "target",
+								value: null,
+								icon: "mdi-instrument-triangle",
+								min: 0,
+								max: 1,
+								step: 0.1
+							},
+							{
+								// How "happy" the tracks are
+								enabled: false,
+								label: "Happy",
+								param: "valence",
+								type: "target",
+								value: null,
+								icon: "mdi-instrument-triangle",
+								min: 0,
+								max: 1,
+								step: 0.1
+							},
+							// Other range parameters //
+							{
+								// The key tracks are in (accepts values between 0 -> 11)
+								enabled: false,
+								label: "Key",
+								param: "key",
+								type: "target",
+								value: null,
+								icon: "mdi-instrument-triangle",
+								min: 0,
+								max: 11,
+								step: 1
+							},
+							{
+								// Popularity of the tracks (accepts 0 -> 100)
+								enabled: false,
+								label: "Popularity",
+								param: "popularity",
+								type: "target",
+								value: null,
+								icon: "mdi-instrument-triangle",
+								min: 0,
+								max: 100,
+								step: 10
+							},
+							{
+								// Popularity of the tracks (accepts 0 -> 100)
+								enabled: false,
+								label: "Tempo (BPM)",
+								param: "tempo",
+								type: "target",
+								value: null,
+								icon: "mdi-instrument-triangle",
+								min: 0,
+								max: 200,
+								step: 5
+							},
 						],
-						// To-implement after testing above:
-						// duration_ms: false,
-						// energy: false,
-						// instrumentalness: false,
-						// key: false,
-						// liveness: false,
-						// loudness: false,
-						// mode: false,
-						// popularity: false,
-						// speechiness: false,
-						// tempo: false,
-						// time_signature: false,
-						// valence: false,
+						// Special sliders
+						specialSliders: [
+							{
+								// Duration slider
+								enabled: false,
+								label: "Duration (mins)",
+								param: "max_duration_ms",
+								type: "target",
+								value: null,
+								icon: "mdi-instrument-triangle",
+								min: 0,
+								max: 60,
+								step: 5
+							}
+						],
 					},
-				// The following accept values between 0 -> 1 (eg. 0.35)
-				// How acoustic the tracks are
-				max_acousticness: null,
-				min_acousticness: null,
-				target_acousticness: null,
-				// How "danceable" the tracks are
-				max_danceability: null,
-				min_danceability: null,
-				target_danceability: null,
-				// How energetic the tracks are
-				max_energy: null,
-				min_energy: null,
-				target_energy: null,
-				// How instrumental the tracks are
-				max_instrumentalness: null,
-				min_instrumentalness: null,
-				target_instrumentalness: null,
-				// How live the tracks sound
-				max_liveness: null,
-				min_liveness: null,
-				target_liveness: null,
-				// The mode(?) of the tracks
-				max_mode: null,
-				min_mode: null,
-				target_mode: null,
-				// How much speech is in the tracks
-				max_speechiness: null,
-				min_speechiness: null,
-				target_speechiness: null,
-				// How "happy" the tracks are
-				max_valence: null,
-				min_valence: null,
-				target_valence: null,
-				// This accepts values between 0 -> 11
-				// The key of the tracks
-				// 0:C, 1:C#, 2:D, 3:D#, 4:E, 5:F
-				// 6:F#, 7:G, 8:G#, 9:A, 10:A#, 11:B
-				max_key: null,
-				min_key: null,
-				target_key: null,
-				// This accepts values between 0 -> 100
-				max_popularity: null,
-				min_popularity: null,
-				target_popularity: null,
-				// Durations in milliseconds
-				max_duration_ms: null,
-				min_duration_ms: null,
-				target_duration_ms: null,
-				// Tempos (BPMs)
-				max_tempo: null,
-				min_tempo: null,
-				target_tempo: null,
-				// Time Signature
-				max_time_signature: null,
-				min_time_signature: null,
-				target_time_signature: null,
 			},
 			recommendedTracks: [],
 			// TODO: Playback Data
@@ -1325,7 +1445,7 @@ export default {
 			console.log(`?limit=${formData.optionalParams.limitSelected}`)
 			console.log(`&seed_artists=${formData.requiredParams.seed_artists}`)
 			enabledSliders.forEach(slider =>
-				console.log(`&${slider.type}_${slider.parameter}=${slider.value}`)
+				console.log(`&${slider.type}_${slider.param}=${slider.value}`)
 			)
 			// if required parameters are empty on arrival...
 			if(formData.requiredParams.seed_artists===""){
@@ -1345,7 +1465,14 @@ export default {
 				// for each enabled slider, format as '&type_param=value'
 				// then on each loop, auto-increment (concatenate)
 				// this gives us our desired '&type_param=value&type_param=value...' chain
-				enabledSliders.forEach(slider => (sliderQueries += `&${slider.type}_${slider.parameter}=${slider.value}`))
+				enabledSliders.forEach(slider => (sliderQueries += `&${slider.type}_${slider.param}=${slider.value}`))
+				// if duration slider is enabled, concatenate sliderQueries with milliseconds
+				if(formData.optionalParams.specialSliders[0].enabled){
+					let durationSlider = formData.optionalParams.specialSliders[0]
+					let type = durationSlider.type
+					let value = this.timeDoctor(durationSlider.value)
+					sliderQueries += `&${type}_duration_ms=${value}`
+				}
 				// log sliderQueries for testing purposes
 				if(sliderQueries!==""){console.log(sliderQueries)}
 				// finally, make axios GET request using limit, artist, and sliderQueries variables
@@ -1376,6 +1503,51 @@ export default {
 					})
 			}
 		},
+		// durationCalculator
+		timeDoctor(minutes){
+			return minutes * 60000
+		},
+		// Legend:
+		// 0:C, 1:C#, 2:D, 3:D#, 4:E, 5:F
+		// 6:F#, 7:G, 8:G#, 9:A, 10:A#, 11:B
+		keyDoctor(number){
+			if(number === 0){
+				return 'C'
+			}
+			else if(number === 1){
+				return 'C#'
+			}
+			else if(number === 2){
+				return 'D'
+			}
+			else if(number === 3){
+				return 'D#'
+			}
+			else if(number === 4){
+				return 'E'
+			}
+			else if(number === 5){
+				return 'F'
+			}
+			else if(number === 6){
+				return 'F#'
+			}
+			else if(number === 7){
+				return 'G'
+			}
+			else if(number === 8){
+				return 'G#'
+			}
+			else if(number === 9){
+				return 'A'
+			}
+			else if(number === 10){
+				return 'A#'
+			}
+			else if(number === 11){
+				return 'B'
+			}
+		}
 	}
 }
 </script>
