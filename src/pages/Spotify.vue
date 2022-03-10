@@ -277,7 +277,7 @@
 									v-if="playlistLayer !== 0"
 									class="mr-2"
 									icon
-									@click="playlistLayer = playlistLayer-1"
+									@click="decrementPlaylistLayer()"
 								><v-icon>mdi-arrow-left</v-icon>
 								</v-btn>
 								Playlists
@@ -399,7 +399,11 @@
 								</template>
 								<!-- Making remove buttons under remove column -->
 								<template v-if="playlistLayer === 1" v-slot:item.remove="{ item }">
-									<v-btn icon @click="removeSpotifyTrackFromPlaylist(item)">
+									<v-btn
+										color="red"
+										icon
+										@click="removeSpotifyPlaylistTrack(item, currentSpotifyPlaylist)"
+									>
 										<v-icon>mdi-delete</v-icon>
 									</v-btn>
 								</template>
@@ -548,6 +552,7 @@ export default {
 			spotifyLoggedIn: false,
 			spotifyStatusMessage: "",
 			spotifyUserData: {},
+			currentSpotifyPlaylist: null,
 			// Module Data //
 			selectedModule: "userPlaylists",
 			modules: [
@@ -906,8 +911,9 @@ export default {
 			let baseURL = 'https://api.spotify.com/v1'
 			if (this.spotifyLoggedIn){
 				if(userID !== null && userID !== ""){
-					// If user is logged-in & no playlist was passed
+					// If no playlist was selected (ie we want list of playlists)
 					if (!selectedPlaylist) {
+						this.currentSpotifyPlaylist = null
 						axios
 							// GET request using user's ID
 							.get(`${baseURL}/users/${userID}/playlists`,
@@ -936,44 +942,44 @@ export default {
 								}
 							})
 					}
-					// If user is logged-in & a playlist was passed (selected by user)
+					// If a playlist was selected (ie we want list of tracks inside playlist)
 					if(selectedPlaylist) {
-						console.log(`getUserPlaylists(${selectedPlaylist.id}): '${selectedPlaylist.name}' executed.`)
-						// If user is logged-in
-						if(this.spotifyLoggedIn){
-							let token = localStorage.getItem('spotify_access_token')
-							let baseURL = 'https://api.spotify.com/v1'
-							axios
-								.get(`${baseURL}/playlists/${selectedPlaylist.id}/tracks`,
-									{
-										headers: {
-											"Authorization" : `Bearer ${token}`
-										}
-									})
-								.then(response => {
-										console.log("response: ", response.data)
-										// If we get a response, assign the second layer of playlistTable to it
-										this.playlistTable[1].Items = response.data.items
-										// Increment playlistLayer so the vuetify table changes too
-										this.playlistLayer++
-									}
-								)
-								.catch(error => {
-									console.log("error caught: ", error)
-									console.log("error message: ", error.message)
-									this.spotifyStatusMessage = error.message
-									if (error.message === "Request failed with status code 401") {
-										// Run refreshSpotifyToken() to get new access token
-										this.refreshSpotifyToken()
+						// console.log(`getUserPlaylists(${selectedPlaylist.id}): '${selectedPlaylist.name}' executed.`)
+						this.currentSpotifyPlaylist = selectedPlaylist
+						axios
+							.get(`${baseURL}/playlists/${selectedPlaylist.id}/tracks`,
+								{
+									headers: {
+										"Authorization" : `Bearer ${token}`
 									}
 								})
-						}
+							.then(response => {
+									console.log("response: ", response.data)
+									// If we get a response, assign the second layer of playlistTable to it
+									this.playlistTable[1].Items = response.data.items
+									// Increment playlistLayer so the vuetify table changes too
+									this.playlistLayer++
+								}
+							)
+							.catch(error => {
+								console.log("error caught: ", error)
+								console.log("error message: ", error.message)
+								this.spotifyStatusMessage = error.message
+								if (error.message === "Request failed with status code 401") {
+									// Run refreshSpotifyToken() to get new access token
+									this.refreshSpotifyToken()
+								}
+							})
 					}
 				} else {
 					this.spotifyStatusMessage = "No user ID found.. Refresh?"
 					this.getUserData()
 				}
 			}
+		},
+		decrementPlaylistLayer() {
+			this.playlistLayer = 0
+			this.currentSpotifyPlaylist = null
 		},
 		queueSpotifyTrack(selected) {
 			console.log(`queueSpotifyTrack(${selected.track.name})`)
@@ -998,6 +1004,7 @@ export default {
 				})
 		},
 		unfollowSpotifyPlaylist(playlist){
+			let indexOfPlaylist = this.playlistTable[0].Items.indexOf(playlist)
 			if (confirm(`Are you sure you want to unfollow ${playlist.name}?`)) {
 				// Delete it!
 				console.log(`Playlist '${playlist.name}' unfollow confirmed.`);
@@ -1014,7 +1021,7 @@ export default {
 					.then(response => {
 							console.log("unfollowSpotifyPlaylist() SUCCESS! \n Response: ", response.data)
 							this.spotifyStatusMessage = `Successfully unfollowed ${playlist.name}`
-							this.getUserPlaylists()
+							this.playlistTable[0].Items.splice(indexOfPlaylist, 1)
 						}
 					)
 					.catch(error => {
@@ -1025,7 +1032,44 @@ export default {
 				// Do nothing!
 				console.log(`Playlist '${playlist.name}' unfollow cancelled.`);
 			}
-		}
+		},
+		removeSpotifyPlaylistTrack(track, playlist){
+			console.log("playlist: ", playlist, "\n", "track: ", track)
+			let indexOfTrack = this.playlistTable[1].Items.indexOf(track)
+			if (confirm(`Are you sure you want to remove ${track.track.name} from ${playlist.name}?`)) {
+				// Delete it!
+				console.log(`Track '${track.track.name}' removal confirmed.`);
+				// Remove Track Request
+				let token = localStorage.getItem('spotify_access_token')
+				let baseURL = 'https://api.spotify.com/v1'
+				axios
+					.delete(`${baseURL}/playlists/${playlist.id}/tracks`,
+						{
+							headers: {
+								"Authorization" : `Bearer ${token}`
+							},
+							data: {
+								"tracks": [
+									{"uri":`${track.track.uri}`},
+								]
+							}
+						})
+					.then(response => {
+							console.log("removeSpotifyPlaylistTrack() SUCCESS! \n Response: ", response.data)
+							this.spotifyStatusMessage = `Successfully removed ${track.track.name}`
+							this.playlistTable[1].Items.splice(indexOfTrack, 1)
+						}
+					)
+					.catch(error => {
+						console.log("removeSpotifyPlaylistTrack() error caught: ", error.response, "\n Message: ", error.response.data.error.message)
+						this.spotifyStatusMessage = `${error.response.data.error.message}...`
+					})
+			} else {
+				// Do nothing!
+				console.log(`Track '${track.name}' removal cancelled.`);
+			}
+		},
+		// TODO: Multiple track removal
 	}
 }
 </script>
