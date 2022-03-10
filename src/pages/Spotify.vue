@@ -924,6 +924,7 @@ export default {
 								step: 0.1
 							},
 							{
+								// TODO: Pick icons for the rest of the following sliders
 								// How live the tracks sound
 								enabled: false,
 								label: "Live",
@@ -1026,6 +1027,7 @@ export default {
 						],
 					},
 			},
+			// TODO: Display recommended tracks underneath generator
 			recommendedTracks: [],
 			// TODO: Playback Data
 			refCount: 0,
