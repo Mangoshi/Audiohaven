@@ -457,8 +457,8 @@
 															width="350"
 														></v-img>
 													</a>
-                          <vuetify-audio v-if="item.track.preview_url" :file="item.track.preview_url" color="accent" :ended="audioFinish"></vuetify-audio>
-                          <small v-else>Sorry, no preview available.</small>
+													<vuetify-audio v-if="item.track.preview_url" :file="item.track.preview_url" color="accent" :ended="audioFinish"></vuetify-audio>
+													<small v-else>Sorry, no preview available.</small>
 												</v-col>
 												<v-col v-else>
 													<a :href="item.track.preview_url" target="_blank">Link to playlist</a>
@@ -483,6 +483,75 @@
 							</v-data-table>
 						</v-card>
 					</v-container>
+					<!-- Recommendations Module	-->
+					<v-container v-if="selectedModule === 'recommendationGenerator'" fluid>
+						<!-- Parameters selector -->
+						<h5 align="left">Enabled parameters</h5>
+						<v-row>
+							<v-col
+								cols="2"
+								class="mr-2"
+								v-for="filter in recommendationFilters"
+								:key="filter.parameter">
+								<v-checkbox
+									:label="filter.label"
+									v-model="filter.enabled"
+									color="purple"
+								></v-checkbox>
+							</v-col>
+						</v-row>
+						<!-- Parameter controls -->
+						<v-divider></v-divider>
+						<v-row
+							class="mt-10"
+							v-for="filter in recommendationFilters"
+							:key="filter.parameter"
+						>
+							<v-col cols="10" md="8" v-if="filter.enabled">
+								<v-slider
+									:append-icon="filter.icon"
+									:label="filter.label"
+									:min="filter.min"
+									:max="filter.max"
+									:step="filter.step"
+									v-model="filter.value"
+									thumb-color="accent"
+									thumb-label="always"
+									track-color="primary"
+									track-fill-color="green"
+									ticks="always"
+								></v-slider>
+							</v-col>
+							<v-col cols="2" md="4" v-if="filter.enabled" class="mt-n3">
+								<v-radio-group row v-model="filter.type">
+									<v-radio
+										label="Equal"
+										value="target"
+										color="accent"
+									></v-radio>
+									<v-radio
+										label="Min"
+										value="min"
+										color="accent"
+									></v-radio>
+									<v-radio
+										label="Max"
+										value="max"
+										color="accent"
+									></v-radio>
+								</v-radio-group>
+							</v-col>
+						</v-row>
+						<v-row>
+							<v-spacer></v-spacer>
+							<v-col cols="2" md="2">
+								<v-btn block color="accent" @click="generateRecommendations(recommendationFilters)">
+									Submit
+								</v-btn>
+							</v-col>
+							<v-spacer></v-spacer>
+						</v-row>
+					</v-container>
 				</v-card>
 			</v-col>
 			<v-col cols="0" lg="2" md="1"></v-col>
@@ -502,8 +571,8 @@ export default {
 	name: "Spotify",
 	title: 'Spotify Sandbox',
 	components: {
-    VuetifyAudio: () => import('vuetify-audio'),
-  },
+		VuetifyAudio: () => import('vuetify-audio'),
+	},
 	data(){
 		return{
 			// Sample API Table Data //
@@ -557,9 +626,10 @@ export default {
 			spotifyStatusMessage: "",
 			spotifyUserData: {},
 			currentSpotifyPlaylist: null,
-      spotifyEmbeds: false, // Disabling iframes for now
+			// Disabling iframes for now
+			spotifyEmbeds: false,
 			// Module Data //
-			selectedModule: "userPlaylists",
+			selectedModule: "recommendationGenerator",
 			modules: [
 				{
 					label: "Your Playlists",
@@ -568,6 +638,10 @@ export default {
 				{
 					label: "Followed Artists",
 					value: "followedArtists"
+				},
+				{
+					label: "Recommendation Generator",
+					value: "recommendationGenerator"
 				},
 			],
 			// Followed Artists Data Iterator //
@@ -666,7 +740,123 @@ export default {
 					Expanded: [],
 				}
 			],
-			// TODO: Recommendations Data Iterator
+			// Recommendations Form Data
+			recommendationsForm: {
+				// Spotify docs: https://developer.spotify.com/documentation/web-api/reference/#/operations/get-recommendations
+				// Max params: Hard ceiling on track attribute's value
+				// Min params: Hard floor on track attribute's value
+				// Target params: Returns tracks with attribute values nearest to target
+
+				// REQUIRED PARAMS //
+
+				// Up to 5 seed values may be provided in any combination of seed_artists, seed_tracks and seed_genres
+				// A comma separated list of Spotify IDs for seed artists
+				seed_artists: "",
+				// A comma separated list of any genres in the set of available genre seeds
+				seed_genres: "",
+				// A comma separated list of Spotify IDs for a seed track
+				seed_tracks: "",
+
+				// OPTIONAL PARAMS //
+
+				// Amount of tracks returned (Default 20, Max 100)
+				limit: 20,
+				// An ISO 3166-1 alpha-2 country code
+				market: "",
+				// The following accept values between 0 -> 1 (eg. 0.35)
+				// How acoustic the tracks are
+				max_acousticness: null,
+				min_acousticness: null,
+				target_acousticness: null,
+				// How "danceable" the tracks are
+				max_danceability: null,
+				min_danceability: null,
+				target_danceability: null,
+				// How energetic the tracks are
+				max_energy: null,
+				min_energy: null,
+				target_energy: null,
+				// How instrumental the tracks are
+				max_instrumentalness: null,
+				min_instrumentalness: null,
+				target_instrumentalness: null,
+				// How live the tracks sound
+				max_liveness: null,
+				min_liveness: null,
+				target_liveness: null,
+				// The mode(?) of the tracks
+				max_mode: null,
+				min_mode: null,
+				target_mode: null,
+				// How much speech is in the tracks
+				max_speechiness: null,
+				min_speechiness: null,
+				target_speechiness: null,
+				// How "happy" the tracks are
+				max_valence: null,
+				min_valence: null,
+				target_valence: null,
+				// This accepts values between 0 -> 11
+				// The key of the tracks
+				// 0:C, 1:C#, 2:D, 3:D#, 4:E, 5:F
+				// 6:F#, 7:G, 8:G#, 9:A, 10:A#, 11:B
+				max_key: null,
+				min_key: null,
+				target_key: null,
+				// This accepts values between 0 -> 100
+				max_popularity: null,
+				min_popularity: null,
+				target_popularity: null,
+				// Durations in milliseconds
+				max_duration_ms: null,
+				min_duration_ms: null,
+				target_duration_ms: null,
+				// Tempos (BPMs)
+				max_tempo: null,
+				min_tempo: null,
+				target_tempo: null,
+				// Time Signature
+				max_time_signature: null,
+				min_time_signature: null,
+				target_time_signature: null,
+			},
+			recommendationFilters: [
+				{
+					enabled: false,
+					parameter: "acousticness",
+					label: "Acousticness",
+					type: "target",
+					value: null,
+					icon: "mdi-guitar-acoustic",
+					min: 0,
+					max: 1,
+					step: 0.1,
+				},
+				{
+					enabled: false,
+					parameter: "danceability",
+					label: "Danceability",
+					type: "target",
+					value: null,
+					icon: "mdi-dance-pole",
+					min: 0,
+					max: 1,
+					step: 0.1
+				},
+			],
+			// To-implement after testing above:
+			// duration_ms: false,
+			// energy: false,
+			// instrumentalness: false,
+			// key: false,
+			// liveness: false,
+			// loudness: false,
+			// mode: false,
+			// popularity: false,
+			// speechiness: false,
+			// tempo: false,
+			// time_signature: false,
+			// valence: false,
 			// TODO: Playback Data
 			refCount: 0,
 			isLoading: false
@@ -1075,6 +1265,43 @@ export default {
 			}
 		},
 		// TODO: Multiple track removal
+		// Function for generating recommendations
+		generateRecommendations(formData){
+			// let token = localStorage.getItem('spotify_access_token')
+			// let baseURL = 'https://api.spotify.com/v1'
+			let enabledFilters = formData.filter(parameter => parameter.enabled !== false)
+			console.log(enabledFilters)
+			enabledFilters.forEach(filter =>
+				console.log(
+					`generated query:\n &${filter.type}_${filter.parameter}=${filter.value}`
+				)
+			)
+			// axios
+			// 	.get(`${baseURL}/recommendations
+			// 		?limit=${this.recommendationsForm.limit}
+			//
+			// 	`,
+			// 		{
+			// 			headers: {
+			// 				"Authorization" : `Bearer ${token}`
+			// 			}
+			// 		})
+			// 	.then(response => {
+			// 			console.log("getFollowedArtists() response: ", response.data)
+			// 			this.followedArtists = response.data.artists.items
+			// 		}
+			// 	)
+			// 	.catch(error => {
+			// 		console.log("getFollowedArtists() error caught: ", error)
+			// 		// Assign spotifyError string to the value of error.message
+			// 		this.spotifyStatusMessage = error.message
+			// 		// If error is a 401 (token has likely expired)
+			// 		if(error.message==="Request failed with status code 401"){
+			// 			// Run refreshSpotifyToken() to get new access token
+			// 			this.refreshSpotifyToken()
+			// 		}
+			// 	})
+		},
 	}
 }
 </script>
