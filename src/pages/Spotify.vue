@@ -486,8 +486,9 @@
 					</v-container>
 					<!-- Recommendations Module	-->
 					<v-container v-if="selectedModule === 'recommendationGenerator'" fluid>
+
 						<!-- Required fields -->
-						<v-row>
+						<v-row class="mb-3">
 							<v-col cols="10" md="8">
 								<v-autocomplete
 									v-model="recommendationsForm.requiredParams.seed_artists"
@@ -506,41 +507,48 @@
 									color="accent"
 									item-text="value"
 									item-value="value"
-									label="Limit"
+									label="Amount"
 								></v-select>
 							</v-col>
 						</v-row>
 
-
 						<!-- Slider choices -->
-						<h5 align="left">Enabled parameters</h5>
-						<v-row>
+						<v-divider></v-divider>
+						<p class="unselectable mb-2 mt-2">Optional Parameters</p>
+						<v-divider></v-divider>
+						<v-row class="d-flex flex-row justify-center">
 							<v-col
 								v-for="slider in recommendationsForm.optionalParams.sliderParams"
 								:key="slider.param"
 								class="mr-2"
-								cols="2">
+								cols="3">
+								<!-- TODO: Maybe use v-autocomplete with multiple enabled? -->
+								<!-- This would make the params take up a lot less space! -->
+								<!-- Only issue may lie in adding the special slider(s) to it? -->
 								<v-checkbox
 									v-model="slider.enabled"
 									:label="slider.label"
+									:prepend-icon="slider.icon"
 									class="text-capitalize"
 									color="accent"
 								></v-checkbox>
 							</v-col>
-							<!--	 Special sliders		-->
+							<!--	 Special slider choices		-->
 							<v-col
 								v-for="slider in recommendationsForm.optionalParams.specialSliders"
 								:key="slider.param"
 								class="mr-2"
-								cols="2">
+								cols="3">
 								<v-checkbox
 									v-model="slider.enabled"
 									:label="slider.label"
+									:prepend-icon="slider.icon"
 									class="text-capitalize"
 									color="accent"
 								></v-checkbox>
 							</v-col>
 						</v-row>
+
 						<!-- Parameter controls -->
 						<v-divider class="mb-15"></v-divider>
 						<v-row
@@ -589,6 +597,7 @@
 								<p class="text-left">{{ slider.label }}</p>
 							</v-col>
 						</v-row>
+						<!-- Special parameter controls -->
 						<v-row
 							v-for="slider in recommendationsForm.optionalParams.specialSliders"
 							:key="slider.param"
@@ -631,14 +640,17 @@
 								<p class="text-left">{{ slider.label }}</p>
 							</v-col>
 						</v-row>
-						<v-row>
+						<!-- Recommender request button -->
+						<v-row class="mt-n5 mb-3">
 							<v-spacer></v-spacer>
-							<v-col cols="2" md="2" v-if="recommendationsForm.requiredParams.seed_artists">
+							<!-- If there was an artist seed provided -->
+							<v-col v-if="recommendationsForm.requiredParams.seed_artists" cols="3" md="3">
 								<v-btn block color="accent" @click="generateRecommendations(recommendationsForm)">
-									Submit
+									Recommend!
 								</v-btn>
 							</v-col>
-							<v-col cols="4" md="4" v-else>
+							<!-- If there wasn't an artist seed provided -->
+							<v-col v-else cols="4" md="4">
 								<v-btn block color="grey" disable>
 									Pick an artist first!
 								</v-btn>
@@ -899,7 +911,7 @@ export default {
 								param: "danceability",
 								type: "target",
 								value: null,
-								icon: "mdi-dance-pole",
+								icon: "mdi-human-female-dance",
 								min: 0,
 								max: 1,
 								step: 0.1
@@ -936,7 +948,7 @@ export default {
 								param: "liveness",
 								type: "target",
 								value: null,
-								icon: "mdi-instrument-triangle",
+								icon: "mdi-theater",
 								min: 0,
 								max: 1,
 								step: 0.1
@@ -948,7 +960,7 @@ export default {
 								param: "loudness",
 								type: "target",
 								value: null,
-								icon: "mdi-instrument-triangle",
+								icon: "mdi-volume-high",
 								min: 0,
 								max: 1,
 								step: 0.1
@@ -960,7 +972,7 @@ export default {
 								param: "speechiness",
 								type: "target",
 								value: null,
-								icon: "mdi-instrument-triangle",
+								icon: "mdi-account-voice",
 								min: 0,
 								max: 1,
 								step: 0.1
@@ -968,11 +980,11 @@ export default {
 							{
 								// How "happy" the tracks are
 								enabled: false,
-								label: "Happy",
+								label: "Uplifting",
 								param: "valence",
 								type: "target",
 								value: null,
-								icon: "mdi-instrument-triangle",
+								icon: "mdi-emoticon-happy",
 								min: 0,
 								max: 1,
 								step: 0.1
@@ -985,7 +997,7 @@ export default {
 								param: "key",
 								type: "target",
 								value: null,
-								icon: "mdi-instrument-triangle",
+								icon: "mdi-piano",
 								min: 0,
 								max: 11,
 								step: 1
@@ -997,19 +1009,19 @@ export default {
 								param: "popularity",
 								type: "target",
 								value: null,
-								icon: "mdi-instrument-triangle",
+								icon: "mdi-star-face",
 								min: 0,
 								max: 100,
 								step: 10
 							},
 							{
-								// Popularity of the tracks (accepts 0 -> 100)
+								// Tempo of the tracks (accepts any integer)
 								enabled: false,
 								label: "Tempo (BPM)",
 								param: "tempo",
 								type: "target",
 								value: null,
-								icon: "mdi-instrument-triangle",
+								icon: "mdi-metronome",
 								min: 0,
 								max: 200,
 								step: 5
@@ -1024,7 +1036,7 @@ export default {
 								param: "max_duration_ms",
 								type: "target",
 								value: null,
-								icon: "mdi-instrument-triangle",
+								icon: "mdi-timer-outline",
 								min: 0,
 								max: 60,
 								step: 5
