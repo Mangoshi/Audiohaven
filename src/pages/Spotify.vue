@@ -633,9 +633,14 @@
 						</v-row>
 						<v-row>
 							<v-spacer></v-spacer>
-							<v-col cols="2" md="2">
+							<v-col cols="2" md="2" v-if="recommendationsForm.requiredParams.seed_artists">
 								<v-btn block color="accent" @click="generateRecommendations(recommendationsForm)">
 									Submit
+								</v-btn>
+							</v-col>
+							<v-col cols="4" md="4" v-else>
+								<v-btn block color="grey" disable>
+									Pick an artist first!
 								</v-btn>
 							</v-col>
 							<v-spacer></v-spacer>
