@@ -485,17 +485,25 @@
 					</v-container>
 					<!-- Recommendations Module	-->
 					<v-container v-if="selectedModule === 'recommendationGenerator'" fluid>
+						<v-autocomplete
+							v-model="recommendationsForm.requiredParams.seed_artists"
+							:items="followedArtists"
+							color="accent"
+							item-text="name"
+							item-value="uri"
+							label="Choose one of the artists you follow!"
+						></v-autocomplete>
 						<!-- Parameters selector -->
 						<h5 align="left">Enabled parameters</h5>
 						<v-row>
 							<v-col
-								v-for="filter in recommendationFilters"
-								:key="filter.parameter"
+								v-for="slider in recommendationsForm.optionalParams.sliderParams"
+								:key="slider.parameter"
 								class="mr-2"
 								cols="2">
 								<v-checkbox
-									v-model="filter.enabled"
-									:label="filter.label"
+									v-model="slider.enabled"
+									:label="slider.label"
 									color="purple"
 								></v-checkbox>
 							</v-col>
@@ -503,18 +511,18 @@
 						<!-- Parameter controls -->
 						<v-divider></v-divider>
 						<v-row
-							v-for="filter in recommendationFilters"
-							:key="filter.parameter"
+							v-for="slider in recommendationsForm.optionalParams.sliderParams"
+							:key="slider.parameter"
 							class="mt-10"
 						>
-							<v-col v-if="filter.enabled" cols="10" md="8">
+							<v-col v-if="slider.enabled" cols="10" md="8">
 								<v-slider
-									v-model="filter.value"
-									:append-icon="filter.icon"
-									:label="filter.label"
-									:max="filter.max"
-									:min="filter.min"
-									:step="filter.step"
+									v-model="slider.value"
+									:append-icon="slider.icon"
+									:label="slider.label"
+									:max="slider.max"
+									:min="slider.min"
+									:step="slider.step"
 									thumb-color="accent"
 									thumb-label="always"
 									ticks="always"
@@ -522,8 +530,8 @@
 									track-fill-color="green"
 								></v-slider>
 							</v-col>
-							<v-col v-if="filter.enabled" class="mt-n3" cols="2" md="4">
-								<v-radio-group v-model="filter.type" row>
+							<v-col v-if="slider.enabled" class="mt-n3" cols="2" md="4">
+								<v-radio-group v-model="slider.type" row>
 									<v-radio
 										color="accent"
 										label="Equal"
@@ -545,7 +553,7 @@
 						<v-row>
 							<v-spacer></v-spacer>
 							<v-col cols="2" md="2">
-								<v-btn block color="accent" @click="generateRecommendations(recommendationFilters)">
+								<v-btn block color="accent" @click="generateRecommendations(recommendationsForm)">
 									Submit
 								</v-btn>
 							</v-col>
@@ -748,21 +756,64 @@ export default {
 				// Target params: Returns tracks with attribute values nearest to target
 
 				// REQUIRED PARAMS //
-
-				// Up to 5 seed values may be provided in any combination of seed_artists, seed_tracks and seed_genres
-				// A comma separated list of Spotify IDs for seed artists
-				seed_artists: "",
-				// A comma separated list of any genres in the set of available genre seeds
-				seed_genres: "",
-				// A comma separated list of Spotify IDs for a seed track
-				seed_tracks: "",
+				requiredParams:
+					{
+						// Up to 5 seed values may be provided in any combination of seed_artists, seed_tracks and seed_genres
+						// A comma separated list of Spotify IDs for seed artists
+						seed_artists: "",
+						// A comma separated list of any genres in the set of available genre seeds
+						seed_genres: "",
+						// A comma separated list of Spotify IDs for a seed track
+						seed_tracks: ""
+					},
 
 				// OPTIONAL PARAMS //
+				optionalParams:
+					{
+						// Amount of tracks returned (Default 20, Max 100)
+						limit: 20,
+						// An ISO 3166-1 alpha-2 country code
+						market: "",
+						// SLIDER PARAMETERS //
+						sliderParams: [
+							{
+								enabled: false,
+								parameter: "acousticness",
+								label: "Acousticness",
+								type: "target",
+								value: null,
+								icon: "mdi-guitar-acoustic",
+								min: 0,
+								max: 1,
+								step: 0.1,
+							},
+							{
+								enabled: false,
+								parameter: "danceability",
+								label: "Danceability",
+								type: "target",
+								value: null,
+								icon: "mdi-dance-pole",
+								min: 0,
+								max: 1,
+								step: 0.1
+							},
+						],
+						// To-implement after testing above:
+						// duration_ms: false,
+						// energy: false,
+						// instrumentalness: false,
+						// key: false,
+						// liveness: false,
+						// loudness: false,
+						// mode: false,
+						// popularity: false,
+						// speechiness: false,
+						// tempo: false,
+						// time_signature: false,
+						// valence: false,
+					},
 
-				// Amount of tracks returned (Default 20, Max 100)
-				limit: 20,
-				// An ISO 3166-1 alpha-2 country code
-				market: "",
 				// The following accept values between 0 -> 1 (eg. 0.35)
 				// How acoustic the tracks are
 				max_acousticness: null,
@@ -820,43 +871,6 @@ export default {
 				min_time_signature: null,
 				target_time_signature: null,
 			},
-			recommendationFilters: [
-				{
-					enabled: false,
-					parameter: "acousticness",
-					label: "Acousticness",
-					type: "target",
-					value: null,
-					icon: "mdi-guitar-acoustic",
-					min: 0,
-					max: 1,
-					step: 0.1,
-				},
-				{
-					enabled: false,
-					parameter: "danceability",
-					label: "Danceability",
-					type: "target",
-					value: null,
-					icon: "mdi-dance-pole",
-					min: 0,
-					max: 1,
-					step: 0.1
-				},
-			],
-			// To-implement after testing above:
-			// duration_ms: false,
-			// energy: false,
-			// instrumentalness: false,
-			// key: false,
-			// liveness: false,
-			// loudness: false,
-			// mode: false,
-			// popularity: false,
-			// speechiness: false,
-			// tempo: false,
-			// time_signature: false,
-			// valence: false,
 			// TODO: Playback Data
 			refCount: 0,
 			isLoading: false
@@ -1269,12 +1283,13 @@ export default {
 		generateRecommendations(formData){
 			// let token = localStorage.getItem('spotify_access_token')
 			// let baseURL = 'https://api.spotify.com/v1'
-			let enabledFilters = formData.filter(parameter => parameter.enabled !== false)
-			console.log(enabledFilters)
-			enabledFilters.forEach(filter =>
-				console.log(
-					`generated query:\n &${filter.type}_${filter.parameter}=${filter.value}`
-				)
+			let enabledSliders = formData.optionalParams.sliderParams.filter(slider => slider.enabled !== false)
+			console.log(enabledSliders)
+			console.log("Query Output:")
+			console.log(`?limit=${formData.optionalParams.limit}`)
+			console.log(`&seed_artists=${formData.requiredParams.seed_artists}`)
+			enabledSliders.forEach(filter =>
+				console.log(`&${filter.type}_${filter.parameter}=${filter.value}`)
 			)
 			// axios
 			// 	.get(`${baseURL}/recommendations
