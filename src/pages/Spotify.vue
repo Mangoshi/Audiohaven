@@ -368,7 +368,7 @@
 									<!--	TODO: Implement pause/play functionality? -->
 									<!--  ( May require hacky code without Spotify Premium.. ) -->
 									<v-btn icon @click="queueSpotifyTrack(item)">
-										<v-icon>mdi-play</v-icon>
+										<v-icon>mdi-playlist-plus</v-icon>
 									</v-btn>
 									<!--	Link to track 	-->
 									<a
@@ -413,7 +413,7 @@
 								<template v-slot:expanded-item="{ headers, item }" v-slot:top>
 									<td :colspan="headers.length">
 										<div v-if="playlistLayer === 0">
-											<v-row>
+											<v-row v-if="spotifyEmbeds">
 												<!-- To-be Spotify embed -->
 												<iframe :src="`${item.uri}`" allowtransparency="true" frameborder="0" height="80" width="500"></iframe>
 											</v-row>
@@ -443,7 +443,7 @@
 										</div>
 										<!--  Layer Two  -->
 										<div v-else>
-											<v-row>
+											<v-row v-if="spotifyEmbeds">
 												<!-- To-be Spotify embed -->
 												<iframe :src="`${item.track.uri}`" allowtransparency="true" frameborder="0" height="80" width="500"></iframe>
 											</v-row>
@@ -457,6 +457,8 @@
 															width="350"
 														></v-img>
 													</a>
+                          <vuetify-audio v-if="item.track.preview_url" :file="item.track.preview_url" color="accent" :ended="audioFinish"></vuetify-audio>
+                          <small v-else>Sorry, no preview available.</small>
 												</v-col>
 												<v-col v-else>
 													<a :href="item.track.preview_url" target="_blank">Link to playlist</a>
@@ -499,7 +501,9 @@ require('dotenv').config();
 export default {
 	name: "Spotify",
 	title: 'Spotify Sandbox',
-	components: {},
+	components: {
+    VuetifyAudio: () => import('vuetify-audio'),
+  },
 	data(){
 		return{
 			// Sample API Table Data //
@@ -553,6 +557,7 @@ export default {
 			spotifyStatusMessage: "",
 			spotifyUserData: {},
 			currentSpotifyPlaylist: null,
+      spotifyEmbeds: false, // Disabling iframes for now
 			// Module Data //
 			selectedModule: "userPlaylists",
 			modules: [
