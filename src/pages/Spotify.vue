@@ -82,6 +82,7 @@
 						<v-select
 							v-model="selectedModule"
 							:items="modules"
+							color="accent"
 							item-text="label"
 							item-value="value"
 							label="Module Selector"
@@ -485,15 +486,33 @@
 					</v-container>
 					<!-- Recommendations Module	-->
 					<v-container v-if="selectedModule === 'recommendationGenerator'" fluid>
-						<v-autocomplete
-							v-model="recommendationsForm.requiredParams.seed_artists"
-							:items="followedArtists"
-							color="accent"
-							item-text="name"
-							item-value="uri"
-							label="Choose one of the artists you follow!"
-						></v-autocomplete>
-						<!-- Parameters selector -->
+						<!-- Required fields -->
+						<v-row>
+							<v-col cols="10" md="8">
+								<v-autocomplete
+									v-model="recommendationsForm.requiredParams.seed_artists"
+									:items="followedArtists"
+									color="accent"
+									item-text="name"
+									item-value="id"
+									label="Choose one of the artists you follow!"
+								></v-autocomplete>
+							</v-col>
+							<!-- Technically-not-required-as-it-has-a-default field -->
+							<v-col cols="2" md="4">
+								<v-select
+									v-model="recommendationsForm.optionalParams.limitSelected"
+									:items="recommendationsForm.optionalParams.limitOptions"
+									color="accent"
+									item-text="value"
+									item-value="value"
+									label="Limit"
+								></v-select>
+							</v-col>
+						</v-row>
+
+
+						<!-- Slider choices -->
 						<h5 align="left">Enabled parameters</h5>
 						<v-row>
 							<v-col
@@ -504,7 +523,7 @@
 								<v-checkbox
 									v-model="slider.enabled"
 									:label="slider.label"
-									color="purple"
+									color="accent"
 								></v-checkbox>
 							</v-col>
 						</v-row>
@@ -771,7 +790,24 @@ export default {
 				optionalParams:
 					{
 						// Amount of tracks returned (Default 20, Max 100)
-						limit: 20,
+						limitOptions: [
+							{
+								value: "1"
+							},
+							{
+								value: "5"
+							},
+							{
+								value: "25"
+							},
+							{
+								value: "50"
+							},
+							{
+								value: "100"
+							},
+						],
+						limitSelected: "5",
 						// An ISO 3166-1 alpha-2 country code
 						market: "",
 						// SLIDER PARAMETERS //
@@ -1281,41 +1317,47 @@ export default {
 		// TODO: Multiple track removal
 		// Function for generating recommendations
 		generateRecommendations(formData){
-			// let token = localStorage.getItem('spotify_access_token')
-			// let baseURL = 'https://api.spotify.com/v1'
 			let enabledSliders = formData.optionalParams.sliderParams.filter(slider => slider.enabled !== false)
 			console.log(enabledSliders)
 			console.log("Query Output:")
-			console.log(`?limit=${formData.optionalParams.limit}`)
+			console.log(`?limit=${formData.optionalParams.limitSelected}`)
 			console.log(`&seed_artists=${formData.requiredParams.seed_artists}`)
-			enabledSliders.forEach(filter =>
-				console.log(`&${filter.type}_${filter.parameter}=${filter.value}`)
+			enabledSliders.forEach(slider =>
+				console.log(`&${slider.type}_${slider.parameter}=${slider.value}`)
 			)
-			// axios
-			// 	.get(`${baseURL}/recommendations
-			// 		?limit=${this.recommendationsForm.limit}
-			//
-			// 	`,
-			// 		{
-			// 			headers: {
-			// 				"Authorization" : `Bearer ${token}`
-			// 			}
-			// 		})
-			// 	.then(response => {
-			// 			console.log("getFollowedArtists() response: ", response.data)
-			// 			this.followedArtists = response.data.artists.items
-			// 		}
-			// 	)
-			// 	.catch(error => {
-			// 		console.log("getFollowedArtists() error caught: ", error)
-			// 		// Assign spotifyError string to the value of error.message
-			// 		this.spotifyStatusMessage = error.message
-			// 		// If error is a 401 (token has likely expired)
-			// 		if(error.message==="Request failed with status code 401"){
-			// 			// Run refreshSpotifyToken() to get new access token
-			// 			this.refreshSpotifyToken()
-			// 		}
-			// 	})
+			if(formData.requiredParams.seed_artists===""){
+				console.log("Required params not filled!")
+			} else {
+				console.log("Required params filled! Executing request...")
+				let token = localStorage.getItem('spotify_access_token')
+				let baseURL = 'https://api.spotify.com/v1'
+				let limit = `?limit=${formData.optionalParams.limitSelected}`
+				let artist = `&seed_artists=${formData.requiredParams.seed_artists}`
+				let sliderQueries = ""
+				enabledSliders.forEach(slider => (sliderQueries += `&${slider.type}_${slider.parameter}=${slider.value}`))
+				console.log(sliderQueries)
+				axios
+					.get(`${baseURL}/recommendations${limit}${artist}${sliderQueries}`,
+						{
+							headers: {
+								"Authorization" : `Bearer ${token}`
+							}
+						})
+					.then(response => {
+							console.log("generateRecommendations() response: ", response.data)
+						}
+					)
+					.catch(error => {
+						console.log("generateRecommendations() error caught: ", error)
+						// Assign spotifyError string to the value of error.message
+						this.spotifyStatusMessage = error.message
+						// If error is a 401 (token has likely expired)
+						if(error.message==="Request failed with status code 401"){
+							// Run refreshSpotifyToken() to get new access token
+							this.refreshSpotifyToken()
+						}
+					})
+			}
 		},
 	}
 }
