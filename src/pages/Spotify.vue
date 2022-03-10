@@ -457,7 +457,7 @@
 															width="350"
 														></v-img>
 													</a>
-													<vuetify-audio v-if="item.track.preview_url" :file="item.track.preview_url" color="accent" :ended="audioFinish"></vuetify-audio>
+													<vuetify-audio v-if="item.track.preview_url" :ended="audioFinish" :file="item.track.preview_url" color="accent"></vuetify-audio>
 													<small v-else>Sorry, no preview available.</small>
 												</v-col>
 												<v-col v-else>
@@ -489,13 +489,13 @@
 						<h5 align="left">Enabled parameters</h5>
 						<v-row>
 							<v-col
-								cols="2"
-								class="mr-2"
 								v-for="filter in recommendationFilters"
-								:key="filter.parameter">
+								:key="filter.parameter"
+								class="mr-2"
+								cols="2">
 								<v-checkbox
-									:label="filter.label"
 									v-model="filter.enabled"
+									:label="filter.label"
 									color="purple"
 								></v-checkbox>
 							</v-col>
@@ -503,41 +503,41 @@
 						<!-- Parameter controls -->
 						<v-divider></v-divider>
 						<v-row
-							class="mt-10"
 							v-for="filter in recommendationFilters"
 							:key="filter.parameter"
+							class="mt-10"
 						>
-							<v-col cols="10" md="8" v-if="filter.enabled">
+							<v-col v-if="filter.enabled" cols="10" md="8">
 								<v-slider
+									v-model="filter.value"
 									:append-icon="filter.icon"
 									:label="filter.label"
-									:min="filter.min"
 									:max="filter.max"
+									:min="filter.min"
 									:step="filter.step"
-									v-model="filter.value"
 									thumb-color="accent"
 									thumb-label="always"
+									ticks="always"
 									track-color="primary"
 									track-fill-color="green"
-									ticks="always"
 								></v-slider>
 							</v-col>
-							<v-col cols="2" md="4" v-if="filter.enabled" class="mt-n3">
-								<v-radio-group row v-model="filter.type">
+							<v-col v-if="filter.enabled" class="mt-n3" cols="2" md="4">
+								<v-radio-group v-model="filter.type" row>
 									<v-radio
+										color="accent"
 										label="Equal"
 										value="target"
-										color="accent"
 									></v-radio>
 									<v-radio
+										color="accent"
 										label="Min"
 										value="min"
-										color="accent"
 									></v-radio>
 									<v-radio
+										color="accent"
 										label="Max"
 										value="max"
-										color="accent"
 									></v-radio>
 								</v-radio-group>
 							</v-col>
