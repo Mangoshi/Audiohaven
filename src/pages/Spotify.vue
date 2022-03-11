@@ -82,6 +82,7 @@
 						<v-select
 							v-model="selectedModule"
 							:items="modules"
+							color="accent"
 							item-text="label"
 							item-value="value"
 							label="Module Selector"
@@ -457,8 +458,8 @@
 															width="350"
 														></v-img>
 													</a>
-                          <vuetify-audio v-if="item.track.preview_url" :file="item.track.preview_url" color="accent" :ended="audioFinish"></vuetify-audio>
-                          <small v-else>Sorry, no preview available.</small>
+													<vuetify-audio v-if="item.track.preview_url" :ended="audioFinish" :file="item.track.preview_url" color="accent"></vuetify-audio>
+													<small v-else>Sorry, no preview available.</small>
 												</v-col>
 												<v-col v-else>
 													<a :href="item.track.preview_url" target="_blank">Link to playlist</a>
@@ -483,6 +484,222 @@
 							</v-data-table>
 						</v-card>
 					</v-container>
+					<!-- Recommendations Module	-->
+					<v-container v-if="selectedModule === 'recommendationGenerator'" fluid>
+
+						<!-- Required fields -->
+						<!-- TODO: Add ability to use genre & track seeds  -->
+						<!-- TODO: Allow user to add up to 5 of any seed  -->
+						<v-row class="mb-3">
+							<v-col cols="10" md="8">
+								<v-autocomplete
+									v-model="recommendationsForm.requiredParams.seed_artists"
+									:items="followedArtists"
+									color="accent"
+									item-text="name"
+									item-value="id"
+									label="Choose one of the artists you follow!"
+								></v-autocomplete>
+							</v-col>
+							<!-- Technically-not-required-as-it-has-a-default field -->
+							<v-col cols="2" md="4">
+								<v-select
+									v-model="recommendationsForm.optionalParams.limitSelected"
+									:items="recommendationsForm.optionalParams.limitOptions"
+									color="accent"
+									item-text="value"
+									item-value="value"
+									label="Amount"
+								></v-select>
+							</v-col>
+						</v-row>
+
+						<!-- Slider choices -->
+						<v-divider></v-divider>
+						<p class="unselectable mb-2 mt-2">Optional Parameters</p>
+						<v-divider></v-divider>
+						<v-row class="justify-center">
+							<v-col
+								v-for="slider in recommendationsForm.optionalParams.sliderParams"
+								:key="slider.param"
+								class="mr-2"
+								cols="3">
+								<!-- TODO: Maybe use v-autocomplete with multiple enabled? -->
+								<!-- This would make the params take up a lot less space! -->
+								<!-- Only issue may lie in adding the special slider(s) to it? -->
+								<v-checkbox
+									v-model="slider.enabled"
+									:label="slider.label"
+									:prepend-icon="slider.icon"
+									class="text-capitalize"
+									color="accent"
+								></v-checkbox>
+							</v-col>
+							<!--	 Special slider choices		-->
+							<v-col
+								v-for="slider in recommendationsForm.optionalParams.specialSliders"
+								:key="slider.param"
+								class="mr-2"
+								cols="3">
+								<v-checkbox
+									v-model="slider.enabled"
+									:label="slider.label"
+									:prepend-icon="slider.icon"
+									class="text-capitalize"
+									color="accent"
+								></v-checkbox>
+							</v-col>
+						</v-row>
+
+						<!-- Parameter controls -->
+						<v-divider class="mb-15"></v-divider>
+						<v-row
+							v-for="slider in recommendationsForm.optionalParams.sliderParams"
+							:key="slider.param"
+						>
+							<v-col v-if="slider.enabled" class="mt-n4" cols="1">
+								<v-radio-group v-model="slider.type" dense row>
+									<v-radio
+										color="accent"
+										label="Equal"
+										value="target"
+									></v-radio>
+									<v-radio
+										color="accent"
+										label="Min"
+										value="min"
+									></v-radio>
+									<v-radio
+										color="accent"
+										label="Max"
+										value="max"
+									></v-radio>
+								</v-radio-group>
+							</v-col>
+							<v-col v-if="slider.enabled" cols="9">
+								<v-slider
+									v-model="slider.value"
+									:append-icon="slider.icon"
+									:max="slider.max"
+									:min="slider.min"
+									:step="slider.step"
+									class="ml-6 mr-n3"
+									thumb-color="accent"
+									thumb-label="always"
+									ticks="always"
+									track-color="primary"
+									track-fill-color="green"
+								>
+									<template v-if="(slider.param)==='key'" v-slot:thumb-label="item">
+										{{ keyDoctor(item.value) }}
+									</template>
+								</v-slider>
+							</v-col>
+							<v-col v-if="slider.enabled" class="mt-1" cols="2">
+								<p class="text-left">{{ slider.label }}</p>
+							</v-col>
+						</v-row>
+						<!-- Special parameter controls -->
+						<v-row
+							v-for="slider in recommendationsForm.optionalParams.specialSliders"
+							:key="slider.param"
+						>
+							<v-col v-if="slider.enabled" class="mt-n4" cols="1">
+								<v-radio-group v-model="slider.type" dense row>
+									<v-radio
+										color="accent"
+										label="Equal"
+										value="target"
+									></v-radio>
+									<v-radio
+										color="accent"
+										label="Min"
+										value="min"
+									></v-radio>
+									<v-radio
+										color="accent"
+										label="Max"
+										value="max"
+									></v-radio>
+								</v-radio-group>
+							</v-col>
+							<v-col v-if="slider.enabled" cols="9">
+								<v-slider
+									v-model="slider.value"
+									:append-icon="slider.icon"
+									:max="slider.max"
+									:min="slider.min"
+									:step="slider.step"
+									class="ml-6 mr-n3"
+									thumb-color="accent"
+									thumb-label="always"
+									ticks="always"
+									track-color="primary"
+									track-fill-color="green"
+								></v-slider>
+							</v-col>
+							<v-col v-if="slider.enabled" class="mt-1" cols="2">
+								<p class="text-left">{{ slider.label }}</p>
+							</v-col>
+						</v-row>
+						<!-- Recommender request button -->
+						<v-row class="mt-n5 mb-3">
+							<v-spacer></v-spacer>
+							<!-- If there was an artist seed provided -->
+							<v-col v-if="recommendationsForm.requiredParams.seed_artists" cols="3" md="3">
+								<v-btn block color="accent" @click="generateRecommendations(recommendationsForm)">
+									Recommend!
+								</v-btn>
+							</v-col>
+							<!-- If there wasn't an artist seed provided -->
+							<v-col v-else cols="4" md="4">
+								<v-btn block color="grey" disable>
+									Pick an artist first!
+								</v-btn>
+							</v-col>
+							<v-spacer></v-spacer>
+						</v-row>
+
+						<!-- RECOMMENDATIONS -->
+						<!-- TODO: Make track/album/artist cols links -->
+						<!-- TODO: Show extra details in row expansion? -->
+						<!-- TODO: Allow user to add tracks to one of their playlists -->
+						<v-row v-if="recommendationData.response[0]" class="justify-center">
+							<v-data-table
+								:headers="recommendationData.headers"
+								:item-key="recommendationData.response.name"
+								:items="recommendationData.response"
+								no-data-text="No data!?"
+								no-results-text="No results :C"
+								calculate-widths
+							>
+								<template v-slot:item.album.images[0].url="{ item }">
+									<a
+										:href="item.album.external_urls.spotify"
+										class="black--text text-decoration-none"
+										target="_blank"
+									>
+										<v-img
+											:src="item.album.images[0].url"
+											aspect-ratio="1"
+											class="ma-5"
+											width="150"
+										></v-img>
+									</a>
+									<!-- TODO: Get track preview working nicely (may need expand) -->
+									<!--
+									<vuetify-audio
+										v-if="item.preview_url"
+										:ended="audioFinish"
+										:file="item.preview_url"
+										color="accent"
+										flat
+									></vuetify-audio>
+									-->
+								</template>
+							</v-data-table>
+						</v-row>
+					</v-container>
 				</v-card>
 			</v-col>
 			<v-col cols="0" lg="2" md="1"></v-col>
@@ -502,8 +719,8 @@ export default {
 	name: "Spotify",
 	title: 'Spotify Sandbox',
 	components: {
-    VuetifyAudio: () => import('vuetify-audio'),
-  },
+		VuetifyAudio: () => import('vuetify-audio'),
+	},
 	data(){
 		return{
 			// Sample API Table Data //
@@ -557,9 +774,10 @@ export default {
 			spotifyStatusMessage: "",
 			spotifyUserData: {},
 			currentSpotifyPlaylist: null,
-      spotifyEmbeds: false, // Disabling iframes for now
+			// Disabling iframes for now
+			spotifyEmbeds: false,
 			// Module Data //
-			selectedModule: "userPlaylists",
+			selectedModule: "recommendationGenerator",
 			modules: [
 				{
 					label: "Your Playlists",
@@ -568,6 +786,10 @@ export default {
 				{
 					label: "Followed Artists",
 					value: "followedArtists"
+				},
+				{
+					label: "Recommendation Generator",
+					value: "recommendationGenerator"
 				},
 			],
 			// Followed Artists Data Iterator //
@@ -666,7 +888,235 @@ export default {
 					Expanded: [],
 				}
 			],
-			// TODO: Recommendations Data Iterator
+			// Recommendations Form Data
+			recommendationsForm: {
+				// Spotify docs: https://developer.spotify.com/documentation/web-api/reference/#/operations/get-recommendations
+				// Max params: Hard ceiling on track attribute's value
+				// Min params: Hard floor on track attribute's value
+				// Target params: Returns tracks with attribute values nearest to target
+
+				// REQUIRED PARAMS //
+				requiredParams:
+					{
+						// Up to 5 seed values may be provided in any combination of seed_artists, seed_tracks and seed_genres
+						// A comma separated list of Spotify IDs for seed artists
+						seed_artists: "",
+						// A comma separated list of any genres in the set of available genre seeds
+						seed_genres: "",
+						// A comma separated list of Spotify IDs for a seed track
+						seed_tracks: ""
+					},
+
+				// OPTIONAL PARAMS //
+				optionalParams:
+					{
+						// Amount of tracks returned (Default 20, Max 100)
+						limitOptions: [
+							{
+								value: "1"
+							},
+							{
+								value: "5"
+							},
+							{
+								value: "25"
+							},
+							{
+								value: "50"
+							},
+							{
+								value: "100"
+							},
+						],
+						limitSelected: "5",
+						// An ISO 3166-1 alpha-2 country code
+						market: "",
+						// SLIDER PARAMETERS //
+						sliderParams: [
+							// The following accept values between 0 -> 1 (eg. 0.35) //
+							{
+								// How acoustic the tracks are
+								enabled: false,
+								label: "Acoustic",
+								param: "acousticness",
+								type: "target",
+								value: null,
+								icon: "mdi-guitar-acoustic",
+								min: 0,
+								max: 1,
+								step: 0.1,
+							},
+							{
+								// How "danceable" the tracks are
+								enabled: false,
+								label: "Danceable",
+								param: "danceability",
+								type: "target",
+								value: null,
+								icon: "mdi-human-female-dance",
+								min: 0,
+								max: 1,
+								step: 0.1
+							},
+							{
+								// How energetic the tracks are
+								enabled: false,
+								label: "Energy",
+								param: "energy",
+								type: "target",
+								value: null,
+								icon: "mdi-flash",
+								min: 0,
+								max: 1,
+								step: 0.1
+							},
+							{
+								// How instrumental the tracks are
+								enabled: false,
+								label: "Instrumental",
+								param: "instrumentalness",
+								type: "target",
+								value: null,
+								icon: "mdi-instrument-triangle",
+								min: 0,
+								max: 1,
+								step: 0.1
+							},
+							{
+								// How live the tracks sound
+								enabled: false,
+								label: "Live",
+								param: "liveness",
+								type: "target",
+								value: null,
+								icon: "mdi-theater",
+								min: 0,
+								max: 1,
+								step: 0.1
+							},
+							{
+								// The loudness of the tracks
+								enabled: false,
+								label: "Loud",
+								param: "loudness",
+								type: "target",
+								value: null,
+								icon: "mdi-volume-high",
+								min: 0,
+								max: 1,
+								step: 0.1
+							},
+							{
+								// How much speech is in the tracks
+								enabled: false,
+								label: "Speech",
+								param: "speechiness",
+								type: "target",
+								value: null,
+								icon: "mdi-account-voice",
+								min: 0,
+								max: 1,
+								step: 0.1
+							},
+							{
+								// How "happy" the tracks are
+								enabled: false,
+								label: "Uplifting",
+								param: "valence",
+								type: "target",
+								value: null,
+								icon: "mdi-emoticon-happy",
+								min: 0,
+								max: 1,
+								step: 0.1
+							},
+							// Other range parameters //
+							{
+								// The key tracks are in (accepts values between 0 -> 11)
+								enabled: false,
+								label: "Key",
+								param: "key",
+								type: "target",
+								value: null,
+								icon: "mdi-piano",
+								min: 0,
+								max: 11,
+								step: 1
+							},
+							{
+								// Popularity of the tracks (accepts 0 -> 100)
+								enabled: false,
+								label: "Popularity",
+								param: "popularity",
+								type: "target",
+								value: null,
+								icon: "mdi-star-face",
+								min: 0,
+								max: 100,
+								step: 10
+							},
+							{
+								// Tempo of the tracks (accepts any integer)
+								enabled: false,
+								label: "Tempo (BPM)",
+								param: "tempo",
+								type: "target",
+								value: null,
+								icon: "mdi-metronome",
+								min: 0,
+								max: 200,
+								step: 5
+							},
+						],
+						// Special sliders
+						specialSliders: [
+							{
+								// Duration slider
+								enabled: false,
+								label: "Duration (mins)",
+								param: "max_duration_ms",
+								type: "target",
+								value: null,
+								icon: "mdi-timer-outline",
+								min: 0,
+								max: 60,
+								step: 5
+							}
+						],
+					},
+			},
+			// Recommendations Response Data
+			recommendationData: {
+				headers: [
+					{
+						text: 'ID',
+						value: 'id',
+						align: ' d-none'
+					},
+					{
+						text: 'Art',
+						value: 'album.images[0].url',
+						align: 'left',
+						sortable: false
+					},
+					{
+						text: 'Title',
+						value: 'name',
+						align: 'left'
+					},
+					{
+						text: 'Album',
+						value: 'album.name',
+						align: 'left'
+					},
+					{
+						text: 'Artist',
+						value: 'artists[0].name',
+						align: 'left'
+					},
+				],
+				response: [],
+			},
 			// TODO: Playback Data
 			refCount: 0,
 			isLoading: false
@@ -834,7 +1284,7 @@ export default {
 						console.log("refreshSpotifyToken() response: ", response.data)
 						// Assign local storage access token to new access token
 						localStorage.setItem("spotify_access_token", response.data.access_token)
-						// Clear spotifyError message
+						// Clear spotifyStatusMessage message
 						this.spotifyStatusMessage = ""
 						// Re-run anything that would have failed with an expired token
 						this.getFollowedArtists()
@@ -899,7 +1349,7 @@ export default {
 						// Log errors
 						console.log("getFollowedArtists() error caught: ", error)
 						console.log("getFollowedArtists() error message: ", error.message)
-						// Assign spotifyError string to the value of error.message
+						// Assign spotifyStatusMessage string to the value of error.message
 						this.spotifyStatusMessage = error.message
 						// If error is a 401 (token has likely expired)
 						if(error.message==="Request failed with status code 401"){
@@ -938,7 +1388,7 @@ export default {
 								// Log error
 								console.log("getUserPlaylists() error caught: ", error)
 								console.log("getUserPlaylists() error message: ", error.message)
-								// Assign spotifyError string to the value of error.message
+								// Assign spotifyStatusMessage string to the value of error.message
 								this.spotifyStatusMessage = error.message
 								// If error is a 401 (token has likely expired)
 								if (error.message === "Request failed with status code 401") {
@@ -1075,6 +1525,120 @@ export default {
 			}
 		},
 		// TODO: Multiple track removal
+		// Function for generating recommendations
+		generateRecommendations(formData){
+			// filter sliderParameter array by enabled sliders only (inserts into enabledSliders array)
+			let enabledSliders = formData.optionalParams.sliderParams.filter(slider => slider.enabled !== false)
+			// lots of logging for testing purposes
+			console.log(enabledSliders)
+			console.log("Query Output:")
+			console.log(`?limit=${formData.optionalParams.limitSelected}`)
+			console.log(`&seed_artists=${formData.requiredParams.seed_artists}`)
+			enabledSliders.forEach(slider =>
+				console.log(`&${slider.type}_${slider.param}=${slider.value}`)
+			)
+			// if required parameters are empty on arrival...
+			if(formData.requiredParams.seed_artists===""){
+				console.log("Required params not filled!")
+				this.spotifyStatusMessage = "You must pick an artist before we can generate any recommendations!"
+			} else {
+				// else if required parameters were passed...
+				console.log("Required params filled! Executing request...")
+				let token = localStorage.getItem('spotify_access_token')
+				let baseURL = 'https://api.spotify.com/v1'
+				// '?limit=x' starts off the recommendation URL queries (although it is optional)
+				let limit = `?limit=${formData.optionalParams.limitSelected}`
+				// next up is '&seed_artists=x' - this is required
+				let artist = `&seed_artists=${formData.requiredParams.seed_artists}`
+				// initialising sliderQueries as a String
+				let sliderQueries = ""
+				// for each enabled slider, format as '&type_param=value'
+				// then on each loop, auto-increment (concatenate)
+				// this gives us our desired '&type_param=value&type_param=value...' chain
+				enabledSliders.forEach(slider => (sliderQueries += `&${slider.type}_${slider.param}=${slider.value}`))
+				// if duration slider is enabled, concatenate sliderQueries with milliseconds
+				if(formData.optionalParams.specialSliders[0].enabled){
+					let durationSlider = formData.optionalParams.specialSliders[0]
+					let type = durationSlider.type
+					let value = this.timeDoctor(durationSlider.value)
+					sliderQueries += `&${type}_duration_ms=${value}`
+				}
+				// log sliderQueries for testing purposes
+				if(sliderQueries!==""){console.log(sliderQueries)}
+				// finally, make axios GET request using limit, artist, and sliderQueries variables
+				axios
+					.get(`${baseURL}/recommendations${limit}${artist}${sliderQueries}`,
+						{
+							headers: {
+								"Authorization" : `Bearer ${token}`
+							}
+						})
+					.then(response => {
+							console.log("generateRecommendations() response: ", response.data)
+							// assign recommendationData.response variable to response.tracks array
+							this.recommendationData.response = response.data.tracks
+							// clear the spotifyStatusMessage
+							this.spotifyStatusMessage = ""
+							// TODO: If nothing is returned, notify the user
+						}
+					)
+					.catch(error => {
+						console.log("generateRecommendations() error caught: ", error)
+						// Assign spotifyStatusMessage string to the value of error.message
+						this.spotifyStatusMessage = error.message
+						// If error is a 401 (token has likely expired)
+						if(error.message==="Request failed with status code 401"){
+							// Run refreshSpotifyToken() to get new access token
+							this.refreshSpotifyToken()
+						}
+					})
+			}
+		},
+		// durationCalculator
+		timeDoctor(minutes){
+			return minutes * 60000
+		},
+		// Legend:
+		// 0:C, 1:C#, 2:D, 3:D#, 4:E, 5:F
+		// 6:F#, 7:G, 8:G#, 9:A, 10:A#, 11:B
+		keyDoctor(number){
+			if(number === 0){
+				return 'C'
+			}
+			else if(number === 1){
+				return 'C#'
+			}
+			else if(number === 2){
+				return 'D'
+			}
+			else if(number === 3){
+				return 'D#'
+			}
+			else if(number === 4){
+				return 'E'
+			}
+			else if(number === 5){
+				return 'F'
+			}
+			else if(number === 6){
+				return 'F#'
+			}
+			else if(number === 7){
+				return 'G'
+			}
+			else if(number === 8){
+				return 'G#'
+			}
+			else if(number === 9){
+				return 'A'
+			}
+			else if(number === 10){
+				return 'A#'
+			}
+			else if(number === 11){
+				return 'B'
+			}
+		}
 	}
 }
 </script>
