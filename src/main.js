@@ -1,16 +1,20 @@
+// Polyfills
+import 'core-js/stable'
+import 'regenerator-runtime/runtime'
+
 // Default imports
 import Vue from 'vue'
-import App from './App.vue'
+import App from '@/App.vue'
 
 // Vue frameworks
-import vuetify from './plugins/vuetify'
+import vuetify from '@/plugins/vuetify'
 
 // Vue libraries
-import router from "./router";
-import store from "./store"
+import router from "@/router";
+import store from "@/store"
 
 // Vue mixins
-import titleMixin from './mixins/titleMixin'
+import titleMixin from '@/mixins/titleMixin'
 Vue.mixin(titleMixin)
 
 Vue.config.productionTip = false
