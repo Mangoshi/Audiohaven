@@ -40,7 +40,7 @@
 		<v-container>
 			<!--	If there is no token == You're not logged-in to Spotify	-->
 			<div v-if="!spotifyLoggedIn">
-				<v-btn href="http://localhost:3000/spotify/login/">
+				<v-btn :href="`${appBaseURL}/spotify/login`">
 					<v-icon>mdi-spotify</v-icon> Log-in to Spotify
 				</v-btn>
 			</div>
@@ -723,6 +723,8 @@ export default {
 	},
 	data(){
 		return{
+			// Environment Variables //
+			appBaseURL: process.env.VUE_APP_BASE_URL,
 			// Sample API Table Data //
 			sampleTableEnabled: false,
 			spotifySampleRequests: [
