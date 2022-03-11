@@ -106,6 +106,27 @@ export default {
 		},
 		// mapping loggedIn state
 		...mapState(['loggedIn']),
+		// making CSS color variables out of custom theme JSON in vuetify.js
+		cssProps() {
+			// create themeColors object
+			let themeColors = {}
+			// if dark mode is off
+			if (this.darkMode === false) {
+				// for each color key in themes.light, add to themeColors, adding '--v-' to the start of the key
+				// then assign this key the value of the color
+				Object.keys(this.$vuetify.theme.themes.light).forEach((color) => {
+					themeColors[`--v-${color}`] = this.$vuetify.theme.themes.light[color]
+				})
+				// else if dark mode is on
+			} else {
+				// fill themeColors with the colors from themes.dark instead
+				Object.keys(this.$vuetify.theme.themes.dark).forEach((color) => {
+					themeColors[`--v-${color}`] = this.$vuetify.theme.themes.dark[color]
+				})
+			}
+			// return themeColors object
+			return themeColors
+		},
 	}
 }
 </script>
