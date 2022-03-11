@@ -488,6 +488,8 @@
 					<v-container v-if="selectedModule === 'recommendationGenerator'" fluid>
 
 						<!-- Required fields -->
+						<!-- TODO: Add ability to use genre & track seeds  -->
+						<!-- TODO: Allow user to add up to 5 of any seed  -->
 						<v-row class="mb-3">
 							<v-col cols="10" md="8">
 								<v-autocomplete
@@ -516,7 +518,7 @@
 						<v-divider></v-divider>
 						<p class="unselectable mb-2 mt-2">Optional Parameters</p>
 						<v-divider></v-divider>
-						<v-row class="d-flex flex-row justify-center">
+						<v-row class="justify-center">
 							<v-col
 								v-for="slider in recommendationsForm.optionalParams.sliderParams"
 								:key="slider.param"
@@ -656,6 +658,46 @@
 								</v-btn>
 							</v-col>
 							<v-spacer></v-spacer>
+						</v-row>
+
+						<!-- RECOMMENDATIONS -->
+						<!-- TODO: Make track/album/artist cols links -->
+						<!-- TODO: Show extra details in row expansion? -->
+						<!-- TODO: Allow user to add tracks to one of their playlists -->
+						<v-row v-if="recommendationData.response[0]" class="justify-center">
+							<v-data-table
+								:headers="recommendationData.headers"
+								:item-key="recommendationData.response.name"
+								:items="recommendationData.response"
+								no-data-text="No data!?"
+								no-results-text="No results :C"
+								calculate-widths
+							>
+								<template v-slot:item.album.images[0].url="{ item }">
+									<a
+										:href="item.album.external_urls.spotify"
+										class="black--text text-decoration-none"
+										target="_blank"
+									>
+										<v-img
+											:src="item.album.images[0].url"
+											aspect-ratio="1"
+											class="ma-5"
+											width="150"
+										></v-img>
+									</a>
+									<!-- TODO: Get track preview working nicely (may need expand) -->
+									<!--
+									<vuetify-audio
+										v-if="item.preview_url"
+										:ended="audioFinish"
+										:file="item.preview_url"
+										color="accent"
+										flat
+									></vuetify-audio>
+									-->
+								</template>
+							</v-data-table>
 						</v-row>
 					</v-container>
 				</v-card>
@@ -941,7 +983,6 @@ export default {
 								step: 0.1
 							},
 							{
-								// TODO: Pick icons for the rest of the following sliders
 								// How live the tracks sound
 								enabled: false,
 								label: "Live",
@@ -1044,8 +1085,38 @@ export default {
 						],
 					},
 			},
-			// TODO: Display recommended tracks underneath generator
-			recommendedTracks: [],
+			// Recommendations Response Data
+			recommendationData: {
+				headers: [
+					{
+						text: 'ID',
+						value: 'id',
+						align: ' d-none'
+					},
+					{
+						text: 'Art',
+						value: 'album.images[0].url',
+						align: 'left',
+						sortable: false
+					},
+					{
+						text: 'Title',
+						value: 'name',
+						align: 'left'
+					},
+					{
+						text: 'Album',
+						value: 'album.name',
+						align: 'left'
+					},
+					{
+						text: 'Artist',
+						value: 'artists[0].name',
+						align: 'left'
+					},
+				],
+				response: [],
+			},
 			// TODO: Playback Data
 			refCount: 0,
 			isLoading: false
@@ -1504,10 +1575,11 @@ export default {
 						})
 					.then(response => {
 							console.log("generateRecommendations() response: ", response.data)
-							// assign recommendedTracks variable to response.tracks array
-							this.recommendedTracks = response.data.tracks
+							// assign recommendationData.response variable to response.tracks array
+							this.recommendationData.response = response.data.tracks
 							// clear the spotifyStatusMessage
 							this.spotifyStatusMessage = ""
+							// TODO: If nothing is returned, notify the user
 						}
 					)
 					.catch(error => {
