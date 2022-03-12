@@ -458,7 +458,7 @@
 															width="350"
 														></v-img>
 													</a>
-													<vuetify-audio v-if="item.track.preview_url" :ended="audioFinish" :file="item.track.preview_url" color="accent"></vuetify-audio>
+													<vuetify-audio v-if="item.track.preview_url" :file="item.track.preview_url" color="accent"></vuetify-audio>
 													<small v-else>Sorry, no preview available.</small>
 												</v-col>
 												<v-col v-else>
@@ -1124,6 +1124,31 @@ export default {
 			isLoading: false
 		}
 	},
+	watch: {
+		// Watching selectedModule variable to only trigger necessary functions
+		'selectedModule' : function(val){
+			switch (val) {
+				case "followedArtists" :
+					console.log("Selected: Followed Artists Module");
+					if(!this.followedArtists){
+						this.getFollowedArtists();
+					}
+					break
+				case "userPlaylists" :
+					console.log("Selected: User Playlists Module");
+					if(this.playlistTable[0].Items.length === 0){
+						this.getUserPlaylists();
+					}
+					break
+				case "recommendationGenerator" :
+					console.log("Selected: Recommender Module");
+					if(!this.followedArtists){
+						this.getFollowedArtists();
+					}
+					break
+			}
+		}
+	},
 	computed: {
 		// Data Iterator Computed Methods //
 		numberOfFollowedArtistPages () {
@@ -1257,6 +1282,7 @@ export default {
 			// Remove tokens
 			localStorage.removeItem("spotify_access_token")
 			localStorage.removeItem("spotify_refresh_token")
+			localStorage.removeItem("spotify_user_id")
 			// Push "/spotify" to URL (to remove tokens if present)
 			router.push("/spotify")
 			// Go to current location (to refresh/reload page)
@@ -1304,7 +1330,7 @@ export default {
 		// Spotify API Requests //
 		// Function for getting profile data from the user
 		getUserData(){
-			if(this.spotifyLoggedIn) {
+			if(!localStorage.getItem("spotify_user_id")){
 				let token = localStorage.getItem('spotify_access_token')
 				let baseURL = 'https://api.spotify.com/v1'
 				axios
@@ -1329,109 +1355,113 @@ export default {
 		},
 		// Function for getting user's followed artists
 		getFollowedArtists(){
-			// If user is logged-in
-			if(this.spotifyLoggedIn){
-				let token = localStorage.getItem('spotify_access_token')
-				let baseURL = 'https://api.spotify.com/v1'
-				axios
-					// GET request for followed artists, with the maximum limit of 50 set
-					.get(`${baseURL}/me/following?type=artist&limit=50`,
-						{
-							headers: {
-								"Authorization" : `Bearer ${token}`
+			if(this.selectedModule==="followedArtists" || this.selectedModule === "recommendationGenerator") {
+				// If user is logged-in
+				if (this.spotifyLoggedIn) {
+					let token = localStorage.getItem('spotify_access_token')
+					let baseURL = 'https://api.spotify.com/v1'
+					axios
+						// GET request for followed artists, with the maximum limit of 50 set
+						.get(`${baseURL}/me/following?type=artist&limit=50`,
+							{
+								headers: {
+									"Authorization": `Bearer ${token}`
+								}
+							})
+						.then(response => {
+								// Log response
+								console.log("getFollowedArtists() response: ", response.data)
+								// Assign followedArtists to response.artists.items (followed artist array)
+								this.followedArtists = response.data.artists.items
+							}
+						)
+						.catch(error => {
+							// Log errors
+							console.log("getFollowedArtists() error caught: ", error)
+							console.log("getFollowedArtists() error message: ", error.message)
+							// Assign spotifyStatusMessage string to the value of error.message
+							this.spotifyStatusMessage = error.message
+							// If error is a 401 (token has likely expired)
+							if (error.message === "Request failed with status code 401") {
+								// Run refreshSpotifyToken() to get new access token
+								this.refreshSpotifyToken()
 							}
 						})
-					.then(response => {
-							// Log response
-							console.log("getFollowedArtists() response: ", response.data)
-							// Assign followedArtists to response.artists.items (followed artist array)
-							this.followedArtists = response.data.artists.items
-						}
-					)
-					.catch(error => {
-						// Log errors
-						console.log("getFollowedArtists() error caught: ", error)
-						console.log("getFollowedArtists() error message: ", error.message)
-						// Assign spotifyStatusMessage string to the value of error.message
-						this.spotifyStatusMessage = error.message
-						// If error is a 401 (token has likely expired)
-						if(error.message==="Request failed with status code 401"){
-							// Run refreshSpotifyToken() to get new access token
-							this.refreshSpotifyToken()
-						}
-					})
+				}
 			}
 		},
 		// Function for getting user's saved playlists
 		getUserPlaylists(selectedPlaylist) {
-			let token = localStorage.getItem('spotify_access_token')
-			let userID = localStorage.getItem('spotify_user_id')
-			let baseURL = 'https://api.spotify.com/v1'
-			if (this.spotifyLoggedIn){
-				if(userID !== null && userID !== ""){
-					// If no playlist was selected (ie we want list of playlists)
-					if (!selectedPlaylist) {
-						this.currentSpotifyPlaylist = null
-						axios
-							// GET request using user's ID
-							.get(`${baseURL}/users/${userID}/playlists`,
-								{
-									headers: {
-										"Authorization": `Bearer ${token}`
+			if(this.selectedModule==="userPlaylists") {
+				let token = localStorage.getItem('spotify_access_token')
+				let userID = localStorage.getItem('spotify_user_id')
+				let baseURL = 'https://api.spotify.com/v1'
+				if (this.spotifyLoggedIn) {
+					if (userID !== null && userID !== "") {
+						// If no playlist was selected (ie we want list of playlists)
+						if (!selectedPlaylist) {
+							this.currentSpotifyPlaylist = null
+							axios
+								// GET request using user's ID
+								.get(`${baseURL}/users/${userID}/playlists`,
+									{
+										headers: {
+											"Authorization": `Bearer ${token}`
+										}
+									})
+								.then(response => {
+										// Log response
+										console.log("getUserPlaylists() response: ", response.data)
+										// Assign playlistTableItems to response.data.items (playlist array)
+										this.playlistTable[0].Items = response.data.items
+									}
+								)
+								.catch(error => {
+									// Log error
+									console.log("getUserPlaylists() error caught: ", error)
+									console.log("getUserPlaylists() error message: ", error.message)
+									// Assign spotifyStatusMessage string to the value of error.message
+									this.spotifyStatusMessage = error.message
+									// If error is a 401 (token has likely expired)
+									if (error.message === "Request failed with status code 401") {
+										// Run refreshSpotifyToken() to get new access token
+										this.refreshSpotifyToken()
 									}
 								})
-							.then(response => {
-									// Log response
-									console.log("getUserPlaylists() response: ", response.data)
-									// Assign playlistTableItems to response.data.items (playlist array)
-									this.playlistTable[0].Items = response.data.items
-								}
-							)
-							.catch(error => {
-								// Log error
-								console.log("getUserPlaylists() error caught: ", error)
-								console.log("getUserPlaylists() error message: ", error.message)
-								// Assign spotifyStatusMessage string to the value of error.message
-								this.spotifyStatusMessage = error.message
-								// If error is a 401 (token has likely expired)
-								if (error.message === "Request failed with status code 401") {
-									// Run refreshSpotifyToken() to get new access token
-									this.refreshSpotifyToken()
-								}
-							})
-					}
-					// If a playlist was selected (ie we want list of tracks inside playlist)
-					if(selectedPlaylist) {
-						// console.log(`getUserPlaylists(${selectedPlaylist.id}): '${selectedPlaylist.name}' executed.`)
-						this.currentSpotifyPlaylist = selectedPlaylist
-						axios
-							.get(`${baseURL}/playlists/${selectedPlaylist.id}/tracks`,
-								{
-									headers: {
-										"Authorization" : `Bearer ${token}`
+						}
+						// If a playlist was selected (ie we want list of tracks inside playlist)
+						if (selectedPlaylist) {
+							// console.log(`getUserPlaylists(${selectedPlaylist.id}): '${selectedPlaylist.name}' executed.`)
+							this.currentSpotifyPlaylist = selectedPlaylist
+							axios
+								.get(`${baseURL}/playlists/${selectedPlaylist.id}/tracks`,
+									{
+										headers: {
+											"Authorization": `Bearer ${token}`
+										}
+									})
+								.then(response => {
+										console.log("getUserPlaylistTracks() response: ", response.data)
+										// If we get a response, assign the second layer of playlistTable to it
+										this.playlistTable[1].Items = response.data.items
+										// Increment playlistLayer so the vuetify table changes too
+										this.playlistLayer++
+									}
+								)
+								.catch(error => {
+									console.log("error caught: ", error)
+									console.log("error message: ", error.message)
+									this.spotifyStatusMessage = error.message
+									if (error.message === "Request failed with status code 401") {
+										// Run refreshSpotifyToken() to get new access token
+										this.refreshSpotifyToken()
 									}
 								})
-							.then(response => {
-									console.log("response: ", response.data)
-									// If we get a response, assign the second layer of playlistTable to it
-									this.playlistTable[1].Items = response.data.items
-									// Increment playlistLayer so the vuetify table changes too
-									this.playlistLayer++
-								}
-							)
-							.catch(error => {
-								console.log("error caught: ", error)
-								console.log("error message: ", error.message)
-								this.spotifyStatusMessage = error.message
-								if (error.message === "Request failed with status code 401") {
-									// Run refreshSpotifyToken() to get new access token
-									this.refreshSpotifyToken()
-								}
-							})
+						}
+					} else {
+						this.spotifyStatusMessage = "No user ID found.. Refresh?"
+						this.getUserData()
 					}
-				} else {
-					this.spotifyStatusMessage = "No user ID found.. Refresh?"
-					this.getUserData()
 				}
 			}
 		},
@@ -1530,71 +1560,75 @@ export default {
 		// TODO: Multiple track removal
 		// Function for generating recommendations
 		generateRecommendations(formData){
-			// filter sliderParameter array by enabled sliders only (inserts into enabledSliders array)
-			let enabledSliders = formData.optionalParams.sliderParams.filter(slider => slider.enabled !== false)
-			// lots of logging for testing purposes
-			console.log(enabledSliders)
-			console.log("Query Output:")
-			console.log(`?limit=${formData.optionalParams.limitSelected}`)
-			console.log(`&seed_artists=${formData.requiredParams.seed_artists}`)
-			enabledSliders.forEach(slider =>
-				console.log(`&${slider.type}_${slider.param}=${slider.value}`)
-			)
-			// if required parameters are empty on arrival...
-			if(formData.requiredParams.seed_artists===""){
-				console.log("Required params not filled!")
-				this.spotifyStatusMessage = "You must pick an artist before we can generate any recommendations!"
-			} else {
-				// else if required parameters were passed...
-				console.log("Required params filled! Executing request...")
-				let token = localStorage.getItem('spotify_access_token')
-				let baseURL = 'https://api.spotify.com/v1'
-				// '?limit=x' starts off the recommendation URL queries (although it is optional)
-				let limit = `?limit=${formData.optionalParams.limitSelected}`
-				// next up is '&seed_artists=x' - this is required
-				let artist = `&seed_artists=${formData.requiredParams.seed_artists}`
-				// initialising sliderQueries as a String
-				let sliderQueries = ""
-				// for each enabled slider, format as '&type_param=value'
-				// then on each loop, auto-increment (concatenate)
-				// this gives us our desired '&type_param=value&type_param=value...' chain
-				enabledSliders.forEach(slider => (sliderQueries += `&${slider.type}_${slider.param}=${slider.value}`))
-				// if duration slider is enabled, concatenate sliderQueries with milliseconds
-				if(formData.optionalParams.specialSliders[0].enabled){
-					let durationSlider = formData.optionalParams.specialSliders[0]
-					let type = durationSlider.type
-					let value = this.timeDoctor(durationSlider.value)
-					sliderQueries += `&${type}_duration_ms=${value}`
-				}
-				// log sliderQueries for testing purposes
-				if(sliderQueries!==""){console.log(sliderQueries)}
-				// finally, make axios GET request using limit, artist, and sliderQueries variables
-				axios
-					.get(`${baseURL}/recommendations${limit}${artist}${sliderQueries}`,
-						{
-							headers: {
-								"Authorization" : `Bearer ${token}`
+			if(this.selectedModule==="recommendationGenerator") {
+				// filter sliderParameter array by enabled sliders only (inserts into enabledSliders array)
+				let enabledSliders = formData.optionalParams.sliderParams.filter(slider => slider.enabled !== false)
+				// lots of logging for testing purposes
+				console.log(enabledSliders)
+				console.log("Query Output:")
+				console.log(`?limit=${formData.optionalParams.limitSelected}`)
+				console.log(`&seed_artists=${formData.requiredParams.seed_artists}`)
+				enabledSliders.forEach(slider =>
+					console.log(`&${slider.type}_${slider.param}=${slider.value}`)
+				)
+				// if required parameters are empty on arrival...
+				if (formData.requiredParams.seed_artists === "") {
+					console.log("Required params not filled!")
+					this.spotifyStatusMessage = "You must pick an artist before we can generate any recommendations!"
+				} else {
+					// else if required parameters were passed...
+					console.log("Required params filled! Executing request...")
+					let token = localStorage.getItem('spotify_access_token')
+					let baseURL = 'https://api.spotify.com/v1'
+					// '?limit=x' starts off the recommendation URL queries (although it is optional)
+					let limit = `?limit=${formData.optionalParams.limitSelected}`
+					// next up is '&seed_artists=x' - this is required
+					let artist = `&seed_artists=${formData.requiredParams.seed_artists}`
+					// initialising sliderQueries as a String
+					let sliderQueries = ""
+					// for each enabled slider, format as '&type_param=value'
+					// then on each loop, auto-increment (concatenate)
+					// this gives us our desired '&type_param=value&type_param=value...' chain
+					enabledSliders.forEach(slider => (sliderQueries += `&${slider.type}_${slider.param}=${slider.value}`))
+					// if duration slider is enabled, concatenate sliderQueries with milliseconds
+					if (formData.optionalParams.specialSliders[0].enabled) {
+						let durationSlider = formData.optionalParams.specialSliders[0]
+						let type = durationSlider.type
+						let value = this.timeDoctor(durationSlider.value)
+						sliderQueries += `&${type}_duration_ms=${value}`
+					}
+					// log sliderQueries for testing purposes
+					if (sliderQueries !== "") {
+						console.log(sliderQueries)
+					}
+					// finally, make axios GET request using limit, artist, and sliderQueries variables
+					axios
+						.get(`${baseURL}/recommendations${limit}${artist}${sliderQueries}`,
+							{
+								headers: {
+									"Authorization": `Bearer ${token}`
+								}
+							})
+						.then(response => {
+								console.log("generateRecommendations() response: ", response.data)
+								// assign recommendationData.response variable to response.tracks array
+								this.recommendationData.response = response.data.tracks
+								// clear the spotifyStatusMessage
+								this.spotifyStatusMessage = ""
+								// TODO: If nothing is returned, notify the user
+							}
+						)
+						.catch(error => {
+							console.log("generateRecommendations() error caught: ", error)
+							// Assign spotifyStatusMessage string to the value of error.message
+							this.spotifyStatusMessage = error.message
+							// If error is a 401 (token has likely expired)
+							if (error.message === "Request failed with status code 401") {
+								// Run refreshSpotifyToken() to get new access token
+								this.refreshSpotifyToken()
 							}
 						})
-					.then(response => {
-							console.log("generateRecommendations() response: ", response.data)
-							// assign recommendationData.response variable to response.tracks array
-							this.recommendationData.response = response.data.tracks
-							// clear the spotifyStatusMessage
-							this.spotifyStatusMessage = ""
-							// TODO: If nothing is returned, notify the user
-						}
-					)
-					.catch(error => {
-						console.log("generateRecommendations() error caught: ", error)
-						// Assign spotifyStatusMessage string to the value of error.message
-						this.spotifyStatusMessage = error.message
-						// If error is a 401 (token has likely expired)
-						if(error.message==="Request failed with status code 401"){
-							// Run refreshSpotifyToken() to get new access token
-							this.refreshSpotifyToken()
-						}
-					})
+				}
 			}
 		},
 		// durationCalculator
