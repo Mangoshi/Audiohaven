@@ -1604,41 +1604,19 @@ export default {
 		// 0:C, 1:C#, 2:D, 3:D#, 4:E, 5:F
 		// 6:F#, 7:G, 8:G#, 9:A, 10:A#, 11:B
 		keyDoctor(number){
-			if(number === 0){
-				return 'C'
-			}
-			else if(number === 1){
-				return 'C#'
-			}
-			else if(number === 2){
-				return 'D'
-			}
-			else if(number === 3){
-				return 'D#'
-			}
-			else if(number === 4){
-				return 'E'
-			}
-			else if(number === 5){
-				return 'F'
-			}
-			else if(number === 6){
-				return 'F#'
-			}
-			else if(number === 7){
-				return 'G'
-			}
-			else if(number === 8){
-				return 'G#'
-			}
-			else if(number === 9){
-				return 'A'
-			}
-			else if(number === 10){
-				return 'A#'
-			}
-			else if(number === 11){
-				return 'B'
+			switch(number) {
+				case 0: return 'C'
+				case 1: return 'C#'
+				case 2: return 'D'
+				case 3: return 'D#'
+				case 4: return 'E'
+				case 5: return 'F'
+				case 6: return 'F#'
+				case 7: return 'G'
+				case 8: return 'G#'
+				case 9: return 'A'
+				case 10: return 'A#'
+				case 11: return 'B'
 			}
 		}
 	}
