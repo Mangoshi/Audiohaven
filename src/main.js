@@ -12,6 +12,8 @@ import vuetify from '@/plugins/vuetify'
 // Vue libraries
 import router from "@/router";
 import store from "@/store"
+import VueCookies from 'vue-cookies'
+Vue.use(VueCookies)
 
 // Vue mixins
 import titleMixin from '@/mixins/titleMixin'
