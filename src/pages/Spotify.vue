@@ -779,7 +779,7 @@ export default {
 			// Disabling iframes for now
 			spotifyEmbeds: false,
 			// Module Data //
-			selectedModule: "recommendationGenerator",
+			selectedModule: "userPlaylists",
 			modules: [
 				{
 					label: "Your Playlists",
@@ -1130,7 +1130,8 @@ export default {
 			switch (val) {
 				case "followedArtists" :
 					console.log("Selected: Followed Artists Module");
-					if(!this.followedArtists){
+					if(this.followedArtists.length===0){
+						console.log("No followed artists found! Trying again..")
 						this.getFollowedArtists();
 					}
 					break
@@ -1142,7 +1143,8 @@ export default {
 					break
 				case "recommendationGenerator" :
 					console.log("Selected: Recommender Module");
-					if(!this.followedArtists){
+					if(this.followedArtists.length===0){
+						console.log("No followed artists found! Trying again..")
 						this.getFollowedArtists();
 					}
 					break
@@ -1330,28 +1332,26 @@ export default {
 		// Spotify API Requests //
 		// Function for getting profile data from the user
 		getUserData(){
-			if(!localStorage.getItem("spotify_user_id")){
-				let token = localStorage.getItem('spotify_access_token')
-				let baseURL = 'https://api.spotify.com/v1'
-				axios
-					.get(`${baseURL}/me/`,
-						{
-							headers: {
-								"Authorization": `Bearer ${token}`
-							}
-						})
-					.then(response => {
-							console.log("getUserData() response: ", response.data)
-							localStorage.setItem('spotify_user_id', response.data.id)
-							this.spotifyUserData = response.data
+			let token = localStorage.getItem('spotify_access_token')
+			let baseURL = 'https://api.spotify.com/v1'
+			axios
+				.get(`${baseURL}/me/`,
+					{
+						headers: {
+							"Authorization": `Bearer ${token}`
 						}
-					)
-					.catch(error => {
-						console.log("getUserData() error caught: ", error)
-						console.log("getUserData() error message: ", error.message)
-						this.spotifyStatusMessage = error.message
 					})
-			}
+				.then(response => {
+						console.log("getUserData() response: ", response.data)
+						localStorage.setItem('spotify_user_id', response.data.id)
+						this.spotifyUserData = response.data
+					}
+				)
+				.catch(error => {
+					console.log("getUserData() error caught: ", error)
+					console.log("getUserData() error message: ", error.message)
+					this.spotifyStatusMessage = error.message
+				})
 		},
 		// Function for getting user's followed artists
 		getFollowedArtists(){
@@ -1460,7 +1460,6 @@ export default {
 						}
 					} else {
 						this.spotifyStatusMessage = "No user ID found.. Refresh?"
-						this.getUserData()
 					}
 				}
 			}
