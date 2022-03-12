@@ -724,7 +724,7 @@ export default {
 	data(){
 		return{
 			// Environment Variables //
-			appBaseURL: process.env.VUE_APP_BASE_URL,
+			appBaseURL: "https://audiohaven-api.herokuapp.com",
 			// Sample API Table Data //
 			sampleTableEnabled: false,
 			spotifySampleRequests: [
