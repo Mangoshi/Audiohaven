@@ -1230,13 +1230,13 @@ export default {
 		},
 		// Spotify Token Management //
 		checkTokens(){
-			// Assign cookies as variables
-			let access_token = this.$cookies.get("access_token")
-			let refresh_token = this.$cookies.get("refresh_token")
-			// If both cookies hold data
-			if(access_token && refresh_token) {
+			// If there is both an access & refresh token in the URL
+			if(this.$route.query.access_token && this.$route.query.refresh_token) {
+				// Assign tokens as variables
+				let access_token = this.$route.query.access_token
+				let refresh_token = this.$route.query.refresh_token
 				// Log tokens
-				console.log("Tokens received through cookies:")
+				console.log("Tokens received through redirect URL:")
 				console.log("Access Token", access_token)
 				console.log("Refresh Token", refresh_token)
 				// Store tokens in localStorage
@@ -1246,7 +1246,7 @@ export default {
 				this.getUserData()
 			} else {
 				// Otherwise, log the fact there are no tokens in the URL
-				console.log("No access/refresh token in cookies!")
+				// console.log("No access/refresh token in URL!")
 			}
 		},
 		checkSpotifyLogin(){
@@ -1254,9 +1254,6 @@ export default {
 			this.spotifyLoggedIn = !!localStorage.getItem("spotify_access_token");
 		},
 		logoutSpotify(){
-			// Remove cookies
-			this.$cookies.remove("access_token")
-			this.$cookies.remove("refresh_token")
 			// Remove tokens
 			localStorage.removeItem("spotify_access_token")
 			localStorage.removeItem("spotify_refresh_token")
