@@ -1274,9 +1274,10 @@ export default {
 			router.go(0)
 		},
 		refreshSpotifyToken(){
+			let baseUrl = this.appBaseURL
 			let refresh_token = localStorage.getItem('spotify_refresh_token')
 			axios
-				.get(`http://localhost:3000/spotify/refresh_token?refresh_token=${refresh_token}`,{
+				.get(`${baseUrl}/spotify/refresh_token?refresh_token=${refresh_token}`,{
 					headers: {
 						"Content-Type" : 'application/x-www-form-urlencoded'
 					}
