@@ -6,6 +6,7 @@
 			v-model="drawer"
 			app
 			color="primary"
+			v-if="$store.state.loggedIn"
 		>
 			<v-list>
 				<!-- Sidebar link list -->
@@ -36,9 +37,13 @@
 
 			</v-spacer>
 			<!--	System-bar toggle button	-->
-			<v-btn icon @click="toggleSystemBar()"><v-icon>mdi-play-pause</v-icon></v-btn>
+			<v-btn icon v-if="$store.state.loggedIn" @click="toggleSystemBar()">
+				<v-icon>mdi-play-pause</v-icon>
+			</v-btn>
 			<!--	Dark/Light mode toggle button	-->
-			<v-btn icon style="margin-right: 15px" @click="toggleDarkMode()"><v-icon>mdi-theme-light-dark</v-icon></v-btn>
+			<v-btn icon style="margin-right: 15px" @click="toggleDarkMode()">
+				<v-icon>mdi-theme-light-dark</v-icon>
+			</v-btn>
 			<!--	Log-out button (bg colour = accent & text colour = black)	-->
 			<v-btn v-if="$store.state.loggedIn" class="accent secondary--text" @click="logout()">Log Out</v-btn>
 		</v-app-bar>
@@ -57,24 +62,24 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import {mapState} from 'vuex'
 import SystemBar from "@/components/SystemBar";
 
 export default {
 	name: 'App',
-	components: { SystemBar },
+	components: {SystemBar},
 	data: () => ({
 		drawer: false,
 		systemBar: false
 	}),
-	created(){
-		if (localStorage.getItem('audiohaven_token')){
+	created() {
+		if (localStorage.getItem('audiohaven_token')) {
 			this.$store.commit('SET_LOGGED_IN_STATUS', true)
 		} else {
 			this.$store.commit('SET_LOGGED_IN_STATUS', false)
 		}
 	},
-	mounted(){
+	mounted() {
 		const darkMode = localStorage.getItem("audiohaven_darkMode");
 		// If our localStorage contains anything under 'audiohaven_darkMode'
 		if (darkMode) {
@@ -97,7 +102,7 @@ export default {
 			this.$vuetify.theme.dark = !this.$vuetify.theme.dark
 			// Set localStorage 'audiohaven_darkMode' to value of $vuetify.theme.dark boolean
 			// Using toString() because localStorage is saved in a key-value pair, [String : String] in this case
-			localStorage.setItem("audiohaven_darkMode",this.$vuetify.theme.dark.toString())
+			localStorage.setItem("audiohaven_darkMode", this.$vuetify.theme.dark.toString())
 		},
 	},
 	computed: {
@@ -143,7 +148,7 @@ export default {
 	color: #2c3e50;
 }
 
-.sideLink:link{
+.sideLink:link {
 	font-size: 24px;
 	text-decoration: none;
 	color: black;
@@ -161,10 +166,12 @@ export default {
 	-webkit-animation: fade-in 0.6s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
 	animation: fade-in 0.6s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
 }
+
 .fade-leave-active {
 	-webkit-animation: fade-out 0.5s ease-out both;
 	animation: fade-out 0.5s ease-out both;
 }
+
 @-webkit-keyframes fade-in {
 	0% {
 		opacity: 0;
@@ -173,6 +180,7 @@ export default {
 		opacity: 1;
 	}
 }
+
 @keyframes fade-in {
 	0% {
 		opacity: 0;
@@ -181,6 +189,7 @@ export default {
 		opacity: 1;
 	}
 }
+
 @-webkit-keyframes fade-out {
 	0% {
 		opacity: 1;
@@ -189,6 +198,7 @@ export default {
 		opacity: 0;
 	}
 }
+
 @keyframes fade-out {
 	0% {
 		opacity: 1;
