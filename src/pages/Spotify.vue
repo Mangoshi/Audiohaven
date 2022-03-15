@@ -1,6 +1,6 @@
 <template>
 	<v-container :style="cssProps" fluid>
-		<!--	Testing, testing, 1, 2, 3	-->
+
 		<v-container v-if="sampleTableEnabled">
 			<v-simple-table>
 				<template v-slot:default>
@@ -486,30 +486,192 @@
 					</v-container>
 					<!-- Recommendations Module	-->
 					<v-container v-if="selectedModule === 'recommendationGenerator'" fluid>
-
+						<v-divider></v-divider>
+						<p class="unselectable mb-2 mt-2">Required Parameters
+							<br>
+							<small>Choose at least one!</small>
+						</p>
+						<v-divider></v-divider>
 						<!-- Required fields -->
-						<!-- TODO: Add ability to use genre & track seeds  -->
-						<!-- TODO: Allow user to add up to 5 of any seed  -->
 						<v-row class="mb-3">
-							<v-col cols="10" md="8">
+							<!-- Artist seed type selector -->
+							<v-col cols="0" md="3"></v-col>
+							<v-col class="d-flex flex-row justify-center" cols="12" md="6">
+								<!-- Radio group models artistSeedType from requiredParams -->
+								<!-- Row boolean determined by computed method -->
+								<v-radio-group
+									v-model="recommendationsForm.requiredParams.artistSeedType"
+									:row="recommenderRowBreakpoints"
+								>
+									<v-radio
+										color="accent"
+										label="Artist Search"
+										off-icon="mdi-magnify"
+										on-icon="mdi-magnify"
+										value="artistSearch"
+									>
+										Artist Search
+									</v-radio>
+									<!-- Clicking followedArtists radio wipes seed_artists.
+									This is so we aren't keep something invisible selected -->
+									<v-radio
+										color="accent"
+										label="Followed Artists"
+										off-icon="mdi-heart"
+										on-icon="mdi-heart"
+										value="followedArtists"
+										@click="recommendationsForm.requiredParams.seed_artists = ''"
+									>
+										Followed Artists
+									</v-radio>
+								</v-radio-group>
+							</v-col>
+							<v-col cols="0" md="3"></v-col>
+							<!-- Followed Artists Mode -->
+							<v-col
+								v-if="recommendationsForm.requiredParams.artistSeedType === 'followedArtists'"
+								cols="12"
+								md="6"
+							>
 								<v-autocomplete
 									v-model="recommendationsForm.requiredParams.seed_artists"
 									:items="followedArtists"
+									clearable
 									color="accent"
 									item-text="name"
 									item-value="id"
-									label="Choose one of the artists you follow!"
+									label="Choose a followed artist!"
+									no-data-text="It seems you don't follow any artists... 🙁"
+									outlined
 								></v-autocomplete>
 							</v-col>
-							<!-- Technically-not-required-as-it-has-a-default field -->
-							<v-col cols="2" md="4">
+							<!-- Artist Search Mode -->
+							<v-col
+								v-if="recommendationsForm.requiredParams.artistSeedType === 'artistSearch'"
+								cols="12"
+								md="6"
+							>
+								<v-row no-gutters>
+									<v-text-field
+										v-model="recommendationsForm.requiredParams.artistSearch"
+										clearable
+										color="accent"
+										label="Search for an artist!"
+										outlined
+										@keydown.enter="recommenderArtistSearch()"
+									></v-text-field>
+									<v-btn
+										:disabled="!recommendationsForm.requiredParams.artistSearch"
+										color="accent"
+										height="56"
+										outlined
+										x-small
+										@click="recommenderArtistSearch()">
+										<v-icon>mdi-magnify</v-icon>
+									</v-btn>
+								</v-row>
+							</v-col>
+							<v-col
+								v-if="recommendationsForm.requiredParams.artistOptions.length !== 0
+								&& recommendationsForm.requiredParams.artistSeedType==='artistSearch'"
+								cols="12"
+								md="6"
+							>
+								<v-autocomplete
+									v-model="recommendationsForm.requiredParams.seed_artists"
+									:items="recommendationsForm.requiredParams.artistOptions"
+									clearable
+									color="accent"
+									item-text="name"
+									item-value="id"
+									label="Choose an artist!"
+									no-data-text="Nothing here! Did you search? 🤔"
+									outlined
+								></v-autocomplete>
+							</v-col>
+							<v-col cols="12" md="6">
+								<v-autocomplete
+									v-model="recommendationsForm.requiredParams.seed_genres"
+									:items="recommendationsForm.requiredParams.genreOptions"
+									clearable
+									color="accent"
+									item-text="item"
+									item-value="id"
+									label="Choose a genre!"
+									no-data-text="We couldn't find any genres... This is on us, sorry! 🙁"
+									outlined
+								>
+									<!-- This v-slot determines how the items in the selection list look -->
+									<template v-slot:item="{ item }">
+										<span class="text-capitalize">
+											{{ item }}
+										</span>
+									</template>
+									<!-- This v-slot determines how the selected item looks -->
+									<template v-slot:selection="{ item }">
+										<span class="text-capitalize">
+											{{ item }}
+										</span>
+									</template>
+								</v-autocomplete>
+							</v-col>
+							<v-col
+								cols="12"
+								md="6"
+							>
+								<v-row no-gutters>
+									<v-text-field
+										v-model="recommendationsForm.requiredParams.trackSearch"
+										clearable
+										color="accent"
+										label="Search for a track!"
+										outlined
+										@keydown.enter="recommenderTrackSearch()"
+									></v-text-field>
+									<v-btn
+										:disabled="!recommendationsForm.requiredParams.trackSearch"
+										color="accent"
+										height="56"
+										outlined
+										x-small
+										@click="recommenderTrackSearch()">
+										<v-icon>mdi-magnify</v-icon>
+									</v-btn>
+								</v-row>
+
+							</v-col>
+							<v-col v-if="recommendationsForm.requiredParams.trackOptions.length !== 0" cols="12" md="6">
+								<v-autocomplete
+									v-model="recommendationsForm.requiredParams.seed_tracks"
+									:items="recommendationsForm.requiredParams.trackOptions"
+									clearable
+									color="accent"
+									item-text="item"
+									item-value="id"
+									label="Choose a track!"
+									no-data-text="Nothing here! Did you search? 🤔"
+									outlined
+								>
+									<!-- This v-slot determines how the items in the selection list look -->
+									<template v-slot:item="{ item }">
+										'{{ item.name }}' (by {{ item.artists[0].name }})
+									</template>
+									<!-- This v-slot determines how the selected item looks -->
+									<template v-slot:selection="{ item }">
+										'{{ item.name }}' (by {{ item.artists[0].name }})
+									</template>
+								</v-autocomplete>
+							</v-col>
+							<!-- Technically-not-required-as-it-has-a-default-value field -->
+							<v-col cols="12" md="6">
 								<v-select
 									v-model="recommendationsForm.optionalParams.limitSelected"
 									:items="recommendationsForm.optionalParams.limitOptions"
 									color="accent"
 									item-text="value"
 									item-value="value"
-									label="Amount"
+									label="How many recommendations?"
+									outlined
 								></v-select>
 							</v-col>
 						</v-row>
@@ -517,20 +679,23 @@
 						<!-- Slider choices -->
 						<v-divider></v-divider>
 						<p class="unselectable mb-2 mt-2">Optional Parameters</p>
+						<v-simple-checkbox v-model="recommendationsForm.optionalParamsEnabled" off-icon="mdi-chevron-up" on-icon="mdi-chevron-down"></v-simple-checkbox>
 						<v-divider></v-divider>
-						<v-row class="justify-center">
+
+						<v-row v-if="recommendationsForm.optionalParamsEnabled" class="justify-center" dense>
 							<v-col
 								v-for="slider in recommendationsForm.optionalParams.sliderParams"
 								:key="slider.param"
-								class="mr-2"
-								cols="3">
+								:class="sliderCheckboxBreakpoints"
+								cols="12" lg="2" md="3" sm="5">
 								<!-- TODO: Maybe use v-autocomplete with multiple enabled? -->
 								<!-- This would make the params take up a lot less space! -->
 								<!-- Only issue may lie in adding the special slider(s) to it? -->
 								<v-checkbox
 									v-model="slider.enabled"
 									:label="slider.label"
-									:prepend-icon="slider.icon"
+									:off-icon="slider.icon"
+									:on-icon="slider.icon"
 									class="text-capitalize"
 									color="accent"
 								></v-checkbox>
@@ -539,12 +704,13 @@
 							<v-col
 								v-for="slider in recommendationsForm.optionalParams.specialSliders"
 								:key="slider.param"
-								class="mr-2"
-								cols="3">
+								:class="sliderCheckboxBreakpoints"
+								cols="12" lg="2" md="3" sm="5">
 								<v-checkbox
 									v-model="slider.enabled"
 									:label="slider.label"
-									:prepend-icon="slider.icon"
+									:off-icon="slider.icon"
+									:on-icon="slider.icon"
 									class="text-capitalize"
 									color="accent"
 								></v-checkbox>
@@ -590,9 +756,49 @@
 									track-color="primary"
 									track-fill-color="green"
 								>
-									<template v-if="(slider.param)==='key'" v-slot:thumb-label="item">
-										{{ keyDoctor(item.value) }}
+									<!-- For the key slider, we're using the keyDoctor() function
+											so that the label shows 'C' to the user instead of '0', for example -->
+									<template v-if="(slider.param)==='key'" v-slot:thumb-label="key">
+										{{ keyDoctor(key.value) }}
 									</template>
+
+									<!-- For most of the other sliders, we calculate the percentage and return it on the label -->
+									<template v-else-if="(slider.param)==='acousticness'" v-slot:thumb-label="acousticness">
+										{{ percentageDoctor(acousticness.value, 1) }}%
+									</template>
+
+									<template v-else-if="(slider.param)==='danceability'" v-slot:thumb-label="danceability">
+										{{ percentageDoctor(danceability.value, 1) }}%
+									</template>
+
+									<template v-else-if="(slider.param)==='energy'" v-slot:thumb-label="energy">
+										{{ percentageDoctor(energy.value, 1) }}%
+									</template>
+
+									<template v-else-if="(slider.param)==='instrumentalness'" v-slot:thumb-label="instrumentalness">
+										{{ percentageDoctor(instrumentalness.value, 1) }}%
+									</template>
+
+									<template v-else-if="(slider.param)==='liveness'" v-slot:thumb-label="liveness">
+										{{ percentageDoctor(liveness.value, 1) }}%
+									</template>
+
+									<template v-else-if="(slider.param)==='loudness'" v-slot:thumb-label="loudness">
+										{{ percentageDoctor(loudness.value, 1) }}%
+									</template>
+
+									<template v-else-if="(slider.param)==='speechiness'" v-slot:thumb-label="speechiness">
+										{{ percentageDoctor(speechiness.value, 1) }}%
+									</template>
+
+									<template v-else-if="(slider.param)==='valence'" v-slot:thumb-label="valence">
+										{{ percentageDoctor(valence.value, 1) }}%
+									</template>
+
+									<template v-else-if="(slider.param)==='popularity'" v-slot:thumb-label="popularity">
+										{{ percentageDoctor(popularity.value, 100) }}%
+									</template>
+
 								</v-slider>
 							</v-col>
 							<v-col v-if="slider.enabled" class="mt-1" cols="2">
@@ -646,7 +852,7 @@
 						<v-row class="mt-n5 mb-3">
 							<v-spacer></v-spacer>
 							<!-- If there was an artist seed provided -->
-							<v-col v-if="recommendationsForm.requiredParams.seed_artists" cols="3" md="3">
+							<v-col v-if="recommendationsRequired" cols="3" md="3">
 								<v-btn block color="accent" @click="generateRecommendations(recommendationsForm)">
 									Recommend!
 								</v-btn>
@@ -654,7 +860,7 @@
 							<!-- If there wasn't an artist seed provided -->
 							<v-col v-else cols="4" md="4">
 								<v-btn block color="grey" disable>
-									Pick an artist first!
+									I need more data!
 								</v-btn>
 							</v-col>
 							<v-spacer></v-spacer>
@@ -669,9 +875,9 @@
 								:headers="recommendationData.headers"
 								:item-key="recommendationData.response.name"
 								:items="recommendationData.response"
+								calculate-widths
 								no-data-text="No data!?"
 								no-results-text="No results :C"
-								calculate-widths
 							>
 								<template v-slot:item.album.images[0].url="{ item }">
 									<a
@@ -779,7 +985,7 @@ export default {
 			// Disabling iframes for now
 			spotifyEmbeds: false,
 			// Module Data //
-			selectedModule: "userPlaylists",
+			selectedModule: "recommendationGenerator",
 			modules: [
 				{
 					label: "Your Playlists",
@@ -903,13 +1109,26 @@ export default {
 						// Up to 5 seed values may be provided in any combination of seed_artists, seed_tracks and seed_genres
 						// A comma separated list of Spotify IDs for seed artists
 						seed_artists: "",
+						// Which search is enabled [options: 'artistSearch' and 'followedArtists']
+						artistSeedType: "artistSearch",
+						// Initialising string to be used for artist searches
+						artistSearch: "",
+						// Initialising array for artists returned by search on 'Search' endpoint
+						artistOptions: [],
 						// A comma separated list of any genres in the set of available genre seeds
 						seed_genres: "",
+						// Initialising array for available genres, retrieved from 'Get Available Genre Seeds' endpoint
+						genreOptions: [],
 						// A comma separated list of Spotify IDs for a seed track
-						seed_tracks: ""
+						seed_tracks: "",
+						// Initialising string to be used for track searches
+						trackSearch: "",
+						// Initialising array for tracks returned by search on 'Search' endpoint
+						trackOptions: [],
 					},
 
 				// OPTIONAL PARAMS //
+				optionalParamsEnabled: false,
 				optionalParams:
 					{
 						// Amount of tracks returned (Default 20, Max 100)
@@ -1060,7 +1279,7 @@ export default {
 							{
 								// Tempo of the tracks (accepts any integer)
 								enabled: false,
-								label: "Tempo (BPM)",
+								label: "BPM",
 								param: "tempo",
 								type: "target",
 								value: null,
@@ -1075,7 +1294,7 @@ export default {
 							{
 								// Duration slider
 								enabled: false,
-								label: "Duration (mins)",
+								label: "Duration",
 								param: "max_duration_ms",
 								type: "target",
 								value: null,
@@ -1180,12 +1399,53 @@ export default {
 			// return themeColors object
 			return themeColors
 		},
+		recommendationsRequired(){
+			// if all required fields are empty, return false
+			// else if even one is filled, return true
+			if
+			(
+				!this.recommendationsForm.requiredParams.seed_artists
+				&&
+				!this.recommendationsForm.requiredParams.seed_genres
+				&&
+				!this.recommendationsForm.requiredParams.seed_tracks
+			)
+			{ return false }
+			else { return true }
+		},
+		sliderCheckboxBreakpoints(){
+			// Switch case using current global breakpoint
+			// If breakpoint is xs or sm, we want the content of the cols to be centered
+			// Else if md/lg/xl, we want the contents to be left aligned
+			switch (this.$vuetify.breakpoint.name) {
+				case 'xs': return 'd-flex justify-center'
+				case 'sm': return 'mr-1 d-flex justify-center'
+				case 'md': return 'mr-1 d-flex justify-center'
+				case 'lg': return 'mr-2 d-flex justify-center'
+				case 'xl': return 'mr-2 d-flex justify-center'
+			}
+			// If none of the above, return nothing (required for a computed method)
+			return ''
+		},
+		recommenderRowBreakpoints(){
+			// If breakpoint is xs, put radio-group in column mode
+			// Else, put radio-group in row mode
+			switch (this.$vuetify.breakpoint.name) {
+				case 'xs': return false
+				case 'sm': return true
+				case 'md': return true
+				case 'lg': return true
+				case 'xl': return true
+			}
+			return false
+		}
 	},
 	mounted(){
 		this.checkTokens()
 		this.checkSpotifyLogin()
 		this.getFollowedArtists()
 		this.getUserPlaylists()
+		this.getSpotifyGenres()
 	},
 	created() {
 		// When an axios request is made, intercept it and:
@@ -1333,9 +1593,9 @@ export default {
 		// Function for getting profile data from the user
 		getUserData(){
 			let token = localStorage.getItem('spotify_access_token')
-			let baseURL = 'https://api.spotify.com/v1'
+			let spotifyBaseURL = 'https://api.spotify.com/v1'
 			axios
-				.get(`${baseURL}/me/`,
+				.get(`${spotifyBaseURL}/me/`,
 					{
 						headers: {
 							"Authorization": `Bearer ${token}`
@@ -1359,10 +1619,10 @@ export default {
 				// If user is logged-in
 				if (this.spotifyLoggedIn) {
 					let token = localStorage.getItem('spotify_access_token')
-					let baseURL = 'https://api.spotify.com/v1'
+					let spotifyBaseURL = 'https://api.spotify.com/v1'
 					axios
 						// GET request for followed artists, with the maximum limit of 50 set
-						.get(`${baseURL}/me/following?type=artist&limit=50`,
+						.get(`${spotifyBaseURL}/me/following?type=artist&limit=50`,
 							{
 								headers: {
 									"Authorization": `Bearer ${token}`
@@ -1370,7 +1630,7 @@ export default {
 							})
 						.then(response => {
 								// Log response
-								console.log("getFollowedArtists() response: ", response.data)
+								console.log("getFollowedArtists() response: ", response.data.artists.items)
 								// Assign followedArtists to response.artists.items (followed artist array)
 								this.followedArtists = response.data.artists.items
 							}
@@ -1395,7 +1655,7 @@ export default {
 			if(this.selectedModule==="userPlaylists") {
 				let token = localStorage.getItem('spotify_access_token')
 				let userID = localStorage.getItem('spotify_user_id')
-				let baseURL = 'https://api.spotify.com/v1'
+				let spotifyBaseURL = 'https://api.spotify.com/v1'
 				if (this.spotifyLoggedIn) {
 					if (userID !== null && userID !== "") {
 						// If no playlist was selected (ie we want list of playlists)
@@ -1403,7 +1663,7 @@ export default {
 							this.currentSpotifyPlaylist = null
 							axios
 								// GET request using user's ID
-								.get(`${baseURL}/users/${userID}/playlists`,
+								.get(`${spotifyBaseURL}/users/${userID}/playlists`,
 									{
 										headers: {
 											"Authorization": `Bearer ${token}`
@@ -1434,7 +1694,7 @@ export default {
 							// console.log(`getUserPlaylists(${selectedPlaylist.id}): '${selectedPlaylist.name}' executed.`)
 							this.currentSpotifyPlaylist = selectedPlaylist
 							axios
-								.get(`${baseURL}/playlists/${selectedPlaylist.id}/tracks`,
+								.get(`${spotifyBaseURL}/playlists/${selectedPlaylist.id}/tracks`,
 									{
 										headers: {
 											"Authorization": `Bearer ${token}`
@@ -1472,9 +1732,9 @@ export default {
 		queueSpotifyTrack(selected) {
 			console.log(`queueSpotifyTrack(${selected.track.name})`)
 			let token = localStorage.getItem('spotify_access_token')
-			let baseURL = 'https://api.spotify.com/v1'
+			let spotifyBaseURL = 'https://api.spotify.com/v1'
 			axios
-				.post(`${baseURL}/me/player/queue?uri=spotify:track:${selected.track.id}`,
+				.post(`${spotifyBaseURL}/me/player/queue?uri=spotify:track:${selected.track.id}`,
 					{},
 					{
 						headers: {
@@ -1498,9 +1758,9 @@ export default {
 				console.log(`Playlist '${playlist.name}' unfollow confirmed.`);
 				// Unfollow Playlist Request
 				let token = localStorage.getItem('spotify_access_token')
-				let baseURL = 'https://api.spotify.com/v1'
+				let spotifyBaseURL = 'https://api.spotify.com/v1'
 				axios
-					.delete(`${baseURL}/playlists/${playlist.id}/followers`,
+					.delete(`${spotifyBaseURL}/playlists/${playlist.id}/followers`,
 						{
 							headers: {
 								"Authorization" : `Bearer ${token}`
@@ -1529,9 +1789,9 @@ export default {
 				console.log(`Track '${track.track.name}' removal confirmed.`);
 				// Remove Track Request
 				let token = localStorage.getItem('spotify_access_token')
-				let baseURL = 'https://api.spotify.com/v1'
+				let spotifyBaseURL = 'https://api.spotify.com/v1'
 				axios
-					.delete(`${baseURL}/playlists/${playlist.id}/tracks`,
+					.delete(`${spotifyBaseURL}/playlists/${playlist.id}/tracks`,
 						{
 							headers: {
 								"Authorization" : `Bearer ${token}`
@@ -1558,32 +1818,178 @@ export default {
 			}
 		},
 		// TODO: Multiple track removal
+		// Function for getting available genre seeds
+		getSpotifyGenres(){
+			// If user is logged-in
+			if (this.spotifyLoggedIn) {
+				let token = localStorage.getItem('spotify_access_token')
+				let spotifyBaseURL = 'https://api.spotify.com/v1'
+				axios
+					// GET request for followed artists, with the maximum limit of 50 set
+					.get(`${spotifyBaseURL}/recommendations/available-genre-seeds`,
+						{
+							headers: {
+								"Authorization": `Bearer ${token}`
+							}
+						})
+					.then(response => {
+							// Log response
+							console.log("getSpotifyGenres() response: ", response.data.genres)
+							// Assign recommendationData.requiredParams.genreOptions to response data.genres (array)
+							this.recommendationsForm.requiredParams.genreOptions = response.data.genres
+						}
+					)
+					.catch(error => {
+							// Log errors
+							console.log("getSpotifyGenres() error caught: ", error)
+							console.log("getSpotifyGenres() error message: ", error.message)
+							// Assign spotifyStatusMessage string to the value of error message
+							this.spotifyStatusMessage = error.response.data.error.message
+							// If error is a 401 (token has likely expired)
+							if (error.message === "Request failed with status code 401") {
+								// Run refreshSpotifyToken() to get new access token
+								this.refreshSpotifyToken()
+							}
+						}
+					)
+			}
+		},
+		// Function to search for tracks
+		recommenderTrackSearch(){
+			console.log("recommenderTrackSearch() executed")
+			// If user is logged-in
+			if (this.spotifyLoggedIn) {
+				let token = localStorage.getItem('spotify_access_token')
+				let spotifyBaseURL = 'https://api.spotify.com/v1'
+				let searchQuery = this.recommendationsForm.requiredParams.trackSearch
+				axios
+					// GET request which searches for tracks, with the maximum limit of 50 set
+					.get(`${spotifyBaseURL}/search?q=${searchQuery}&type=track&limit=50`,
+						{
+							headers: {
+								"Authorization": `Bearer ${token}`
+							}
+						})
+					.then(response => {
+							// Log response
+							console.log("recommenderTrackSearch() response: ", response.data.tracks.items)
+							// Assign recommendationData.requiredParams.trackOptions to response data.tracks (array)
+							this.recommendationsForm.requiredParams.trackOptions = response.data.tracks.items
+						}
+					)
+					.catch(error => {
+							// Log errors
+							console.log("recommenderTrackSearch() error caught: ", error)
+							console.log("recommenderTrackSearch() error message: ", error.message)
+							// Assign spotifyStatusMessage string to the value of error message
+							this.spotifyStatusMessage = error.response.data.error.message
+							// If error is a 401 (token has likely expired)
+							if (error.message === "Request failed with status code 401") {
+								// Run refreshSpotifyToken() to get new access token
+								this.refreshSpotifyToken()
+							}
+						}
+					)
+			}
+		},
+		// Function to search for artists
+		recommenderArtistSearch(){
+			console.log("recommenderArtistSearch() executed")
+			// If user is logged-in
+			if (this.spotifyLoggedIn) {
+				let token = localStorage.getItem('spotify_access_token')
+				let spotifyBaseURL = 'https://api.spotify.com/v1'
+				let searchQuery = this.recommendationsForm.requiredParams.artistSearch
+				axios
+					// GET request which searches for artists, with the maximum limit of 50 set
+					.get(`${spotifyBaseURL}/search?q=${searchQuery}&type=artist&limit=50`,
+						{
+							headers: {
+								"Authorization": `Bearer ${token}`
+							}
+						})
+					.then(response => {
+							// Log response
+							console.log("recommenderArtistSearch() response: ", response.data.artists.items)
+							// Assign recommendationData.requiredParams.trackOptions to response data.tracks (array)
+							this.recommendationsForm.requiredParams.artistOptions = response.data.artists.items
+						}
+					)
+					.catch(error => {
+							// Log errors
+							console.log("recommenderArtistSearch() error caught: ", error)
+							console.log("recommenderArtistSearch() error message: ", error.message)
+							// Assign spotifyStatusMessage string to the value of error message
+							this.spotifyStatusMessage = error.response.data.error.message
+							// If error is a 401 (token has likely expired)
+							if (error.message === "Request failed with status code 401") {
+								// Run refreshSpotifyToken() to get new access token
+								this.refreshSpotifyToken()
+							}
+						}
+					)
+			}
+		},
 		// Function for generating recommendations
 		generateRecommendations(formData){
 			if(this.selectedModule==="recommendationGenerator") {
+
 				// filter sliderParameter array by enabled sliders only (inserts into enabledSliders array)
 				let enabledSliders = formData.optionalParams.sliderParams.filter(slider => slider.enabled !== false)
+
 				// lots of logging for testing purposes
-				console.log(enabledSliders)
-				console.log("Query Output:")
-				console.log(`?limit=${formData.optionalParams.limitSelected}`)
-				console.log(`&seed_artists=${formData.requiredParams.seed_artists}`)
-				enabledSliders.forEach(slider =>
-					console.log(`&${slider.type}_${slider.param}=${slider.value}`)
-				)
+				console.log("Enabled sliders: ", enabledSliders)
+				// console.log("Query Output:")
+				// console.log(`?limit=${formData.optionalParams.limitSelected}`)
+				// console.log(`&seed_artists=${formData.requiredParams.seed_artists}`)
+				// console.log(`&seed_genres=${formData.requiredParams.seed_genres}`)
+				// enabledSliders.forEach(slider =>
+				// 	console.log(`&${slider.type}_${slider.param}=${slider.value}`)
+				// )
+
 				// if required parameters are empty on arrival...
-				if (formData.requiredParams.seed_artists === "") {
+				if (!this.recommendationsRequired) {
 					console.log("Required params not filled!")
-					this.spotifyStatusMessage = "You must pick an artist before we can generate any recommendations!"
+					this.spotifyStatusMessage = "You must pick one of the required parameters before we can generate any recommendations!"
 				} else {
 					// else if required parameters were passed...
 					console.log("Required params filled! Executing request...")
 					let token = localStorage.getItem('spotify_access_token')
-					let baseURL = 'https://api.spotify.com/v1'
+					let spotifyBaseURL = 'https://api.spotify.com/v1'
+
+					// Required Params //
+
 					// '?limit=x' starts off the recommendation URL queries (although it is optional)
 					let limit = `?limit=${formData.optionalParams.limitSelected}`
-					// next up is '&seed_artists=x' - this is required
-					let artist = `&seed_artists=${formData.requiredParams.seed_artists}`
+
+					// Artist seed
+					// initialising as blank
+					let artist = ""
+					// if the user provided something in the artist field...
+					if(formData.requiredParams.seed_artists){
+						// ...assign artist the value of '&seed_artists=<data>'
+						artist = `&seed_artists=${formData.requiredParams.seed_artists}`
+					}
+
+					// Genre seed
+					// initialising as blank
+					let genre = ""
+					// if the user provided something in the genre field...
+					if(formData.requiredParams.seed_genres){
+						// ...assign genre the value of '&seed_genres=<data>'
+						genre = `&seed_genres=${formData.requiredParams.seed_genres}`
+					}
+
+					// Track seed
+					// initialising as blank
+					let track = ""
+					// if the user provided something in the track field...
+					if(formData.requiredParams.seed_tracks){
+						// ...assign track the value of '&seed_tracks=<data>'
+						track = `&seed_tracks=${formData.requiredParams.seed_tracks}`
+					}
+
+					// Optional Params //
 					// initialising sliderQueries as a String
 					let sliderQueries = ""
 					// for each enabled slider, format as '&type_param=value'
@@ -1597,13 +2003,19 @@ export default {
 						let value = this.timeDoctor(durationSlider.value)
 						sliderQueries += `&${type}_duration_ms=${value}`
 					}
-					// log sliderQueries for testing purposes
-					if (sliderQueries !== "") {
-						console.log(sliderQueries)
-					}
+
+					// // log sliderQueries for testing purposes
+					// if (sliderQueries !== "") {
+					// 	console.log(sliderQueries)
+					// }
+
+					// logging the URL to be used in the GET request
+					console.log(`Built URL: ${spotifyBaseURL}/recommendations${limit}${artist}${genre}${track}${sliderQueries}`)
+
+					// The HTTP Request //
 					// finally, make axios GET request using limit, artist, and sliderQueries variables
 					axios
-						.get(`${baseURL}/recommendations${limit}${artist}${sliderQueries}`,
+						.get(`${spotifyBaseURL}/recommendations${limit}${artist}${track}${genre}${sliderQueries}`,
 							{
 								headers: {
 									"Authorization": `Bearer ${token}`
@@ -1620,8 +2032,8 @@ export default {
 						)
 						.catch(error => {
 							console.log("generateRecommendations() error caught: ", error)
-							// Assign spotifyStatusMessage string to the value of error.message
-							this.spotifyStatusMessage = error.message
+							// Assign spotifyStatusMessage string to the value of error message
+							this.spotifyStatusMessage = error.response.data.error.message
 							// If error is a 401 (token has likely expired)
 							if (error.message === "Request failed with status code 401") {
 								// Run refreshSpotifyToken() to get new access token
@@ -1653,6 +2065,15 @@ export default {
 				case 10: return 'A#'
 				case 11: return 'B'
 			}
+		},
+		percentageDoctor(value, max){
+			// console.log("value: ", value)
+			// console.log("max: ", max)
+			let v = parseFloat(value)
+			let m = parseFloat(max)
+			// console.log("v: ", v)
+			// console.log("m: ", m)
+			return Math.floor((v / m) * 100)
 		}
 	}
 }
