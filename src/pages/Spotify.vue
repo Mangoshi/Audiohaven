@@ -503,17 +503,18 @@
 									v-model="recommendationsForm.requiredParams.artistSeedType"
 									:row="recommenderRowBreakpoints"
 								>
+									<!-- Clicking either radio wipes seed_artists -->
+									<!-- This is so we aren't keep something invisible selected -->
 									<v-radio
 										color="accent"
 										label="Artist Search"
 										off-icon="mdi-magnify"
 										on-icon="mdi-magnify"
 										value="artistSearch"
+										@click="recommendationsForm.requiredParams.seed_artists = ''"
 									>
 										Artist Search
 									</v-radio>
-									<!-- Clicking followedArtists radio wipes seed_artists.
-									This is so we aren't keep something invisible selected -->
 									<v-radio
 										color="accent"
 										label="Followed Artists"
