@@ -518,6 +518,36 @@
 									no-data-text="We couldn't find any genres... This is on us, sorry! 🙁"
 								></v-autocomplete>
 							</v-col>
+							<v-col cols="10" md="4">
+								<v-text-field
+									label="Search for a track!"
+									v-model="recommendationsForm.requiredParams.trackSearch"
+									color="accent"
+								></v-text-field>
+							</v-col>
+							<v-col cols="2" md="2">
+								<v-btn color="accent" @click="recommenderTrackSearch()" class="float-right mt-4">Search!</v-btn>
+							</v-col>
+							<v-col cols="12" md="6" v-if="recommendationsForm.requiredParams.trackOptions.length !== 0">
+								<v-autocomplete
+									v-model="recommendationsForm.requiredParams.seed_tracks"
+									:items="recommendationsForm.requiredParams.trackOptions"
+									color="accent"
+									item-value="id"
+									item-text="item"
+									label="Choose a track from your search!"
+									no-data-text="Nothing here! Did you search? 🤔"
+								>
+									<!-- This v-slot determines how the items in the selection list look -->
+									<template v-slot:item="{ item }">
+										{{ item.artists[0].name }} - {{ item.name }}
+									</template>
+									<!-- This v-slot determines how the selected item looks -->
+									<template v-slot:selection="{ item }">
+										{{ item.artists[0].name }} - {{ item.name }}
+									</template>
+								</v-autocomplete>
+							</v-col>
 							<!-- Technically-not-required-as-it-has-a-default-value field -->
 							<v-col cols="12" md="6">
 								<v-select
@@ -926,7 +956,11 @@ export default {
 						// Array of available genres, retrieved from 'Get Available Genre Seeds' endpoint
 						genreOptions: [],
 						// A comma separated list of Spotify IDs for a seed track
-						seed_tracks: ""
+						seed_tracks: "",
+						// Initialising string to be used for track searches
+						trackSearch: "",
+						// Array of available tracks, retrieved from 'Search' endpoint
+						trackOptions: [],
 					},
 
 				// OPTIONAL PARAMS //
@@ -1618,8 +1652,46 @@ export default {
 							// Log errors
 							console.log("getSpotifyGenres() error caught: ", error)
 							console.log("getSpotifyGenres() error message: ", error.message)
-							// Assign spotifyStatusMessage string to the value of error.message
-							this.spotifyStatusMessage = error.message
+							// Assign spotifyStatusMessage string to the value of error message
+							this.spotifyStatusMessage = error.response.data.error.message
+							// If error is a 401 (token has likely expired)
+							if (error.message === "Request failed with status code 401") {
+								// Run refreshSpotifyToken() to get new access token
+								this.refreshSpotifyToken()
+							}
+						}
+					)
+			}
+		},
+		// Function to search for tracks
+		recommenderTrackSearch(){
+			console.log("recommenderTrackSearch() executed")
+			// If user is logged-in
+			if (this.spotifyLoggedIn) {
+				let token = localStorage.getItem('spotify_access_token')
+				let spotifyBaseURL = 'https://api.spotify.com/v1'
+				let searchQuery = this.recommendationsForm.requiredParams.trackSearch
+				axios
+					// GET request which searches for tracks, with the maximum limit of 50 set
+					.get(`${spotifyBaseURL}/search?q=${searchQuery}&type=track&limit=50`,
+						{
+							headers: {
+								"Authorization": `Bearer ${token}`
+							}
+						})
+					.then(response => {
+							// Log response
+							console.log("recommenderTrackSearch() response: ", response.data.tracks.items)
+							// Assign recommendationData.requiredParams.trackOptions to response data.tracks (array)
+							this.recommendationsForm.requiredParams.trackOptions = response.data.tracks.items
+						}
+					)
+					.catch(error => {
+							// Log errors
+							console.log("recommenderTrackSearch() error caught: ", error)
+							console.log("recommenderTrackSearch() error message: ", error.message)
+							// Assign spotifyStatusMessage string to the value of error message
+							this.spotifyStatusMessage = error.response.data.error.message
 							// If error is a 401 (token has likely expired)
 							if (error.message === "Request failed with status code 401") {
 								// Run refreshSpotifyToken() to get new access token
@@ -1679,6 +1751,15 @@ export default {
 						genre = `&seed_genres=${formData.requiredParams.seed_genres}`
 					}
 
+					// Track seed
+					// initialising as blank
+					let track = ""
+					// if the user provided something in the track field...
+					if(formData.requiredParams.seed_tracks){
+						// ...assign track the value of '&seed_tracks=<data>'
+						track = `&seed_tracks=${formData.requiredParams.seed_tracks}`
+					}
+
 					// Optional Params //
 					// initialising sliderQueries as a String
 					let sliderQueries = ""
@@ -1700,12 +1781,12 @@ export default {
 					// }
 
 					// logging the URL to be used in the GET request
-					console.log(`Built URL: ${spotifyBaseURL}/recommendations${limit}${artist}${genre}${sliderQueries}`)
+					console.log(`Built URL: ${spotifyBaseURL}/recommendations${limit}${artist}${genre}${track}${sliderQueries}`)
 
 					// The HTTP Request //
 					// finally, make axios GET request using limit, artist, and sliderQueries variables
 					axios
-						.get(`${spotifyBaseURL}/recommendations${limit}${artist}${genre}${sliderQueries}`,
+						.get(`${spotifyBaseURL}/recommendations${limit}${artist}${track}${genre}${sliderQueries}`,
 							{
 								headers: {
 									"Authorization": `Bearer ${token}`
@@ -1722,7 +1803,7 @@ export default {
 						)
 						.catch(error => {
 							console.log("generateRecommendations() error caught: ", error)
-							// Assign spotifyStatusMessage string to the value of error.message
+							// Assign spotifyStatusMessage string to the value of error message
 							this.spotifyStatusMessage = error.response.data.error.message
 							// If error is a 401 (token has likely expired)
 							if (error.message === "Request failed with status code 401") {
