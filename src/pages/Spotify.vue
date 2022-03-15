@@ -724,7 +724,7 @@ export default {
 	data(){
 		return{
 			// Environment Variables //
-			appBaseURL: "https://audiohaven-api.herokuapp.com",
+			appBaseURL: process.env.VUE_APP_BASE_URL,
 			// Sample API Table Data //
 			sampleTableEnabled: false,
 			spotifySampleRequests: [
@@ -1460,6 +1460,7 @@ export default {
 						}
 					} else {
 						this.spotifyStatusMessage = "No user ID found.. Refresh?"
+						this.refreshSpotifyToken()
 					}
 				}
 			}
