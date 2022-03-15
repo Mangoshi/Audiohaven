@@ -10,7 +10,7 @@
     "start": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
-    "deploy": "gh-pages -d dist"
+    "deploy": "cd dist && copy index.html 404.html && cd .. && gh-pages -d dist"
   },
   "dependencies": {
     "axios": "^0.25.0",
@@ -18,7 +18,6 @@
     "dotenv": "^16.0.0",
     "regenerator-runtime": "^0.13.9",
     "vue": "^2.6.11",
-    "vue-cookies": "^1.7.4",
     "vue-router": "^3.5.3",
     "vuetify": "^2.6.3",
     "vuetify-audio": "^0.3.3",
