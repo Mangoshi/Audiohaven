@@ -565,19 +565,21 @@
 						<v-divider></v-divider>
 						<p class="unselectable mb-2 mt-2">Optional Parameters</p>
 						<v-divider></v-divider>
-						<v-row class="justify-center">
+
+						<v-row dense class="justify-center">
 							<v-col
 								v-for="slider in recommendationsForm.optionalParams.sliderParams"
 								:key="slider.param"
-								class="mr-2"
-								cols="3">
+								:class="sliderCheckboxBreakpoints"
+								cols="12" sm="5" md="3">
 								<!-- TODO: Maybe use v-autocomplete with multiple enabled? -->
 								<!-- This would make the params take up a lot less space! -->
 								<!-- Only issue may lie in adding the special slider(s) to it? -->
 								<v-checkbox
 									v-model="slider.enabled"
 									:label="slider.label"
-									:prepend-icon="slider.icon"
+									:on-icon="slider.icon"
+									:off-icon="slider.icon"
 									class="text-capitalize"
 									color="accent"
 								></v-checkbox>
@@ -586,12 +588,13 @@
 							<v-col
 								v-for="slider in recommendationsForm.optionalParams.specialSliders"
 								:key="slider.param"
-								class="mr-2"
-								cols="3">
+								:class="sliderCheckboxBreakpoints"
+								cols="12" sm="5" md="3">
 								<v-checkbox
 									v-model="slider.enabled"
 									:label="slider.label"
-									:prepend-icon="slider.icon"
+									:on-icon="slider.icon"
+									:off-icon="slider.icon"
 									class="text-capitalize"
 									color="accent"
 								></v-checkbox>
@@ -1114,7 +1117,7 @@ export default {
 							{
 								// Tempo of the tracks (accepts any integer)
 								enabled: false,
-								label: "Tempo (BPM)",
+								label: "BPM",
 								param: "tempo",
 								type: "target",
 								value: null,
@@ -1129,7 +1132,7 @@ export default {
 							{
 								// Duration slider
 								enabled: false,
-								label: "Duration (mins)",
+								label: "Duration",
 								param: "max_duration_ms",
 								type: "target",
 								value: null,
@@ -1247,6 +1250,20 @@ export default {
 			)
 			{ return false }
 			else { return true }
+		},
+		sliderCheckboxBreakpoints(){
+			// Switch case using current global breakpoint
+			// If breakpoint is xs or sm, we want the content of the cols to be centered
+			// Else if md/lg/xl, we want the contents to be left aligned
+			switch (this.$vuetify.breakpoint.name) {
+				case 'xs': return 'd-flex justify-center'
+				case 'sm': return 'mr-1 d-flex justify-center'
+				case 'md': return 'mr-1 d-flex justify-center'
+				case 'lg': return 'mr-2 d-flex justify-center'
+				case 'xl': return 'mr-2 d-flex justify-center'
+			}
+			// If none of the above, return nothing (required for a computed method)
+			return ''
 		}
 	},
 	mounted(){
