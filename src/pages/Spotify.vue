@@ -44,6 +44,7 @@
 					:src="spotifyLogo('text')"
 					class="align-self-center"
 					max-width="500px"
+					transition="scale-transition"
 				></v-img>
 			</v-row>
 			<!--	If there is no token == You're not logged-in to Spotify	-->
