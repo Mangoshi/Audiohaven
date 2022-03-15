@@ -22,7 +22,7 @@
 							<!-- Login Form -->
 							<div v-if="formToggle" class="text-center">
 								<h3 class="testText2 text-center text--primary">Please log in to start organising your music. </h3>
-								<p class="testText2 text-center text--primary"> Not a user (yet), why not sign up now.</p>
+								<p class="testText2 text-center text--primary"> Not a user yet? Why not sign up now!</p>
 								<br>
 								<v-form v-model="loginValid">
 									<v-text-field
@@ -189,9 +189,9 @@ export default {
 		},
 		themedLogo(){
 			if(!this.$vuetify.theme.dark){
-				return require("@/assets/logo_lightmode.svg")
+				return require("@/assets/Audiohaven_logo_lightmode.svg")
 			} else {
-				return require("@/assets/logo_darkmode.svg")
+				return require("@/assets/Audiohaven_logo_darkmode.svg")
 			}
 		}
 	},

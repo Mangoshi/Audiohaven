@@ -38,6 +38,14 @@
 
 		<!-- Spotify Login Button	-->
 		<v-container>
+			<!-- Spotify Logo -->
+			<v-row justify="center" class="mt-10 mb-10">
+				<v-img
+					:src="spotifyLogo('text')"
+					class="align-self-center"
+					max-width="500px"
+				></v-img>
+			</v-row>
 			<!--	If there is no token == You're not logged-in to Spotify	-->
 			<div v-if="!spotifyLoggedIn">
 				<v-btn :href="`${appBaseURL}/spotify/login`">
@@ -46,11 +54,11 @@
 			</div>
 			<!--	Else if there is a token == You're logged-in to Spotify	-->
 			<div v-else>
-				<v-btn v-on:click="logoutSpotify()">
+				<v-btn v-on:click="logoutSpotify()" class="mr-1">
 					<v-icon>mdi-spotify</v-icon> Log-out of Spotify
 				</v-btn>
 				<!--  DEV FUNCTION: Invalidate token for easy 401 error testing  -->
-				<v-btn v-on:click="removeSpotifyToken()">
+				<v-btn v-on:click="removeSpotifyToken()" class="ml-1">
 					<v-icon>mdi-delete</v-icon> Remove access token
 				</v-btn>
 			</div>
@@ -58,7 +66,12 @@
 
 		<!-- Spotify Errors & Refresh Token Button -->
 		<div v-if="spotifyStatusMessage">
-			<h4 style="color: deeppink; background-color: #333; font-family: 'Courier New', monospace;">{{
+			<h4 style="
+				color: deeppink;
+				background-color: #333;
+				font-family: 'Courier New',
+				monospace;
+			">{{
 					spotifyStatusMessage
 				}}</h4>
 			<v-btn v-on:click="refreshSpotifyToken()">
@@ -1487,6 +1500,15 @@ export default {
 				this.refCount--;
 				// assign isLoading to true/false depending on if more than 0 or not
 				this.isLoading = (this.refCount > 0);
+			}
+		},
+
+		// Logo Methods //
+		spotifyLogo(type) {
+			if (type === "text") {
+				return require("@/assets/Spotify_logo_with_text.svg")
+			} else {
+				return require("@/assets/Spotify_logo_without_text.svg")
 			}
 		},
 
