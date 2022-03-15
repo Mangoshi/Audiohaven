@@ -493,58 +493,172 @@
 						</p>
 						<v-divider></v-divider>
 						<!-- Required fields -->
-						<!-- TODO: Add ability to use genre & track seeds  -->
-						<!-- TODO: Allow user to add up to 5 of any seed  -->
 						<v-row class="mb-3">
-							<v-col cols="12" md="6">
+							<!-- Artist seed type selector -->
+							<v-col cols="0" md="3"></v-col>
+							<v-col class="d-flex flex-row justify-center" cols="12" md="6">
+								<!-- Radio group models artistSeedType from requiredParams -->
+								<!-- Row boolean determined by computed method -->
+								<v-radio-group
+									v-model="recommendationsForm.requiredParams.artistSeedType"
+									:row="recommenderRowBreakpoints"
+								>
+									<v-radio
+										color="accent"
+										label="Artist Search"
+										off-icon="mdi-magnify"
+										on-icon="mdi-magnify"
+										value="artistSearch"
+									>
+										Artist Search
+									</v-radio>
+									<!-- Clicking followedArtists radio wipes seed_artists.
+									This is so we aren't keep something invisible selected -->
+									<v-radio
+										color="accent"
+										label="Followed Artists"
+										off-icon="mdi-heart"
+										on-icon="mdi-heart"
+										value="followedArtists"
+										@click="recommendationsForm.requiredParams.seed_artists = ''"
+									>
+										Followed Artists
+									</v-radio>
+								</v-radio-group>
+							</v-col>
+							<v-col cols="0" md="3"></v-col>
+							<!-- Followed Artists Mode -->
+							<v-col
+								v-if="recommendationsForm.requiredParams.artistSeedType === 'followedArtists'"
+								cols="12"
+								md="6"
+							>
 								<v-autocomplete
 									v-model="recommendationsForm.requiredParams.seed_artists"
 									:items="followedArtists"
+									clearable
 									color="accent"
 									item-text="name"
 									item-value="id"
-									label="Choose one of the artists you follow!"
+									label="Choose a followed artist!"
 									no-data-text="It seems you don't follow any artists... 🙁"
+									outlined
+								></v-autocomplete>
+							</v-col>
+							<!-- Artist Search Mode -->
+							<v-col
+								v-if="recommendationsForm.requiredParams.artistSeedType === 'artistSearch'"
+								cols="12"
+								md="6"
+							>
+								<v-row no-gutters>
+									<v-text-field
+										v-model="recommendationsForm.requiredParams.artistSearch"
+										clearable
+										color="accent"
+										label="Search for an artist!"
+										outlined
+										@keydown.enter="recommenderArtistSearch()"
+									></v-text-field>
+									<v-btn
+										:disabled="!recommendationsForm.requiredParams.artistSearch"
+										color="accent"
+										height="56"
+										outlined
+										x-small
+										@click="recommenderArtistSearch()">
+										<v-icon>mdi-magnify</v-icon>
+									</v-btn>
+								</v-row>
+							</v-col>
+							<v-col
+								v-if="recommendationsForm.requiredParams.artistOptions.length !== 0
+								&& recommendationsForm.requiredParams.artistSeedType==='artistSearch'"
+								cols="12"
+								md="6"
+							>
+								<v-autocomplete
+									v-model="recommendationsForm.requiredParams.seed_artists"
+									:items="recommendationsForm.requiredParams.artistOptions"
+									clearable
+									color="accent"
+									item-text="name"
+									item-value="id"
+									label="Choose an artist!"
+									no-data-text="Nothing here! Did you search? 🤔"
+									outlined
 								></v-autocomplete>
 							</v-col>
 							<v-col cols="12" md="6">
 								<v-autocomplete
 									v-model="recommendationsForm.requiredParams.seed_genres"
 									:items="recommendationsForm.requiredParams.genreOptions"
+									clearable
 									color="accent"
-									item-text="name"
+									item-text="item"
 									item-value="id"
 									label="Choose a genre!"
 									no-data-text="We couldn't find any genres... This is on us, sorry! 🙁"
-								></v-autocomplete>
-							</v-col>
-							<v-col cols="10" md="4">
-								<v-text-field
-									label="Search for a track!"
-									v-model="recommendationsForm.requiredParams.trackSearch"
-									color="accent"
-								></v-text-field>
-							</v-col>
-							<v-col cols="2" md="2">
-								<v-btn color="accent" @click="recommenderTrackSearch()" class="float-right mt-4">Search!</v-btn>
-							</v-col>
-							<v-col cols="12" md="6" v-if="recommendationsForm.requiredParams.trackOptions.length !== 0">
-								<v-autocomplete
-									v-model="recommendationsForm.requiredParams.seed_tracks"
-									:items="recommendationsForm.requiredParams.trackOptions"
-									color="accent"
-									item-value="id"
-									item-text="item"
-									label="Choose a track from your search!"
-									no-data-text="Nothing here! Did you search? 🤔"
+									outlined
 								>
 									<!-- This v-slot determines how the items in the selection list look -->
 									<template v-slot:item="{ item }">
-										{{ item.artists[0].name }} - {{ item.name }}
+										<span class="text-capitalize">
+											{{ item }}
+										</span>
 									</template>
 									<!-- This v-slot determines how the selected item looks -->
 									<template v-slot:selection="{ item }">
-										{{ item.artists[0].name }} - {{ item.name }}
+										<span class="text-capitalize">
+											{{ item }}
+										</span>
+									</template>
+								</v-autocomplete>
+							</v-col>
+							<v-col
+								cols="12"
+								md="6"
+							>
+								<v-row no-gutters>
+									<v-text-field
+										v-model="recommendationsForm.requiredParams.trackSearch"
+										clearable
+										color="accent"
+										label="Search for a track!"
+										outlined
+										@keydown.enter="recommenderTrackSearch()"
+									></v-text-field>
+									<v-btn
+										:disabled="!recommendationsForm.requiredParams.trackSearch"
+										color="accent"
+										height="56"
+										outlined
+										x-small
+										@click="recommenderTrackSearch()">
+										<v-icon>mdi-magnify</v-icon>
+									</v-btn>
+								</v-row>
+
+							</v-col>
+							<v-col v-if="recommendationsForm.requiredParams.trackOptions.length !== 0" cols="12" md="6">
+								<v-autocomplete
+									v-model="recommendationsForm.requiredParams.seed_tracks"
+									:items="recommendationsForm.requiredParams.trackOptions"
+									clearable
+									color="accent"
+									item-text="item"
+									item-value="id"
+									label="Choose a track!"
+									no-data-text="Nothing here! Did you search? 🤔"
+									outlined
+								>
+									<!-- This v-slot determines how the items in the selection list look -->
+									<template v-slot:item="{ item }">
+										'{{ item.name }}' (by {{ item.artists[0].name }})
+									</template>
+									<!-- This v-slot determines how the selected item looks -->
+									<template v-slot:selection="{ item }">
+										'{{ item.name }}' (by {{ item.artists[0].name }})
 									</template>
 								</v-autocomplete>
 							</v-col>
@@ -557,6 +671,7 @@
 									item-text="value"
 									item-value="value"
 									label="How many recommendations?"
+									outlined
 								></v-select>
 							</v-col>
 						</v-row>
@@ -564,23 +679,23 @@
 						<!-- Slider choices -->
 						<v-divider></v-divider>
 						<p class="unselectable mb-2 mt-2">Optional Parameters</p>
-						<v-simple-checkbox v-model="recommendationsForm.optionalParamsEnabled" on-icon="mdi-chevron-down" off-icon="mdi-chevron-up"></v-simple-checkbox>
+						<v-simple-checkbox v-model="recommendationsForm.optionalParamsEnabled" off-icon="mdi-chevron-up" on-icon="mdi-chevron-down"></v-simple-checkbox>
 						<v-divider></v-divider>
 
-						<v-row dense class="justify-center" v-if="recommendationsForm.optionalParamsEnabled">
+						<v-row v-if="recommendationsForm.optionalParamsEnabled" class="justify-center" dense>
 							<v-col
 								v-for="slider in recommendationsForm.optionalParams.sliderParams"
 								:key="slider.param"
 								:class="sliderCheckboxBreakpoints"
-								cols="12" sm="5" md="3">
+								cols="12" lg="2" md="3" sm="5">
 								<!-- TODO: Maybe use v-autocomplete with multiple enabled? -->
 								<!-- This would make the params take up a lot less space! -->
 								<!-- Only issue may lie in adding the special slider(s) to it? -->
 								<v-checkbox
 									v-model="slider.enabled"
 									:label="slider.label"
-									:on-icon="slider.icon"
 									:off-icon="slider.icon"
+									:on-icon="slider.icon"
 									class="text-capitalize"
 									color="accent"
 								></v-checkbox>
@@ -590,12 +705,12 @@
 								v-for="slider in recommendationsForm.optionalParams.specialSliders"
 								:key="slider.param"
 								:class="sliderCheckboxBreakpoints"
-								cols="12" sm="5" md="3">
+								cols="12" lg="2" md="3" sm="5">
 								<v-checkbox
 									v-model="slider.enabled"
 									:label="slider.label"
-									:on-icon="slider.icon"
 									:off-icon="slider.icon"
+									:on-icon="slider.icon"
 									class="text-capitalize"
 									color="accent"
 								></v-checkbox>
@@ -760,9 +875,9 @@
 								:headers="recommendationData.headers"
 								:item-key="recommendationData.response.name"
 								:items="recommendationData.response"
+								calculate-widths
 								no-data-text="No data!?"
 								no-results-text="No results :C"
-								calculate-widths
 							>
 								<template v-slot:item.album.images[0].url="{ item }">
 									<a
@@ -994,15 +1109,21 @@ export default {
 						// Up to 5 seed values may be provided in any combination of seed_artists, seed_tracks and seed_genres
 						// A comma separated list of Spotify IDs for seed artists
 						seed_artists: "",
+						// Which search is enabled [options: 'artistSearch' and 'followedArtists']
+						artistSeedType: "artistSearch",
+						// Initialising string to be used for artist searches
+						artistSearch: "",
+						// Initialising array for artists returned by search on 'Search' endpoint
+						artistOptions: [],
 						// A comma separated list of any genres in the set of available genre seeds
 						seed_genres: "",
-						// Array of available genres, retrieved from 'Get Available Genre Seeds' endpoint
+						// Initialising array for available genres, retrieved from 'Get Available Genre Seeds' endpoint
 						genreOptions: [],
 						// A comma separated list of Spotify IDs for a seed track
 						seed_tracks: "",
 						// Initialising string to be used for track searches
 						trackSearch: "",
-						// Array of available tracks, retrieved from 'Search' endpoint
+						// Initialising array for tracks returned by search on 'Search' endpoint
 						trackOptions: [],
 					},
 
@@ -1305,6 +1426,18 @@ export default {
 			}
 			// If none of the above, return nothing (required for a computed method)
 			return ''
+		},
+		recommenderRowBreakpoints(){
+			// If breakpoint is xs, put radio-group in column mode
+			// Else, put radio-group in row mode
+			switch (this.$vuetify.breakpoint.name) {
+				case 'xs': return false
+				case 'sm': return true
+				case 'md': return true
+				case 'lg': return true
+				case 'xl': return true
+			}
+			return false
 		}
 	},
 	mounted(){
@@ -1748,6 +1881,44 @@ export default {
 							// Log errors
 							console.log("recommenderTrackSearch() error caught: ", error)
 							console.log("recommenderTrackSearch() error message: ", error.message)
+							// Assign spotifyStatusMessage string to the value of error message
+							this.spotifyStatusMessage = error.response.data.error.message
+							// If error is a 401 (token has likely expired)
+							if (error.message === "Request failed with status code 401") {
+								// Run refreshSpotifyToken() to get new access token
+								this.refreshSpotifyToken()
+							}
+						}
+					)
+			}
+		},
+		// Function to search for artists
+		recommenderArtistSearch(){
+			console.log("recommenderArtistSearch() executed")
+			// If user is logged-in
+			if (this.spotifyLoggedIn) {
+				let token = localStorage.getItem('spotify_access_token')
+				let spotifyBaseURL = 'https://api.spotify.com/v1'
+				let searchQuery = this.recommendationsForm.requiredParams.artistSearch
+				axios
+					// GET request which searches for artists, with the maximum limit of 50 set
+					.get(`${spotifyBaseURL}/search?q=${searchQuery}&type=artist&limit=50`,
+						{
+							headers: {
+								"Authorization": `Bearer ${token}`
+							}
+						})
+					.then(response => {
+							// Log response
+							console.log("recommenderArtistSearch() response: ", response.data.artists.items)
+							// Assign recommendationData.requiredParams.trackOptions to response data.tracks (array)
+							this.recommendationsForm.requiredParams.artistOptions = response.data.artists.items
+						}
+					)
+					.catch(error => {
+							// Log errors
+							console.log("recommenderArtistSearch() error caught: ", error)
+							console.log("recommenderArtistSearch() error message: ", error.message)
 							// Assign spotifyStatusMessage string to the value of error message
 							this.spotifyStatusMessage = error.response.data.error.message
 							// If error is a 401 (token has likely expired)
