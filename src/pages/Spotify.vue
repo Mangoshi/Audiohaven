@@ -38,32 +38,74 @@
 
 		<!-- Spotify Login Button	-->
 		<v-container>
-			<!-- Spotify Logo -->
-			<v-row justify="center" class="mt-10 mb-10">
-				<v-img
-					:src="spotifyLogo('text')"
-					class="align-self-center"
-					max-width="500px"
-					transition="scale-transition"
-				></v-img>
-			</v-row>
 			<!--	If there is no token == You're not logged-in to Spotify	-->
 			<div v-if="!spotifyLoggedIn">
+				<!-- Spotify Logo -->
+				<v-row justify="center" class="mt-10 mb-10">
+					<v-img
+						:src="spotifyLogo('text')"
+						class="align-self-center"
+						max-width="500px"
+						transition="scale-transition"
+					></v-img>
+				</v-row>
 				<v-btn :href="`${appBaseURL}/spotify/login`">
 					<v-icon>mdi-spotify</v-icon> Log-in to Spotify
 				</v-btn>
 			</div>
-			<!--	Else if there is a token == You're logged-in to Spotify	-->
-			<div v-else>
-				<v-btn v-on:click="logoutSpotify()" class="mr-1">
-					<v-icon>mdi-spotify</v-icon> Log-out of Spotify
-				</v-btn>
-				<!--  DEV FUNCTION: Invalidate token for easy 401 error testing  -->
-				<v-btn v-on:click="removeSpotifyToken()" class="ml-1">
-					<v-icon>mdi-delete</v-icon> Remove access token
-				</v-btn>
-			</div>
 		</v-container>
+
+		<v-scale-transition>
+			<v-card
+				v-if="spotifyLoggedIn"
+				class="mx-auto text-left"
+				max-width="344"
+				outlined
+			>
+				<v-list-item three-line>
+					<v-list-item-content>
+						<div class="text-overline mb-4">
+							SPOTIFY PROFILE
+						</div>
+						<v-list-item-title class="text-h5 mb-1">
+							{{ this.spotifyUserData.display_name }}
+						</v-list-item-title>
+						<v-list-item-subtitle>{{ this.spotifyUserData.email }}</v-list-item-subtitle>
+					</v-list-item-content>
+
+					<v-img
+						max-height="80"
+						max-width="80"
+						color="grey"
+						:src="userProfilePic()"
+					></v-img>
+				</v-list-item>
+
+				<v-card-actions>
+					<v-btn
+						v-on:click="logoutSpotify()"
+						class="mr-1"
+						outlined
+						rounded
+						text
+					>
+						<v-icon>mdi-spotify</v-icon>
+						Log Out
+					</v-btn>
+					<!--  DEV FUNCTION: Invalidate token for easy 401 error testing  -->
+					<v-btn
+						v-on:click="removeSpotifyToken()"
+						class="ml-1"
+						outlined
+						rounded
+						text
+					>
+						<v-icon>mdi-delete</v-icon>
+						Remove token
+					</v-btn>
+				</v-card-actions>
+			</v-card>
+		</v-scale-transition>
 
 		<!-- Spotify Errors & Refresh Token Button -->
 		<div v-if="spotifyStatusMessage">
@@ -995,7 +1037,11 @@ export default {
 			// Spotify Data //
 			spotifyLoggedIn: false,
 			spotifyStatusMessage: "",
-			spotifyUserData: {},
+			spotifyUserData: {
+				images: [
+
+				]
+			},
 			currentSpotifyPlaylist: null,
 			// Disabling iframes for now
 			spotifyEmbeds: false,
@@ -1487,6 +1533,13 @@ export default {
 		});
 	},
 	methods: {
+		userProfilePic() {
+			if(this.spotifyUserData.images.length === 0){
+				return "https://placekitten.com/80/80"
+			} else {
+				return this.spotifyUserData.images[0].url
+			}
+		},
 		// Loading status method
 		setLoading(isLoading) {
 			// if loading
