@@ -564,9 +564,10 @@
 						<!-- Slider choices -->
 						<v-divider></v-divider>
 						<p class="unselectable mb-2 mt-2">Optional Parameters</p>
+						<v-simple-checkbox v-model="recommendationsForm.optionalParamsEnabled" on-icon="mdi-chevron-down" off-icon="mdi-chevron-up"></v-simple-checkbox>
 						<v-divider></v-divider>
 
-						<v-row dense class="justify-center">
+						<v-row dense class="justify-center" v-if="recommendationsForm.optionalParamsEnabled">
 							<v-col
 								v-for="slider in recommendationsForm.optionalParams.sliderParams"
 								:key="slider.param"
@@ -640,10 +641,49 @@
 									track-color="primary"
 									track-fill-color="green"
 								>
-									<template v-if="(slider.param)==='key'" v-slot:thumb-label="item">
-										{{ keyDoctor(item.value) }}
+									<!-- For the key slider, we're using the keyDoctor() function
+											so that the label shows 'C' to the user instead of '0', for example -->
+									<template v-if="(slider.param)==='key'" v-slot:thumb-label="key">
+										{{ keyDoctor(key.value) }}
 									</template>
-									<!-- TODO: Make all slider labels percentages to make it easier to understand -->
+
+									<!-- For most of the other sliders, we calculate the percentage and return it on the label -->
+									<template v-else-if="(slider.param)==='acousticness'" v-slot:thumb-label="acousticness">
+										{{ percentageDoctor(acousticness.value, 1) }}%
+									</template>
+
+									<template v-else-if="(slider.param)==='danceability'" v-slot:thumb-label="danceability">
+										{{ percentageDoctor(danceability.value, 1) }}%
+									</template>
+
+									<template v-else-if="(slider.param)==='energy'" v-slot:thumb-label="energy">
+										{{ percentageDoctor(energy.value, 1) }}%
+									</template>
+
+									<template v-else-if="(slider.param)==='instrumentalness'" v-slot:thumb-label="instrumentalness">
+										{{ percentageDoctor(instrumentalness.value, 1) }}%
+									</template>
+
+									<template v-else-if="(slider.param)==='liveness'" v-slot:thumb-label="liveness">
+										{{ percentageDoctor(liveness.value, 1) }}%
+									</template>
+
+									<template v-else-if="(slider.param)==='loudness'" v-slot:thumb-label="loudness">
+										{{ percentageDoctor(loudness.value, 1) }}%
+									</template>
+
+									<template v-else-if="(slider.param)==='speechiness'" v-slot:thumb-label="speechiness">
+										{{ percentageDoctor(speechiness.value, 1) }}%
+									</template>
+
+									<template v-else-if="(slider.param)==='valence'" v-slot:thumb-label="valence">
+										{{ percentageDoctor(valence.value, 1) }}%
+									</template>
+
+									<template v-else-if="(slider.param)==='popularity'" v-slot:thumb-label="popularity">
+										{{ percentageDoctor(popularity.value, 100) }}%
+									</template>
+
 								</v-slider>
 							</v-col>
 							<v-col v-if="slider.enabled" class="mt-1" cols="2">
@@ -967,6 +1007,7 @@ export default {
 					},
 
 				// OPTIONAL PARAMS //
+				optionalParamsEnabled: false,
 				optionalParams:
 					{
 						// Amount of tracks returned (Default 20, Max 100)
@@ -1853,6 +1894,15 @@ export default {
 				case 10: return 'A#'
 				case 11: return 'B'
 			}
+		},
+		percentageDoctor(value, max){
+			// console.log("value: ", value)
+			// console.log("max: ", max)
+			let v = parseFloat(value)
+			let m = parseFloat(max)
+			// console.log("v: ", v)
+			// console.log("m: ", m)
+			return Math.floor((v / m) * 100)
 		}
 	}
 }
