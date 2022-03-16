@@ -961,7 +961,31 @@
 									-->
 								</template>
                 <template v-slot:item.name="{ item }">
-                  <a :href="item.external_urls.spotify" class="text--primary text-decoration-none">{{ item.name }}</a>
+                  <a
+                      :href="item.external_urls.spotify"
+                      class="text--primary text-decoration-none"
+                      target="_blank"
+                  >
+                    {{ item.name }}
+                  </a>
+                </template>
+                <template v-slot:item.album.name="{ item }">
+                  <a
+                      :href="item.album.external_urls.spotify"
+                      class="text--primary text-decoration-none"
+                      target="_blank"
+                  >
+                    {{ item.album.name }}
+                  </a>
+                </template>
+                <template v-slot:item.artists[0].name="{ item }">
+                  <a
+                      :href="item.artists[0].external_urls.spotify"
+                      class="text--primary text-decoration-none"
+                      target="_blank"
+                  >
+                    {{ item.artists[0].name }}
+                  </a>
                 </template>
 							</v-data-table>
 						</v-row>
@@ -1510,6 +1534,7 @@ export default {
 		this.getFollowedArtists()
 		this.getUserPlaylists()
 		this.getSpotifyGenres()
+    this.getUserData()
 	},
 	created() {
 		// When an axios request is made, intercept it and:
