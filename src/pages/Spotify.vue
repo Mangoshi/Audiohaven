@@ -989,6 +989,13 @@
                 </template>
 							</v-data-table>
 						</v-row>
+            <v-btn
+                v-if="this.recommendationData.response.length!==0"
+                color="accent"
+                @click="createRecommendationsPlaylist()"
+            >
+              Create Playlist
+            </v-btn>
 					</v-container>
 				</v-card>
 			</v-col>
@@ -2179,7 +2186,10 @@ export default {
 			// console.log("v: ", v)
 			// console.log("m: ", m)
 			return Math.floor((v / m) * 100)
-		}
+		},
+    createRecommendationsPlaylist(){
+      console.log(this.recommendationData.response)
+    }
 	}
 }
 </script>
