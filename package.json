@@ -10,7 +10,7 @@
     "start": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
-    "deploy": "gh-pages -d dist"
+    "deploy": "cd dist && copy index.html 404.html && cd .. && gh-pages -d dist"
   },
   "dependencies": {
     "axios": "^0.25.0",

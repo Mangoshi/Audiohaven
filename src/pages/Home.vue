@@ -15,14 +15,15 @@
 						<div v-if="!loggedIn" class="d-flex flex-column">
 							<!-- Logo -->
 							<v-img
+								transition="scale-transition"
 								:src="themedLogo()"
 								class="align-self-center"
-								width="300"
+								width="350"
 							></v-img>
 							<!-- Login Form -->
 							<div v-if="formToggle" class="text-center">
 								<h3 class="testText2 text-center text--primary">Please log in to start organising your music. </h3>
-								<p class="testText2 text-center text--primary"> Not a user (yet), why not sign up now.</p>
+								<p class="testText2 text-center text--primary"> Not a user yet? Why not sign up now!</p>
 								<br>
 								<v-form v-model="loginValid">
 									<v-text-field
@@ -34,7 +35,7 @@
 										required
 										type="email"
 									/>
-									<small v-if="errors.email" class="unselectable errorMessage">{{errors[0].email}}</small>
+									<small v-if="errors.email" class="unselectable errorMessage">{{ errors[0].email }}</small>
 									<v-text-field
 										v-model="loginForm.password"
 										:rules="passwordRules"
@@ -44,8 +45,8 @@
 										required
 										type="password"
 									/>
-									<small v-if="errors.password" class="align-left unselectable errorMessage">{{errors.password[0]}}</small>
-									<small v-if="errors.message" class="unselectable errorMessage">{{errors.message}}</small>
+									<small v-if="errors.password" class="align-left unselectable errorMessage">{{ errors.password[0] }}</small>
+									<small v-if="errors.message" class="unselectable errorMessage">{{ errors.message }}</small>
 								</v-form>
 								<br>
 								<v-btn class="mr-2" color="primary" large @click="toggleForm()">Register</v-btn>
@@ -65,7 +66,7 @@
 										required
 										type="text"
 									/>
-									<small v-if="errors.username" class="unselectable errorMessage">{{errors.name[0]}}</small>
+									<small v-if="errors.username" class="unselectable errorMessage">{{ errors.name[0] }}</small>
 									<v-text-field
 										v-model="registerForm.email"
 										:rules="emailRules"
@@ -75,7 +76,7 @@
 										required
 										type="email"
 									/>
-									<small v-if="errors.email" class="unselectable errorMessage">{{errors.email[0]}}</small>
+									<small v-if="errors.email" class="unselectable errorMessage">{{ errors.email[0] }}</small>
 									<v-text-field
 										v-model="registerForm.password"
 										:rules="passwordRules"
@@ -85,12 +86,13 @@
 										required
 										type="password"
 									/>
-									<small v-if="errors.password" class="unselectable errorMessage">{{errors.password[0]}}</small>
-									<small v-if="errors.message" class="unselectable errorMessage">{{errors.message}}</small>
+									<small v-if="errors.password" class="unselectable errorMessage">{{ errors.password[0] }}</small>
+									<small v-if="errors.message" class="unselectable errorMessage">{{ errors.message }}</small>
 								</v-form>
 								<br>
 								<v-btn class="mr-2" color="primary" large @click="toggleForm()">Login</v-btn>
-								<v-btn class="secondary--text ml-2" color="accent" large @click="register(registerForm)">Register</v-btn>
+								<v-btn class="secondary--text ml-2" color="accent" large @click="register(registerForm)">Register
+								</v-btn>
 							</div>
 						</div>
 						<!-- If user is logged in -->
@@ -98,6 +100,7 @@
 							<!-- Logo -->
 							<div class="d-flex flex-column">
 								<v-img
+									transition="scale-transition"
 									:src="themedLogo()"
 									class="align-self-center"
 									width="400"
@@ -114,14 +117,14 @@
 <!--suppress JSUnresolvedVariable, JSUnresolvedVariable, SpellCheckingInspection -->
 <script>
 import axios from '../config/audiohaven.js'
-import { mapActions, mapState } from 'vuex'
+import {mapActions, mapState} from 'vuex'
 
 export default {
 	name: "Home",
 	title: 'Home',
 	components: {},
-	data(){
-		return{
+	data() {
+		return {
 			// Image data
 			photoHD: "",
 			photoSD: "",
@@ -160,7 +163,7 @@ export default {
 			]
 		}
 	},
-	mounted(){
+	mounted() {
 		this.getBackgroundImage()
 	},
 	methods: {
@@ -168,30 +171,30 @@ export default {
 		randomInt(min, max) {
 			return Math.floor(Math.random() * (max - min + 1) + min)
 		},
-		getBackgroundImage(){
+		getBackgroundImage() {
 			let searchQuery = 'code'
 			const PEXELS_URL = `https://api.pexels.com/v1/search?query=${searchQuery}&per_page=20&orientation=landscape`
 			const PEXELS_TOKEN = "563492ad6f91700001000001660dc6de6e62494da4a3601ccfc6ecc3"
 			axios
-				.get(PEXELS_URL, { headers: {"Authorization" : `Bearer ${PEXELS_TOKEN}`} })
+				.get(PEXELS_URL, {headers: {"Authorization": `Bearer ${PEXELS_TOKEN}`}})
 				.then(pexels => {
 					console.log("Pexels data: ", pexels.data)
-					let photoIndex = this.randomInt(0,19)
+					let photoIndex = this.randomInt(0, 19)
 					console.log("Random Photo Index: ", photoIndex)
 					this.photoHD = pexels.data.photos[photoIndex].src.original
 					this.photoSD = pexels.data.photos[photoIndex].src.medium
 				})
 				.catch(error => console.log("Pexels error: ", error))
 		},
-		toggleForm(){
+		toggleForm() {
 			this.formToggle = !this.formToggle
 			this.$store.commit('SET_ERRORS', '')
 		},
-		themedLogo(){
-			if(!this.$vuetify.theme.dark){
-				return require("@/assets/logo_lightmode.svg")
+		themedLogo() {
+			if (!this.$vuetify.theme.dark) {
+				return require("@/assets/Audiohaven_logo_lightmode.svg")
 			} else {
-				return require("@/assets/logo_darkmode.svg")
+				return require("@/assets/Audiohaven_logo_darkmode.svg")
 			}
 		}
 	},
@@ -203,7 +206,7 @@ export default {
 
 <style>
 
-.loginBox{
+.loginBox {
 	margin-top: 6vw;
 	padding: 30px;
 	background-color: #fafafa;
@@ -222,7 +225,7 @@ export default {
 	font-weight: 300;
 }
 
-.errorMessage{
+.errorMessage {
 	color: hotpink;
 }
 
