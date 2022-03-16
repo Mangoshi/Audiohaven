@@ -930,7 +930,7 @@
 						<v-row v-if="recommendationData.response[0]" class="justify-center">
 							<v-data-table
 								:headers="recommendationData.headers"
-								:item-key="recommendationData.response.name"
+								:item-key="recommendationData.response.id"
 								:items="recommendationData.response"
 								calculate-widths
 								no-data-text="No data!?"
@@ -960,6 +960,9 @@
 									></vuetify-audio>
 									-->
 								</template>
+                <template v-slot:item.name="{ item }">
+                  <a :href="item.external_urls.spotify" class="text--primary text-decoration-none">{{ item.name }}</a>
+                </template>
 							</v-data-table>
 						</v-row>
 					</v-container>
