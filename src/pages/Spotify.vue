@@ -930,9 +930,11 @@
 							</v-btn>
 							<v-spacer v-if="this.recommendationData.response.length!==0"></v-spacer>
 						</v-row>
+						<v-row v-if="this.newPlaylistURL" class="justify-center mt-5 mb-5">
+							<p>Your new playlist can be found <a :href="this.newPlaylistURL" class="newPlaylistURL">here!</a></p>
+						</v-row>
 
 						<!-- RECOMMENDATIONS -->
-						<!-- TODO: Make track/album/artist cols links -->
 						<!-- TODO: Show extra details in row expansion? -->
 						<!-- TODO: Allow user to add tracks to one of their playlists -->
 						<v-row v-if="recommendationData.response[0]" class="justify-center">
@@ -1433,7 +1435,9 @@ export default {
 					},
 				],
 				response: [],
+				seeds: [],
 			},
+			newPlaylistURL: "",
 			// TODO: Playback Data
 			refCount: 0,
 			isLoading: false
@@ -2075,6 +2079,10 @@ export default {
 					// '?limit=x' starts off the recommendation URL queries (although it is optional)
 					let limit = `?limit=${formData.optionalParams.limitSelected}`
 
+					// '&market=x' specifies the target market for recommendations.
+					// While technically optional, without this set, some tracks will be unplayable.
+					let market = `&market=${this.spotifyUserData.country}`
+
 					// Artist seed
 					// initialising as blank
 					let artist = ""
@@ -2123,12 +2131,12 @@ export default {
 					// }
 
 					// logging the URL to be used in the GET request
-					console.log(`Built URL: ${spotifyBaseURL}/recommendations${limit}${artist}${genre}${track}${sliderQueries}`)
+					console.log(`Built URL: ${spotifyBaseURL}/recommendations${limit}${market}${artist}${genre}${track}${sliderQueries}`)
 
 					// The HTTP Request //
 					// finally, make axios GET request using limit, artist, and sliderQueries variables
 					axios
-						.get(`${spotifyBaseURL}/recommendations${limit}${artist}${track}${genre}${sliderQueries}`,
+						.get(`${spotifyBaseURL}/recommendations${limit}${market}${artist}${track}${genre}${sliderQueries}`,
 							{
 								headers: {
 									"Authorization": `Bearer ${token}`
@@ -2138,6 +2146,8 @@ export default {
 								console.log("generateRecommendations() response: ", response.data)
 								// assign recommendationData.response variable to response.tracks array
 								this.recommendationData.response = response.data.tracks
+								// assign recommendationData.seeds variable to response.seeds array
+								this.recommendationData.seeds = response.data.seeds
 								// clear the spotifyStatusMessage
 								this.spotifyStatusMessage = ""
 								// TODO: If nothing is returned, notify the user
@@ -2193,15 +2203,16 @@ export default {
 			let token = localStorage.getItem('spotify_access_token')
 			let spotifyBaseURL = 'https://api.spotify.com/v1'
 			let userID = localStorage.getItem('spotify_user_id')
-
+			let seeds = ""
+			this.recommendationData.seeds.forEach(seed => (seeds += `${seed.type} = ${seed.id} `))
 			// Create new playlist
 			axios
 				.post(`${spotifyBaseURL}/users/${userID}/playlists`,
 					{
-						"name" : "Audiohaven Recommender Playlist",
+						"name" : "Audiohaven Recommender",
 						"public" : false,
 						"collaborative" : false,
-						"description" : "Made with Audiohaven!"
+						"description" : `<ol><li>Made with Audiohaven!</li><li>Seed: ${seeds}</li></ol>`
 					},
 					{
 						headers: {
@@ -2211,6 +2222,8 @@ export default {
 				.then(response => {
 						// Log response
 						console.log("createRecommendationsPlaylist() response: ", response.data)
+						// Initialise URL of new playlist
+						this.newPlaylistURL = response.data.external_urls.spotify
 						// Log message indicating beginning of add-to-playlist stage of function
 						console.log("Adding recommendations to playlist...")
 						// Initialise the ID of the playlist just made
@@ -2232,6 +2245,7 @@ export default {
 							.then(response => {
 									// Log response
 									console.log("Adding recommendations to new playlist response: ", response.data)
+									this.spotifyStatusMessage = `Your playlist was made!`
 								}
 							)
 							.catch(error => {
@@ -2287,6 +2301,19 @@ export default {
 </script>
 
 <style>
+.newPlaylistURL{
+	color: hotpink;
+	font-size: 1.5em;
+}
+.newPlaylistURL:link{
+	color: hotpink;
+	text-decoration: none;
+}
+.newPlaylistURL:hover{
+	color: deeppink;
+	text-decoration: underline;
+}
+
 /* https://loading.io/css/ heart CSS */
 .lds-heart {
 	display: inline-block;
