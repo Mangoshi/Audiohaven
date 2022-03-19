@@ -2158,7 +2158,7 @@ export default {
 											.get(seed.href,{ headers: {"Authorization": `Bearer ${token}`}})
 											.then(response=>{
 												console.log("Artist seed name:", response.data.name)
-												this.recommendationData.artistSeed = `${response.data.name}`
+												this.recommendationData.artistSeed = `${response.data.name} [artist]`
 											})
 											.catch(error =>{console.log(error)})
 									}
@@ -2167,12 +2167,12 @@ export default {
 											.get(seed.href,{ headers: {"Authorization": `Bearer ${token}`}})
 											.then(response=>{
 												console.log("Track seed name:", response.data.name, "by", response.data.artists[0].name)
-												this.recommendationData.trackSeed = `${response.data.name} by ${response.data.artists[0].name}`
+												this.recommendationData.trackSeed = `${response.data.name} by ${response.data.artists[0].name} [track]`
 											})
 											.catch(error =>{console.log(error)})
 									}
 									if(seed.type === "GENRE"){
-										this.recommendationData.genreSeed = seed.id
+										this.recommendationData.genreSeed = `${seed.id} [genre]`
 									}
 								})
 								// clear the spotifyStatusMessage
@@ -2230,13 +2230,28 @@ export default {
 			let token = localStorage.getItem('spotify_access_token')
 			let spotifyBaseURL = 'https://api.spotify.com/v1'
 			let userID = localStorage.getItem('spotify_user_id')
-			// Initialising seeds string
-			let seeds = ""
-			// For each seed used, concatenate type followed by id/href on seeds variable
-			// Will concat ID for genre (since no href), and href for the others
-			this.recommendationData.seeds.forEach(seed => (
-				seeds += seed.type === 'GENRE' ? `${seed.type} = ${seed.id}, ` : `${seed.type} = ${seed.href}, `
-			))
+			// Initialise selected seed variables
+			let artistSeed = this.recommendationData.artistSeed
+			let trackSeed = this.recommendationData.trackSeed
+			let genreSeed = this.recommendationData.genreSeed
+			// Initialise array to hold selected seeds
+			let selectedSeedsArray = []
+			// If seed exists, push to our new array
+			if (artistSeed){selectedSeedsArray.push(artistSeed)}
+			if (trackSeed){selectedSeedsArray.push(trackSeed)}
+			if (genreSeed){selectedSeedsArray.push(genreSeed)}
+			// Log the array
+			console.log("selectedSeedsArray: ", selectedSeedsArray)
+			// Initialise selected seeds string
+			let selectedSeedsString = ""
+			// If only one seed was chosen, append this to the string
+			if(selectedSeedsArray.length===1){selectedSeedsString += "1 seed used: "}
+			// Else, append this to the string
+			else{selectedSeedsString += `${selectedSeedsArray.length} seeds used: `}
+			// For each seed in our array, concatenate with our string adding a comma & space
+			selectedSeedsArray.forEach(seed => selectedSeedsString += `${seed}, `)
+			// Log the string
+			console.log("selectedSeedsString: ", selectedSeedsString)
 			// Using Date prototype object to make a method to return today's date, formatted nicely
 			Date.prototype.today = function () {
 				return ((this.getDate() < 10)?"0":"") + this.getDate() +"-"+(((this.getMonth()+1) < 10)?"0":"") + (this.getMonth()+1) +"-"+ this.getFullYear();
@@ -2256,8 +2271,8 @@ export default {
 						"name" : `Audiohaven (${now.today()} @ ${now.timeNow()})`,
 						"public" : false,
 						"collaborative" : false,
-						// Slicing last two characters off for leading comma & whitespace
-						"description" : `${seeds.slice(0,-2)}`
+						// Slice the leading comma & whitespace off our string
+						"description" : `${selectedSeedsString.slice(0,-2)}`
 					},
 					{
 						headers: {
