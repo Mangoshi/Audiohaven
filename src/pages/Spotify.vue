@@ -1436,6 +1436,9 @@ export default {
 				],
 				response: [],
 				seeds: [],
+				artistSeed: "",
+				trackSeed: "",
+				genreSeed: "",
 			},
 			newPlaylistURL: "",
 			// TODO: Playback Data
@@ -2148,6 +2151,30 @@ export default {
 								this.recommendationData.response = response.data.tracks
 								// assign recommendationData.seeds variable to response.seeds array
 								this.recommendationData.seeds = response.data.seeds
+								// get name of artist/track seeds if used
+								response.data.seeds.forEach(seed => {
+									if(seed.type === "ARTIST"){
+										axios
+											.get(seed.href,{ headers: {"Authorization": `Bearer ${token}`}})
+											.then(response=>{
+												console.log("Artist seed name:", response.data.name)
+												this.recommendationData.artistSeed = `${response.data.name}`
+											})
+											.catch(error =>{console.log(error)})
+									}
+									if(seed.type === "TRACK"){
+										axios
+											.get(seed.href,{ headers: {"Authorization": `Bearer ${token}`}})
+											.then(response=>{
+												console.log("Track seed name:", response.data.name, "by", response.data.artists[0].name)
+												this.recommendationData.trackSeed = `${response.data.name} by ${response.data.artists[0].name}`
+											})
+											.catch(error =>{console.log(error)})
+									}
+									if(seed.type === "GENRE"){
+										this.recommendationData.genreSeed = seed.id
+									}
+								})
 								// clear the spotifyStatusMessage
 								this.spotifyStatusMessage = ""
 								// TODO: If nothing is returned, notify the user
@@ -2205,8 +2232,11 @@ export default {
 			let userID = localStorage.getItem('spotify_user_id')
 			// Initialising seeds string
 			let seeds = ""
-			// For each seed used, concatenate on seeds variable
-			this.recommendationData.seeds.forEach(seed => (seeds += `${seed.type} = ${seed.id}, `))
+			// For each seed used, concatenate type followed by id/href on seeds variable
+			// Will concat ID for genre (since no href), and href for the others
+			this.recommendationData.seeds.forEach(seed => (
+				seeds += seed.type === 'GENRE' ? `${seed.type} = ${seed.id}, ` : `${seed.type} = ${seed.href}, `
+			))
 			// Using Date prototype object to make a method to return today's date, formatted nicely
 			Date.prototype.today = function () {
 				return ((this.getDate() < 10)?"0":"") + this.getDate() +"-"+(((this.getMonth()+1) < 10)?"0":"") + (this.getMonth()+1) +"-"+ this.getFullYear();
