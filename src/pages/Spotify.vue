@@ -921,6 +921,14 @@
 								</v-btn>
 							</v-col>
 							<v-spacer></v-spacer>
+							<v-btn
+								v-if="this.recommendationData.response.length!==0"
+								color="green"
+								@click="createRecommendationsPlaylist()"
+							>
+								Create Playlist
+							</v-btn>
+							<v-spacer v-if="this.recommendationData.response.length!==0"></v-spacer>
 						</v-row>
 
 						<!-- RECOMMENDATIONS -->
@@ -960,42 +968,35 @@
 									></vuetify-audio>
 									-->
 								</template>
-                <template v-slot:item.name="{ item }">
-                  <a
-                      :href="item.external_urls.spotify"
-                      class="text--primary text-decoration-none"
-                      target="_blank"
-                  >
-                    {{ item.name }}
-                  </a>
-                </template>
-                <template v-slot:item.album.name="{ item }">
-                  <a
-                      :href="item.album.external_urls.spotify"
-                      class="text--primary text-decoration-none"
-                      target="_blank"
-                  >
-                    {{ item.album.name }}
-                  </a>
-                </template>
-                <template v-slot:item.artists[0].name="{ item }">
-                  <a
-                      :href="item.artists[0].external_urls.spotify"
-                      class="text--primary text-decoration-none"
-                      target="_blank"
-                  >
-                    {{ item.artists[0].name }}
-                  </a>
-                </template>
+								<template v-slot:item.name="{ item }">
+									<a
+										:href="item.external_urls.spotify"
+										class="text--primary text-decoration-none"
+										target="_blank"
+									>
+										{{ item.name }}
+									</a>
+								</template>
+								<template v-slot:item.album.name="{ item }">
+									<a
+										:href="item.album.external_urls.spotify"
+										class="text--primary text-decoration-none"
+										target="_blank"
+									>
+										{{ item.album.name }}
+									</a>
+								</template>
+								<template v-slot:item.artists[0].name="{ item }">
+									<a
+										:href="item.artists[0].external_urls.spotify"
+										class="text--primary text-decoration-none"
+										target="_blank"
+									>
+										{{ item.artists[0].name }}
+									</a>
+								</template>
 							</v-data-table>
 						</v-row>
-            <v-btn
-                v-if="this.recommendationData.response.length!==0"
-                color="accent"
-                @click="createRecommendationsPlaylist()"
-            >
-              Create Playlist
-            </v-btn>
 					</v-container>
 				</v-card>
 			</v-col>
@@ -1541,7 +1542,7 @@ export default {
 		this.getFollowedArtists()
 		this.getUserPlaylists()
 		this.getSpotifyGenres()
-    this.getUserData()
+		this.getUserData()
 	},
 	created() {
 		// When an axios request is made, intercept it and:
@@ -2187,9 +2188,100 @@ export default {
 			// console.log("m: ", m)
 			return Math.floor((v / m) * 100)
 		},
-    createRecommendationsPlaylist(){
-      console.log(this.recommendationData.response)
-    }
+		createRecommendationsPlaylist(){
+			console.log("Got these recommendations: ",this.recommendationData.response)
+			let token = localStorage.getItem('spotify_access_token')
+			let spotifyBaseURL = 'https://api.spotify.com/v1'
+			let userID = localStorage.getItem('spotify_user_id')
+
+			// Create new playlist
+			axios
+				.post(`${spotifyBaseURL}/users/${userID}/playlists`,
+					{
+						"name" : "Audiohaven Recommender Playlist",
+						"public" : false,
+						"collaborative" : false,
+						"description" : "Made with Audiohaven!"
+					},
+					{
+						headers: {
+							"Authorization": `Bearer ${token}`
+						}
+					})
+				.then(response => {
+						// Log response
+						console.log("createRecommendationsPlaylist() response: ", response.data)
+						// Log message indicating beginning of add-to-playlist stage of function
+						console.log("Adding recommendations to playlist...")
+						// Initialise the ID of the playlist just made
+						let newPlaylistID = response.data.id
+						// Initialise string to be used for the query of URIs
+						let uriQueries = ""
+						// For each URI in our recommendations array, add to uriQueries string, with a comma separating each
+						this.recommendationData.response.forEach(recommendation => (uriQueries += `${recommendation.uri},`))
+						// Log the uriQueries for debugging purposes
+						console.log("uriQueries: ", uriQueries)
+						// Add recommendations to new playlist
+						axios
+							.post(`${spotifyBaseURL}/playlists/${newPlaylistID}/tracks?uris=${uriQueries}`, {},
+								{
+									headers: {
+										"Authorization": `Bearer ${token}`
+									}
+								})
+							.then(response => {
+									// Log response
+									console.log("Adding recommendations to new playlist response: ", response.data)
+								}
+							)
+							.catch(error => {
+									// Log errors
+									console.log("Error caught adding to new playlist: ", error)
+									console.log("Message: ", error.message)
+									// Assign spotifyStatusMessage string to the value of error message
+									this.spotifyStatusMessage = error.response.data.error.message
+									// If error is a 401 (token has likely expired)
+									if (error.message === "Request failed with status code 401") {
+										// Run refreshSpotifyToken() to get new access token
+										this.refreshSpotifyToken()
+									}
+									// Log message indicating attempt at unfollowing the new playlist,
+									// since adding tracks to it failed.
+									console.log("Unfollowing empty playlist.")
+									// DEL request using the ID of the new playlist
+									axios
+										.delete(`${spotifyBaseURL}/playlists/${response.id}/followers`,
+											{
+												headers: {
+													"Authorization" : `Bearer ${token}`
+												}
+											})
+										.then(response => {
+												console.log("Unfollowed empty playlist due to error! \n Response: ", response.data)
+											}
+										)
+										.catch(error => {
+											console.log("Error caught unfollowing empty playlist: ", error.response, "\n Message: ", error.response.data.error.message)
+											this.spotifyStatusMessage = `${error.response.data.error.message}...`
+										})
+								}
+							)
+					}
+				)
+				.catch(error => {
+						// Log errors
+						console.log("createRecommendationsPlaylist() error caught: ", error)
+						console.log("createRecommendationsPlaylist() error message: ", error.message)
+						// Assign spotifyStatusMessage string to the value of error message
+						this.spotifyStatusMessage = error.response.data.error.message
+						// If error is a 401 (token has likely expired)
+						if (error.message === "Request failed with status code 401") {
+							// Run refreshSpotifyToken() to get new access token
+							this.refreshSpotifyToken()
+						}
+					}
+				)
+		}
 	}
 }
 </script>
