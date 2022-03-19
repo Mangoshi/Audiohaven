@@ -931,7 +931,7 @@
 							<v-spacer v-if="this.recommendationData.response.length!==0"></v-spacer>
 						</v-row>
 						<v-row v-if="this.newPlaylistURL" class="justify-center mt-5 mb-5">
-							<p>Your new playlist can be found <a :href="this.newPlaylistURL" class="newPlaylistURL">here!</a></p>
+							<p>Your new playlist can be found <a :href="this.newPlaylistURL" class="newPlaylistURL" target="_blank">here!</a></p>
 						</v-row>
 
 						<!-- RECOMMENDATIONS -->
@@ -2203,16 +2203,31 @@ export default {
 			let token = localStorage.getItem('spotify_access_token')
 			let spotifyBaseURL = 'https://api.spotify.com/v1'
 			let userID = localStorage.getItem('spotify_user_id')
+			// Initialising seeds string
 			let seeds = ""
-			this.recommendationData.seeds.forEach(seed => (seeds += `${seed.type} = ${seed.id} `))
+			// For each seed used, concatenate on seeds variable
+			this.recommendationData.seeds.forEach(seed => (seeds += `${seed.type} = ${seed.id}, `))
+			// Using Date prototype object to make a method to return today's date, formatted nicely
+			Date.prototype.today = function () {
+				return ((this.getDate() < 10)?"0":"") + this.getDate() +"-"+(((this.getMonth()+1) < 10)?"0":"") + (this.getMonth()+1) +"-"+ this.getFullYear();
+			}
+			// The same again, but for the current time
+			Date.prototype.timeNow = function () {
+				return ((this.getHours() < 10)?"0":"") + this.getHours() +":"+ ((this.getMinutes() < 10)?"0":"") + this.getMinutes() +":"+ ((this.getSeconds() < 10)?"0":"") + this.getSeconds();
+			}
+			// Initialising Date Object
+			let now = new Date()
+			// Logging date & time to see the output
+			console.log("Now: ", now.today(),"@",now.timeNow())
 			// Create new playlist
 			axios
 				.post(`${spotifyBaseURL}/users/${userID}/playlists`,
 					{
-						"name" : "Audiohaven Recommender",
+						"name" : `Audiohaven (${now.today()} @ ${now.timeNow()})`,
 						"public" : false,
 						"collaborative" : false,
-						"description" : `<ol><li>Made with Audiohaven!</li><li>Seed: ${seeds}</li></ol>`
+						// Slicing last two characters off for leading comma & whitespace
+						"description" : `${seeds.slice(0,-2)}`
 					},
 					{
 						headers: {
@@ -2306,6 +2321,10 @@ export default {
 	font-size: 1.5em;
 }
 .newPlaylistURL:link{
+	color: hotpink;
+	text-decoration: none;
+}
+.newPlaylistURL:visited{
 	color: hotpink;
 	text-decoration: none;
 }
