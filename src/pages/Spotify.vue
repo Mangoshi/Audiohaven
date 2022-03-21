@@ -937,6 +937,7 @@
 						<!-- RECOMMENDATIONS -->
 						<!-- TODO: Show extra details in row expansion? -->
 						<!-- TODO: Allow user to add tracks to one of their playlists -->
+						<!-- TODO: Add play button to each listing -->
 						<v-row v-if="recommendationData.response[0]" class="justify-center">
 							<v-data-table
 								:headers="recommendationData.headers"
@@ -2176,8 +2177,11 @@ export default {
 									}
 								})
 								// clear the spotifyStatusMessage
-								this.spotifyStatusMessage = ""
-								// TODO: If nothing is returned, notify the user
+                if(this.recommendationData.response.length===0){
+                  this.spotifyStatusMessage = "No recommendations found! :("
+                } else {
+                  this.spotifyStatusMessage = "Recommendations found!"
+                }
 							}
 						)
 						.catch(error => {
