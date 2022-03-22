@@ -41,7 +41,7 @@
 			<!--	If there is no token == You're not logged-in to Spotify	-->
 			<div v-if="!spotifyLoggedIn">
 				<!-- Spotify Logo -->
-				<v-row justify="center" class="mt-10 mb-10">
+				<v-row class="mt-10 mb-10" justify="center">
 					<v-img
 						:src="spotifyLogo('text')"
 						class="align-self-center"
@@ -74,31 +74,31 @@
 					</v-list-item-content>
 
 					<v-img
+						:src="userProfilePic()"
+						color="grey"
 						max-height="80"
 						max-width="80"
-						color="grey"
-						:src="userProfilePic()"
 					></v-img>
 				</v-list-item>
 
 				<v-card-actions>
 					<v-btn
-						v-on:click="logoutSpotify()"
 						class="mr-1"
 						outlined
 						rounded
 						text
+						v-on:click="logoutSpotify()"
 					>
 						<v-icon>mdi-spotify</v-icon>
 						Log Out
 					</v-btn>
 					<!--  DEV FUNCTION: Invalidate token for easy 401 error testing  -->
 					<v-btn
-						v-on:click="removeSpotifyToken()"
 						class="ml-1"
 						outlined
 						rounded
 						text
+						v-on:click="removeSpotifyToken()"
 					>
 						<v-icon>mdi-delete</v-icon>
 						Remove token
@@ -2177,11 +2177,11 @@ export default {
 									}
 								})
 								// clear the spotifyStatusMessage
-                if(this.recommendationData.response.length===0){
-                  this.spotifyStatusMessage = "No recommendations found! :("
-                } else {
-                  this.spotifyStatusMessage = "Recommendations found!"
-                }
+								if(this.recommendationData.response.length===0){
+									this.spotifyStatusMessage = "No recommendations found! :("
+								} else {
+									this.spotifyStatusMessage = "Recommendations found!"
+								}
 							}
 						)
 						.catch(error => {
