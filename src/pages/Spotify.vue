@@ -2176,7 +2176,7 @@ export default {
 										this.recommendationData.genreSeed = `${seed.id} [genre]`
 									}
 								})
-								// clear the spotifyStatusMessage
+								// tell the user if recommendations were found or not
 								if(this.recommendationData.response.length===0){
 									this.spotifyStatusMessage = "No recommendations found! :("
 								} else {
