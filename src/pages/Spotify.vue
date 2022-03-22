@@ -1907,12 +1907,15 @@ export default {
 			// console.log(track.preview_url)
 			// let trackPreview = new Audio(track.preview_url)
 			if(signal==='play' && this.recommendationData.somethingIsPlaying){
-				console.log(`Got ${signal} signal, but something is playing`)
-				console.log(`Stopping all tracks before playback!`)
+				console.log(`Got ${signal} signal, but something is already playing!`)
+				console.log(`Stopping any playing tracks!`)
 				this.recommendationData.response.forEach(track => {
-					console.log(`Stopping track ${track.name}!`)
-					track.isPlaying = false
+					if(track.isPlaying){
+						console.log(`Stopping '${track.name}'!`)
+						track.isPlaying = false
+					}
 				})
+				console.log(`Now playing '${track.name}'`)
 				// let trackPreviews = document.getElementsByTagName('audio')
 				// let i = 0
 				// for(i=0; i<trackPreviews.length; i++) trackPreviews[i].pause();
@@ -1921,13 +1924,13 @@ export default {
 				this.recommendationData.somethingIsPlaying = true
 			}
 			if(signal==='play' && !this.recommendationData.somethingIsPlaying){
-				console.log(`Got ${signal} signal`)
+				console.log(`Got ${signal} signal, playing '${track.name}'`)
 				// trackPreview.play()
 				track.isPlaying = true
 				this.recommendationData.somethingIsPlaying = true
 			}
 			if(signal==='pause'){
-				console.log(`Got ${signal} signal`)
+				console.log(`Got ${signal} signal, pausing '${track.name}'`)
 				// trackPreview.pause()
 				track.isPlaying = false
 				this.recommendationData.somethingIsPlaying = false
