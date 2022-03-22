@@ -948,18 +948,51 @@
 								no-results-text="No results :C"
 							>
 								<template v-slot:item.album.images[0].url="{ item }">
-									<a
-										:href="item.album.external_urls.spotify"
-										class="black--text text-decoration-none"
-										target="_blank"
-									>
-										<v-img
-											:src="item.album.images[0].url"
-											aspect-ratio="1"
-											class="ma-5"
-											width="150"
-										></v-img>
-									</a>
+									<v-hover>
+										<template v-slot:default="{ hover }">
+											<v-card
+												class="ml-n2 ma-2"
+												outlined
+												raised
+											>
+												<v-img
+													:src="item.album.images[0].url"
+													aspect-ratio="1"
+													width="150"
+												></v-img>
+												<!--<audio :src="item.preview_url"></audio>-->
+												<v-fade-transition>
+													<v-overlay
+														v-if="hover"
+														absolute
+														color="#000"
+													>
+														<v-btn
+															v-if="item.preview_url"
+															icon
+															@click.prevent="
+															item.isPlaying
+															? previewSpotifyTrack('pause', item)
+															: previewSpotifyTrack('play', item)"
+														>
+															<audio :src="item.preview_url">
+																<!-- This is shown in browsers which don't support audio elements -->
+																Your browser does not support the audio element.
+															</audio>
+															<v-icon v-if="item.isPlaying">mdi-pause</v-icon>
+															<v-icon v-else>mdi-play</v-icon>
+														</v-btn>
+														<v-btn
+															v-else
+															icon
+														>
+															<v-icon color="red">mdi-cancel</v-icon>
+														</v-btn>
+													</v-overlay>
+												</v-fade-transition>
+											</v-card>
+										</template>
+									</v-hover>
 									<!-- TODO: Get track preview working nicely (may need expand) -->
 									<!--
 									<vuetify-audio
@@ -1075,11 +1108,7 @@ export default {
 			// Spotify Data //
 			spotifyLoggedIn: false,
 			spotifyStatusMessage: "",
-			spotifyUserData: {
-				images: [
-
-				]
-			},
+			spotifyUserData: {},
 			currentSpotifyPlaylist: null,
 			// Disabling iframes for now
 			spotifyEmbeds: false,
@@ -1440,11 +1469,13 @@ export default {
 				artistSeed: "",
 				trackSeed: "",
 				genreSeed: "",
+				somethingIsPlaying: false,
 			},
 			newPlaylistURL: "",
 			// TODO: Playback Data
 			refCount: 0,
-			isLoading: false
+			isLoading: false,
+			overlay: false,
 		}
 	},
 	watch: {
@@ -1578,7 +1609,7 @@ export default {
 	},
 	methods: {
 		userProfilePic() {
-			if(this.spotifyUserData.images.length === 0){
+			if(this.spotifyUserData.images === undefined){
 				return "https://placekitten.com/80/80"
 			} else {
 				return this.spotifyUserData.images[0].url
@@ -1871,6 +1902,36 @@ export default {
 					console.log("playSpotifyTrack() error caught: ", error.response, "\n Message: ", error.response.data.error.message)
 					this.spotifyStatusMessage = `${error.response.data.error.message}...`
 				})
+		},
+		previewSpotifyTrack(signal, track){
+			// console.log(track.preview_url)
+			// let trackPreview = new Audio(track.preview_url)
+			if(signal==='play' && this.recommendationData.somethingIsPlaying){
+				console.log(`Got ${signal} signal, but something is playing`)
+				console.log(`Stopping all tracks before playback!`)
+				this.recommendationData.response.forEach(track => {
+					console.log(`Stopping track ${track.name}!`)
+					track.isPlaying = false
+				})
+				// let trackPreviews = document.getElementsByTagName('audio')
+				// let i = 0
+				// for(i=0; i<trackPreviews.length; i++) trackPreviews[i].pause();
+				// trackPreview.play()
+				track.isPlaying = true
+				this.recommendationData.somethingIsPlaying = true
+			}
+			if(signal==='play' && !this.recommendationData.somethingIsPlaying){
+				console.log(`Got ${signal} signal`)
+				// trackPreview.play()
+				track.isPlaying = true
+				this.recommendationData.somethingIsPlaying = true
+			}
+			if(signal==='pause'){
+				console.log(`Got ${signal} signal`)
+				// trackPreview.pause()
+				track.isPlaying = false
+				this.recommendationData.somethingIsPlaying = false
+			}
 		},
 		unfollowSpotifyPlaylist(playlist){
 			let indexOfPlaylist = this.playlistTable[0].Items.indexOf(playlist)
@@ -2175,6 +2236,9 @@ export default {
 									if(seed.type === "GENRE"){
 										this.recommendationData.genreSeed = `${seed.id} [genre]`
 									}
+								})
+								this.recommendationData.response.forEach(track => {
+									track.isPlaying = false
 								})
 								// tell the user if recommendations were found or not
 								if(this.recommendationData.response.length===0){
