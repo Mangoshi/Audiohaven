@@ -1384,7 +1384,7 @@ export default {
 			spotifyEmbeds: false,
 			// Module Data //
 			moduleContainers: [
-				{ selectedModule: "topArtists" },
+				{ selectedModule: "topTracks" },
 				{ selectedModule: "userPlaylists" },
 				{ selectedModule: "followedArtists" },
 				{ selectedModule: "recommendationGenerator" }
@@ -1886,28 +1886,94 @@ export default {
 			// TODO: Playback Data
 		}
 	},
-	// watch: {
-	// 	// Watching selectedModule variable to only trigger necessary functions
-	// 	'selectedModule' : function(val){
-	// 		switch (val) {
-	// 			case "followedArtists" :
-	// 				console.log("Selected: Followed Artists Module");
-	// 				this.getFollowedArtists();
-	// 				break
-	// 			case "userPlaylists" :
-	// 				console.log("Selected: User Playlists Module");
-	// 				this.getUserPlaylists();
-	// 				break
-	// 			case "recommendationGenerator" :
-	// 				console.log("Selected: Recommender Module");
-	// 				this.getFollowedArtists();
-	// 				break
-	// 		}
-	// 	}
-	// },
+	watch: {
+		// Watcher is monitoring xModuleSelected functions from computed
+		// If the user chooses a different module, it runs any function required
+		// (Implemented to try to cut down on CPU & RAM usage)
+		userPlaylistSelected : function(selected){
+			if(selected){
+				console.log("userPlaylistSelected")
+				this.getUserPlaylists()
+			} else {
+				console.log("userPlaylistUnselected")
+			}
+		},
+		savedTracksSelected : function(selected){
+			if(selected){
+				console.log("savedTracksSelected")
+				this.getSavedTracks()
+			} else {
+				console.log("savedTracksUnselected")
+			}
+		},
+		topTracksSelected : function(selected){
+			if(selected){
+				console.log("topTracksSelected")
+				this.getTopTracks()
+			} else {
+				console.log("topTracksUnselected")
+			}
+		},
+		recentlyPlayedSelected : function(selected){
+			if(selected){
+				console.log("recentlyPlayedSelected")
+				this.getRecentlyPlayed()
+			} else {
+				console.log("recentlyPlayedUnselected")
+			}
+		},
+		followedArtistsSelected : function(selected){
+			if(selected){
+				console.log("followedArtistsSelected")
+				this.getFollowedArtists()
+			} else {
+				console.log("followedArtistsUnselected")
+			}
+		},
+		topArtistsSelected : function(selected){
+			if(selected){
+				console.log("topArtistsSelected")
+				this.getTopArtists()
+			} else {
+				console.log("topArtistsUnselected")
+			}
+		},
+		recommendationGeneratorSelected : function(selected){
+			if(selected){
+				console.log("recommendationGeneratorSelected")
+				this.getSpotifyGenres()
+			} else {
+				console.log("recommendationGeneratorUnselected")
+			}
+		},
+	},
 	computed: {
 		// Map loggedIn status & errors from Vuex store
 		...mapState(['loggedIn', 'errors']),
+
+		// Check currently selected modules & return a boolean
+		// Each returns true if module is selected, false if not
+		userPlaylistSelected() {
+			return this.selectedModulesHas('userPlaylists')
+		},
+		savedTracksSelected() {
+			return this.selectedModulesHas('savedTracks')
+		},
+		topTracksSelected() {
+			return this.selectedModulesHas('topTracks')
+		},
+		recentlyPlayedSelected() {
+			return this.selectedModulesHas('recentlyPlayed')
+		},
+		followedArtistsSelected() {
+			return this.selectedModulesHas('followedArtists')
+		},
+		topArtistsSelected() {
+			return this.selectedModulesHas('topArtists')
+		},
+		recommendationGeneratorSelected() {
+			return this.selectedModulesHas('recommendationGenerator')
+		},
 
 		// Filter out modules from module select which are already selected
 		availableModules () {
@@ -1919,6 +1985,18 @@ export default {
 				key.value !== this.moduleContainers[2].selectedModule
 				&&
 				key.value !== this.moduleContainers[3].selectedModule
+			)
+		},
+		// Opposite of above
+		selectedModules () {
+			return this.modules.filter(key =>
+				key.value === this.moduleContainers[0].selectedModule
+				||
+				key.value === this.moduleContainers[1].selectedModule
+				||
+				key.value === this.moduleContainers[2].selectedModule
+				||
+				key.value === this.moduleContainers[3].selectedModule
 			)
 		},
 
@@ -2056,6 +2134,25 @@ export default {
 				console.log("No no no.. Nice try though! 😉")
 				router.push('/')
 			}
+		},
+		selectedModulesHas(moduleType){
+
+			// TESTING LOGIC (using .includes) //
+			// for each module in filtered array of selected modules
+			// this.selectedModules.forEach((module, index) => {
+			// 	// log if the value parameter includes passed moduleType
+			// 	console.log(index, `includes ${moduleType}?..`, module.value.includes(moduleType))
+			// })
+
+			// SAVIOUR LOGIC (using .some)
+			// const defining what some checks against
+			// in this case, whether the value parameter === passed moduleType
+			const hasType = (item) => item.value === `${moduleType}`
+			// logging during testing
+			// console.log(`some ${moduleType}?..`, this.selectedModules.some(hasType))
+			// returns true if one of the selected modules matches moduleType
+			// returns false if not
+			return this.selectedModules.some(hasType)
 		},
 		// Loading status method
 		setLoading(isLoading) {
@@ -2219,7 +2316,7 @@ export default {
 		// Function for getting user's followed artists
 		getFollowedArtists(){
 			// If user is logged-in
-			if (this.spotifyLoggedIn) {
+			if (this.spotifyLoggedIn && this.selectedModulesHas('followedArtists')) {
 				let token = localStorage.getItem('spotify_access_token')
 				let spotifyBaseURL = 'https://api.spotify.com/v1'
 				axios
@@ -2251,7 +2348,7 @@ export default {
 			let token = localStorage.getItem('spotify_access_token')
 			let userID = localStorage.getItem('spotify_user_id')
 			let spotifyBaseURL = 'https://api.spotify.com/v1'
-			if (this.spotifyLoggedIn) {
+			if (this.spotifyLoggedIn && this.selectedModulesHas('userPlaylists')) {
 				if (userID !== null && userID !== "") {
 					// If no playlist was selected (ie we want list of playlists)
 					if (!selectedPlaylist) {
@@ -2438,7 +2535,7 @@ export default {
 		// Function for getting available genre seeds
 		getSpotifyGenres(){
 			// If user is logged-in
-			if (this.spotifyLoggedIn) {
+			if (this.spotifyLoggedIn && this.selectedModulesHas('recommendationGenerator')) {
 				let token = localStorage.getItem('spotify_access_token')
 				let spotifyBaseURL = 'https://api.spotify.com/v1'
 				axios
@@ -2827,7 +2924,7 @@ export default {
 				)
 		},
 		getRecentlyPlayed(){
-			if (this.spotifyLoggedIn) {
+			if (this.spotifyLoggedIn && this.selectedModulesHas('recentlyPlayed')) {
 				let token = localStorage.getItem('spotify_access_token')
 				let spotifyBaseURL = 'https://api.spotify.com/v1'
 				axios
@@ -2850,7 +2947,7 @@ export default {
 			}
 		},
 		getSavedTracks(){
-			if (this.spotifyLoggedIn) {
+			if (this.spotifyLoggedIn && this.selectedModulesHas('savedTracks')) {
 				let token = localStorage.getItem('spotify_access_token')
 				let spotifyBaseURL = 'https://api.spotify.com/v1'
 				axios
@@ -2873,7 +2970,7 @@ export default {
 			}
 		},
 		getTopTracks(){
-			if (this.spotifyLoggedIn) {
+			if (this.spotifyLoggedIn && this.selectedModulesHas('topTracks')) {
 				let token = localStorage.getItem('spotify_access_token')
 				let spotifyBaseURL = 'https://api.spotify.com/v1'
 				axios
@@ -2896,7 +2993,7 @@ export default {
 			}
 		},
 		getTopArtists(){
-			if (this.spotifyLoggedIn) {
+			if (this.spotifyLoggedIn && this.selectedModulesHas('topArtists')) {
 				let token = localStorage.getItem('spotify_access_token')
 				let spotifyBaseURL = 'https://api.spotify.com/v1'
 				axios
