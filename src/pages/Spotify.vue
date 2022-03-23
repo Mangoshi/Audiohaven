@@ -1060,6 +1060,11 @@ export default {
 			// Disabling iframes for now
 			spotifyEmbeds: false,
 			// Module Data //
+			moduleContainers: [
+				{ selectedModule: "userPlaylists" },
+				{ selectedModule: "followedArtists" },
+				{ selectedModule: "recommendationGenerator" }
+			],
 			selectedModule: "recommendationGenerator",
 			modules: [
 				{
