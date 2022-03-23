@@ -101,6 +101,7 @@
 			<div>Loading... ({{refCount}})</div>
 		</div>
 
+		<!-- Module Container for-loop -->
 		<div
 			v-for="moduleContainer in moduleContainers"
 			:key="moduleContainer.selectedModule"
@@ -114,7 +115,7 @@
 						<v-container>
 							<v-select
 								v-model="moduleContainer.selectedModule"
-								:items="modules"
+								:items="availableModules"
 								color="accent"
 								item-text="label"
 								item-value="value"
@@ -1477,6 +1478,17 @@ export default {
 	computed: {
 		// Map loggedIn status & errors from Vuex store
 		...mapState(['loggedIn', 'errors']),
+
+		// Filter out modules from module select which are already selected
+		availableModules () {
+			return this.modules.filter(key =>
+				key.value !== this.moduleContainers[0].selectedModule
+				&&
+				key.value !== this.moduleContainers[1].selectedModule
+				&&
+				key.value !== this.moduleContainers[2].selectedModule
+			)
+		},
 
 		// Data Iterator Computed Methods //
 		numberOfFollowedArtistPages () {
