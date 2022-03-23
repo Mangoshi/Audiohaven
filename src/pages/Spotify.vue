@@ -1225,7 +1225,7 @@
 								calculate-widths
 								no-data-text="No data!?"
 								no-results-text="No results :C"
-								items-per-page="5"
+								:items-per-page="5"
 							>
 								<template v-slot:item.album.images[0].url="{ item }">
 									<v-hover>
@@ -1305,9 +1305,45 @@
 							</v-data-table>
 						</v-container>
 
-						<!-- Top Albums Module (Data Iterator?) -->
-
-						<!-- Top Artists Module (Data Iterator?) -->
+						<!-- Top Artists Module -->
+						<v-container v-if="moduleContainer.selectedModule === 'topArtists'">
+							<h2 class="text-left mb-3">
+								Your Top Artists
+							</h2>
+							<v-data-table
+								:headers="topArtistsData.headers"
+								:items="topArtistsData.artists"
+								item-key="id"
+								calculate-widths
+								no-data-text="No data!?"
+								no-results-text="No results :C"
+								:items-per-page="5"
+							>
+								<template v-slot:item.images[0].url="{ item }">
+											<v-card
+												class="ml-n2 ma-2"
+												outlined
+												raised
+												max-width="150"
+											>
+												<v-img
+													:src="item.images[0].url"
+													aspect-ratio="1"
+													width="150"
+												></v-img>
+											</v-card>
+								</template>
+								<template v-slot:item.name="{ item }">
+									<a
+										:href="item.external_urls.spotify"
+										class="text--primary text-decoration-none"
+										target="_blank"
+									>
+										{{ item.name }}
+									</a>
+								</template>
+							</v-data-table>
+						</v-container>
 
 					</v-card>
 				</v-col>
@@ -1348,7 +1384,7 @@ export default {
 			spotifyEmbeds: false,
 			// Module Data //
 			moduleContainers: [
-				{ selectedModule: "topTracks" },
+				{ selectedModule: "topArtists" },
 				{ selectedModule: "userPlaylists" },
 				{ selectedModule: "followedArtists" },
 				{ selectedModule: "recommendationGenerator" }
@@ -1359,32 +1395,28 @@ export default {
 					value: "userPlaylists"
 				},
 				{
-					label: "Artists You Follow",
-					value: "followedArtists"
-				},
-				{
-					label: "Recommendation Generator",
-					value: "recommendationGenerator"
-				},
-				{
-					label: "Recently Played",
-					value: "recentlyPlayed"
+					label: "Your Saved Tracks",
+					value: "savedTracks"
 				},
 				{
 					label: "Your Top Tracks",
 					value: "topTracks"
 				},
 				{
-					label: "Your Top Albums",
-					value: "topAlbums"
+					label: "Recently Played",
+					value: "recentlyPlayed"
+				},
+				{
+					label: "Artists You Follow",
+					value: "followedArtists"
 				},
 				{
 					label: "Your Top Artists",
 					value: "topArtists"
 				},
 				{
-					label: "Your Saved Tracks",
-					value: "savedTracks"
+					label: "Recommendation Generator",
+					value: "recommendationGenerator"
 				},
 			],
 			// Followed Artists Data Iterator //
@@ -1824,8 +1856,33 @@ export default {
 				],
 				tracks: [],
 			},
-			// TODO: Top Albums Data
-			// TODO: Top Artists Data
+			// Top Artists Data //
+			topArtistsData: {
+				headers: [
+					{
+						text: 'Art',
+						value: 'images[0].url',
+						align: 'left',
+						sortable: false
+					},
+					{
+						text: 'Name',
+						value: 'name',
+						align: 'left'
+					},
+					{
+						text: 'Popularity',
+						value: 'popularity',
+						align: 'left'
+					},
+					{
+						text: 'Followers',
+						value: 'followers.total',
+						align: 'left'
+					},
+				],
+				artists: [],
+			},
 			// TODO: Playback Data
 		}
 	},
@@ -1958,6 +2015,7 @@ export default {
 		this.getRecentlyPlayed()
 		this.getSavedTracks()
 		this.getTopTracks()
+		this.getTopArtists()
 	},
 	created() {
 		// When an axios request is made, intercept it and:
@@ -2118,6 +2176,10 @@ export default {
 							this.getUserPlaylists()
 							this.getSpotifyGenres()
 							this.getUserData()
+							this.getRecentlyPlayed()
+							this.getSavedTracks()
+							this.getTopTracks()
+							this.getTopArtists()
 						}
 					)
 					.catch(error => {
@@ -2833,8 +2895,29 @@ export default {
 					})
 			}
 		},
-		//getTopAlbums(){},
-		//getTopArtists(){},
+		getTopArtists(){
+			if (this.spotifyLoggedIn) {
+				let token = localStorage.getItem('spotify_access_token')
+				let spotifyBaseURL = 'https://api.spotify.com/v1'
+				axios
+					.get(`${spotifyBaseURL}/me/top/artists?limit=50`,
+						{
+							headers: {
+								"Authorization": `Bearer ${token}`
+							}
+						})
+					.then(response => {
+							console.log("getTopArtists() response: ", response.data)
+							this.topArtistsData.artists = response.data.items
+						}
+					)
+					.catch(error => {
+						console.log("getTopArtists() error caught: ", error)
+						console.log("getTopArtists() error message: ", error.message)
+						this.spotifyStatusMessage = error.message
+					})
+			}
+		},
 	}
 }
 </script>
