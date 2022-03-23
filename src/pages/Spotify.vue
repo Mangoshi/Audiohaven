@@ -20,6 +20,8 @@
 			</div>
 		</v-container>
 
+		<!-- Spotify User Card -->
+		<!-- TODO: Button to present more stats? -->
 		<v-scale-transition>
 			<v-card
 				v-if="spotifyLoggedIn"
@@ -72,7 +74,8 @@
 			</v-card>
 		</v-scale-transition>
 
-		<!-- Spotify Errors & Refresh Token Button -->
+		<!-- Spotify Status Message & Refresh Token Button -->
+		<!-- TODO: Convert crappy status message into alert/toast/snackbar -->
 		<div v-if="spotifyStatusMessage && spotifyLoggedIn">
 			<h4 style="
 				color: deeppink;
@@ -92,6 +95,7 @@
 		</div>
 
 		<!-- Loader (shows when API request is loading) -->
+		<!-- TODO: Show in alert/toast/snackbar/statusbar instead? -->
 		<div v-if="isLoading && spotifyLoggedIn">
 			<div class="lds-heart"><div></div></div>
 			<div>Loading... ({{refCount}})</div>
@@ -115,7 +119,12 @@
 						</v-select>
 					</v-container>
 
+					<!--  TODO: ❗❗ Update selectedModule logic & allow for all modules at once ❗❗ -->
+
 					<!--	Followed Artists Data Iterator	-->
+					<!--	TODO: Smaller / responsive titles  -->
+					<!--	TODO: Followers count commas for every 1000 -->
+					<!--	TODO: Auto-switch to descending when not sorting by name -->
 					<v-container v-if="selectedModule === 'followedArtists'" fluid>
 						<!--	If there is a token && no Spotify errors  -->
 						<div v-if="spotifyLoggedIn && !spotifyStatusMessage">
@@ -162,6 +171,7 @@
 													solo-inverted
 												></v-select>
 												<v-spacer></v-spacer>
+												<!-- TODO: Make unselected sort more obvious with dynamic colour -->
 												<v-btn-toggle
 													v-model="followedArtistsData.followedArtistSortDesc"
 													mandatory
