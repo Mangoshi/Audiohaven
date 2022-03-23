@@ -1031,7 +1031,7 @@
 						<!-- Recently Played Module -->
 						<v-container v-if="moduleContainer.selectedModule === 'recentlyPlayed'">
 							<h2 class="text-left mb-3">
-								Recently Played Tracks
+								Your Recently Played Tracks
 							</h2>
 							<v-data-table
 								:headers="recentlyPlayedData.headers"
@@ -1125,7 +1125,7 @@
 						<!-- Saved Tracks Module -->
 						<v-container v-if="moduleContainer.selectedModule === 'savedTracks'">
 							<h2 class="text-left mb-3">
-								Saved Tracks
+								Your Saved Tracks
 							</h2>
 							<v-data-table
 								:headers="savedTracksData.headers"
@@ -1213,6 +1213,102 @@
 							</v-data-table>
 						</v-container>
 
+						<!-- Top Tracks Module -->
+						<v-container v-if="moduleContainer.selectedModule === 'topTracks'">
+							<h2 class="text-left mb-3">
+								Your Top Tracks
+							</h2>
+							<v-data-table
+								:headers="topTracksData.headers"
+								:items="topTracksData.tracks"
+								item-key="id"
+								calculate-widths
+								no-data-text="No data!?"
+								no-results-text="No results :C"
+								items-per-page="5"
+							>
+								<template v-slot:item.album.images[0].url="{ item }">
+									<v-hover>
+										<template v-slot:default="{ hover }">
+											<v-card
+												class="ml-n2 ma-2"
+												outlined
+												raised
+												max-width="150"
+											>
+												<v-img
+													:src="item.album.images[0].url"
+													aspect-ratio="1"
+													width="150"
+												></v-img>
+												<!--<audio :src="item.preview_url"></audio>-->
+												<v-fade-transition>
+													<v-overlay
+														v-if="hover"
+														absolute
+														color="#000"
+													>
+														<v-btn
+															v-if="item.preview_url"
+															icon
+															@click.prevent="
+															item.isPlaying
+															? previewSpotifyTrack('pause', item.track)
+															: previewSpotifyTrack('play', item.track)"
+														>
+															<audio :src="item.preview_url">
+																<!-- This is shown in browsers which don't support audio elements -->
+																Your browser does not support the audio element.
+															</audio>
+															<v-icon v-if="item.isPlaying">mdi-pause</v-icon>
+															<v-icon v-else>mdi-play</v-icon>
+														</v-btn>
+														<v-btn
+															v-else
+															icon
+														>
+															<v-icon color="red">mdi-cancel</v-icon>
+														</v-btn>
+													</v-overlay>
+												</v-fade-transition>
+											</v-card>
+										</template>
+									</v-hover>
+								</template>
+								<template v-slot:item.name="{ item }">
+									<a
+										:href="item.external_urls.spotify"
+										class="text--primary text-decoration-none"
+										target="_blank"
+									>
+										{{ item.name }}
+									</a>
+								</template>
+								<template v-slot:item.album.name="{ item }">
+									<a
+										:href="item.album.external_urls.spotify"
+										class="text--primary text-decoration-none"
+										target="_blank"
+									>
+										{{ item.album.name }}
+									</a>
+								</template>
+								<template v-slot:item.artists[0].name="{ item }">
+									<a
+										:href="item.artists[0].external_urls.spotify"
+										class="text--primary text-decoration-none"
+										target="_blank"
+									>
+										{{ item.artists[0].name }}
+									</a>
+								</template>
+							</v-data-table>
+						</v-container>
+
+						<!-- Top Albums Module (Data Iterator?) -->
+
+						<!-- Top Artists Module (Data Iterator?) -->
+
 					</v-card>
 				</v-col>
 				<v-col cols="0" lg="2" md="1"></v-col>
@@ -1252,7 +1348,7 @@ export default {
 			spotifyEmbeds: false,
 			// Module Data //
 			moduleContainers: [
-				{ selectedModule: "savedTracks" },
+				{ selectedModule: "topTracks" },
 				{ selectedModule: "userPlaylists" },
 				{ selectedModule: "followedArtists" },
 				{ selectedModule: "recommendationGenerator" }
@@ -1701,7 +1797,33 @@ export default {
 				],
 				tracks: [],
 			},
-			// TODO: Top Tracks Data
+			// Top Tracks Data //
+			topTracksData: {
+				headers: [
+					{
+						text: 'Art',
+						value: 'album.images[0].url',
+						align: 'left',
+						sortable: false
+					},
+					{
+						text: 'Title',
+						value: 'name',
+						align: 'left'
+					},
+					{
+						text: 'Album',
+						value: 'album.name',
+						align: 'left'
+					},
+					{
+						text: 'Artist',
+						value: 'artists[0].name',
+						align: 'left'
+					},
+				],
+				tracks: [],
+			},
 			// TODO: Top Albums Data
 			// TODO: Top Artists Data
 			// TODO: Playback Data
@@ -1835,6 +1957,7 @@ export default {
 		this.getUserData()
 		this.getRecentlyPlayed()
 		this.getSavedTracks()
+		this.getTopTracks()
 	},
 	created() {
 		// When an axios request is made, intercept it and:
@@ -2687,7 +2810,29 @@ export default {
 					})
 			}
 		},
-		//getTopTracks(){},
+		getTopTracks(){
+			if (this.spotifyLoggedIn) {
+				let token = localStorage.getItem('spotify_access_token')
+				let spotifyBaseURL = 'https://api.spotify.com/v1'
+				axios
+					.get(`${spotifyBaseURL}/me/top/tracks?limit=50`,
+						{
+							headers: {
+								"Authorization": `Bearer ${token}`
+							}
+						})
+					.then(response => {
+							console.log("getTopTracks() response: ", response.data)
+							this.topTracksData.tracks = response.data.items
+						}
+					)
+					.catch(error => {
+						console.log("getTopTracks() error caught: ", error)
+						console.log("getTopTracks() error message: ", error.message)
+						this.spotifyStatusMessage = error.message
+					})
+			}
+		},
 		//getTopAlbums(){},
 		//getTopArtists(){},
 	}
