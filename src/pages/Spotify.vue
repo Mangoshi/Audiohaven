@@ -95,13 +95,14 @@
 		</div>
 
 		<!-- Loader (shows when API request is loading) -->
-		<!-- TODO: Show in alert/toast/snackbar/statusbar instead? -->
+		<!-- TODO: Show in alert/toast/snackbar/statusbar instead! -->
 		<div v-if="isLoading && spotifyLoggedIn">
 			<div class="lds-heart"><div></div></div>
 			<div>Loading... ({{refCount}})</div>
 		</div>
 
 		<!-- Module Container for-loop -->
+		<!-- TODO: Try 6-col modules when large / extra-large breakpoint? -->
 		<div
 			v-for="moduleContainer in moduleContainers"
 			:key="moduleContainer.selectedModule"
@@ -1383,6 +1384,7 @@ export default {
 			// Disabling iframes for now
 			spotifyEmbeds: false,
 			// Module Data //
+			// TODO: Store these in localStorage!
 			moduleContainers: [
 				{ selectedModule: "topTracks" },
 				{ selectedModule: "userPlaylists" },
@@ -2316,7 +2318,7 @@ export default {
 		// Function for getting user's followed artists
 		getFollowedArtists(){
 			// If user is logged-in
-			if (this.spotifyLoggedIn && this.selectedModulesHas('followedArtists')) {
+			if (this.spotifyLoggedIn && this.followedArtistsSelected) {
 				let token = localStorage.getItem('spotify_access_token')
 				let spotifyBaseURL = 'https://api.spotify.com/v1'
 				axios
@@ -2348,7 +2350,7 @@ export default {
 			let token = localStorage.getItem('spotify_access_token')
 			let userID = localStorage.getItem('spotify_user_id')
 			let spotifyBaseURL = 'https://api.spotify.com/v1'
-			if (this.spotifyLoggedIn && this.selectedModulesHas('userPlaylists')) {
+			if (this.spotifyLoggedIn && this.userPlaylistSelected) {
 				if (userID !== null && userID !== "") {
 					// If no playlist was selected (ie we want list of playlists)
 					if (!selectedPlaylist) {
@@ -2535,7 +2537,7 @@ export default {
 		// Function for getting available genre seeds
 		getSpotifyGenres(){
 			// If user is logged-in
-			if (this.spotifyLoggedIn && this.selectedModulesHas('recommendationGenerator')) {
+			if (this.spotifyLoggedIn && this.recommendationGeneratorSelected) {
 				let token = localStorage.getItem('spotify_access_token')
 				let spotifyBaseURL = 'https://api.spotify.com/v1'
 				axios
@@ -2924,7 +2926,7 @@ export default {
 				)
 		},
 		getRecentlyPlayed(){
-			if (this.spotifyLoggedIn && this.selectedModulesHas('recentlyPlayed')) {
+			if (this.spotifyLoggedIn && this.recentlyPlayedSelected) {
 				let token = localStorage.getItem('spotify_access_token')
 				let spotifyBaseURL = 'https://api.spotify.com/v1'
 				axios
@@ -2947,7 +2949,7 @@ export default {
 			}
 		},
 		getSavedTracks(){
-			if (this.spotifyLoggedIn && this.selectedModulesHas('savedTracks')) {
+			if (this.spotifyLoggedIn && this.savedTracksSelected) {
 				let token = localStorage.getItem('spotify_access_token')
 				let spotifyBaseURL = 'https://api.spotify.com/v1'
 				axios
@@ -2970,7 +2972,7 @@ export default {
 			}
 		},
 		getTopTracks(){
-			if (this.spotifyLoggedIn && this.selectedModulesHas('topTracks')) {
+			if (this.spotifyLoggedIn && this.topTracksSelected) {
 				let token = localStorage.getItem('spotify_access_token')
 				let spotifyBaseURL = 'https://api.spotify.com/v1'
 				axios
@@ -2993,7 +2995,7 @@ export default {
 			}
 		},
 		getTopArtists(){
-			if (this.spotifyLoggedIn && this.selectedModulesHas('topArtists')) {
+			if (this.spotifyLoggedIn && this.topArtistsSelected) {
 				let token = localStorage.getItem('spotify_access_token')
 				let spotifyBaseURL = 'https://api.spotify.com/v1'
 				axios
@@ -3052,7 +3054,7 @@ export default {
 	position: absolute;
 	width: 32px;
 	height: 32px;
-	background-color: var(--v-accent);
+	background-color: purple;
 	animation: lds-heart 1.2s infinite cubic-bezier(0.215, 0.61, 0.355, 1);
 }
 .lds-heart div:after,
@@ -3062,7 +3064,7 @@ export default {
 	display: block;
 	width: 32px;
 	height: 32px;
-	background-color: var(--v-accent);
+	background-color: purple;
 }
 .lds-heart div:before {
 	left: -24px;
