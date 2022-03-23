@@ -1067,12 +1067,32 @@ export default {
 					value: "userPlaylists"
 				},
 				{
-					label: "Followed Artists",
+					label: "Artists You Follow",
 					value: "followedArtists"
 				},
 				{
 					label: "Recommendation Generator",
 					value: "recommendationGenerator"
+				},
+				{
+					label: "Recently Played",
+					value: "recentlyPlayed"
+				},
+				{
+					label: "Your Top Tracks",
+					value: "topTracks"
+				},
+				{
+					label: "Your Top Albums",
+					value: "topAlbums"
+				},
+				{
+					label: "Your Top Artists",
+					value: "topArtists"
+				},
+				{
+					label: "Your Saved Tracks",
+					value: "savedTracks"
 				},
 			],
 			// Followed Artists Data Iterator //
