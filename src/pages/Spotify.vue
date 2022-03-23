@@ -95,846 +95,1138 @@
 		</div>
 
 		<!-- Loader (shows when API request is loading) -->
-		<!-- TODO: Show in alert/toast/snackbar/statusbar instead? -->
+		<!-- TODO: Show in alert/toast/snackbar/statusbar instead! -->
 		<div v-if="isLoading && spotifyLoggedIn">
 			<div class="lds-heart"><div></div></div>
 			<div>Loading... ({{refCount}})</div>
 		</div>
 
-		<v-row v-if="spotifyLoggedIn && spotifyStatusMessage!=='Request failed with status code 401'">
-			<v-col cols="0" lg="2" md="1"></v-col>
-			<v-col cols="12" lg="8" md="10">
-				<!-- Module Container -->
-				<v-card>
-					<!-- Module Selector -->
-					<v-container>
-						<v-select
-							v-model="selectedModule"
-							:items="modules"
-							color="accent"
-							item-text="label"
-							item-value="value"
-							label="Module Selector"
-						>
-						</v-select>
-					</v-container>
+		<!-- Module Container for-loop -->
+		<!-- TODO: Try 6-col modules when large / extra-large breakpoint? -->
+		<div
+			v-for="moduleContainer in moduleContainers"
+			:key="moduleContainer.selectedModule"
+		>
+			<v-row v-if="spotifyLoggedIn && spotifyStatusMessage!=='Request failed with status code 401'">
+				<v-col cols="0" lg="2" md="1"></v-col>
+				<v-col cols="12" lg="8" md="10">
+					<!-- Module Container -->
+					<v-card>
+						<!-- Module Selector -->
+						<v-container>
+							<v-select
+								v-model="moduleContainer.selectedModule"
+								:items="availableModules"
+								color="accent"
+								item-text="label"
+								item-value="value"
+								label="Module Selector"
+							>
+							</v-select>
+						</v-container>
 
-					<!--  TODO: ❗❗ Update selectedModule logic & allow for all modules at once ❗❗ -->
-
-					<!--	Followed Artists Data Iterator	-->
-					<!--	TODO: Smaller / responsive titles  -->
-					<!--	TODO: Followers count commas for every 1000 -->
-					<!--	TODO: Auto-switch to descending when not sorting by name -->
-					<v-container v-if="selectedModule === 'followedArtists'" fluid>
-						<!--	If there is a token && no Spotify errors  -->
-						<div v-if="spotifyLoggedIn && !spotifyStatusMessage">
-							<v-card>
-								<v-card-title>
-									Followed Artists
-								</v-card-title>
-								<v-data-iterator
-									:items="followedArtistsData.followedArtists"
-									:items-per-page.sync="followedArtistsData.followedArtistsPerPage"
-									:page.sync="followedArtistsData.followedArtistPage"
-									:search="followedArtistsData.followedArtistSearch"
-									:sort-by="followedArtistsData.followedArtistSortBy.toLowerCase()"
-									:sort-desc="followedArtistsData.followedArtistSortDesc"
-									class="pa-4"
-									hide-default-footer
-								>
-									<template v-slot:header>
-										<v-toolbar
-											class="mb-1"
-											color="accent"
-											dark
-										>
-											<v-text-field
-												v-model="followedArtistsData.followedArtistSearch"
-												clearable
-												flat
-												hide-details
-												label="Search"
-												prepend-inner-icon="mdi-magnify"
-												solo-inverted
-											></v-text-field>
-											<template v-if="$vuetify.breakpoint.mdAndUp">
-												<v-spacer></v-spacer>
-												<v-select
-													v-model="followedArtistsData.followedArtistSortBy"
-													:items="followedArtistsData.followedArtistKeys"
+						<!--	Followed Artists Data Iterator	-->
+						<!--	TODO: Smaller / responsive titles  -->
+						<!--	TODO: Followers count commas for every 1000 -->
+						<!--	TODO: Auto-switch to descending when not sorting by name -->
+						<v-container v-if="moduleContainer.selectedModule === 'followedArtists'" fluid>
+							<!--	If there is a token && no Spotify errors  -->
+							<div v-if="spotifyLoggedIn && !spotifyStatusMessage">
+								<v-card>
+									<v-card-title>
+										Followed Artists
+									</v-card-title>
+									<v-data-iterator
+										:items="followedArtistsData.followedArtists"
+										:items-per-page.sync="followedArtistsData.followedArtistsPerPage"
+										:page.sync="followedArtistsData.followedArtistPage"
+										:search="followedArtistsData.followedArtistSearch"
+										:sort-by="followedArtistsData.followedArtistSortBy.toLowerCase()"
+										:sort-desc="followedArtistsData.followedArtistSortDesc"
+										class="pa-4"
+										hide-default-footer
+									>
+										<template v-slot:header>
+											<v-toolbar
+												class="mb-1"
+												color="accent"
+												dark
+											>
+												<v-text-field
+													v-model="followedArtistsData.followedArtistSearch"
+													clearable
 													flat
 													hide-details
-													item-text="text"
-													item-value="value"
-													label="Sort by"
+													label="Search"
 													prepend-inner-icon="mdi-magnify"
 													solo-inverted
-												></v-select>
-												<v-spacer></v-spacer>
-												<!-- TODO: Make unselected sort more obvious with dynamic colour -->
-												<v-btn-toggle
-													v-model="followedArtistsData.followedArtistSortDesc"
-													mandatory
-												>
-													<v-btn
-														:value="false"
-														color="accent"
-														depressed
-														large
+												></v-text-field>
+												<template v-if="$vuetify.breakpoint.mdAndUp">
+													<v-spacer></v-spacer>
+													<v-select
+														v-model="followedArtistsData.followedArtistSortBy"
+														:items="followedArtistsData.followedArtistKeys"
+														flat
+														hide-details
+														item-text="text"
+														item-value="value"
+														label="Sort by"
+														prepend-inner-icon="mdi-magnify"
+														solo-inverted
+													></v-select>
+													<v-spacer></v-spacer>
+													<!-- TODO: Make unselected sort more obvious with dynamic colour -->
+													<v-btn-toggle
+														v-model="followedArtistsData.followedArtistSortDesc"
+														mandatory
 													>
-														<v-icon>mdi-arrow-up</v-icon>
-													</v-btn>
-													<v-btn
-														:value="true"
-														color="accent"
-														depressed
-														large
-													>
-														<v-icon>mdi-arrow-down</v-icon>
-													</v-btn>
-												</v-btn-toggle>
-											</template>
-										</v-toolbar>
-									</template>
-
-									<!-- Data Iterator Items -->
-									<template v-slot:default="props">
-										<v-row>
-											<v-col
-												v-for="followedArtist in props.items"
-												:key="followedArtist.name"
-												cols="12"
-												lg="3"
-												md="4"
-												sm="6"
-											>
-												<v-card>
-													<v-card-title class="subheading">
-														{{ followedArtist.name }}
-													</v-card-title>
-													<!-- Artist Artwork (Links to artist page on Spotify) -->
-													<a :href="followedArtist.external_urls.spotify" target="_blank">
-														<v-img
-															:aspect-ratio="1"
-															:src="followedArtist.images[0].url"
+														<v-btn
+															:value="false"
+															color="accent"
+															depressed
+															large
 														>
-														</v-img>
-													</a>
+															<v-icon>mdi-arrow-up</v-icon>
+														</v-btn>
+														<v-btn
+															:value="true"
+															color="accent"
+															depressed
+															large
+														>
+															<v-icon>mdi-arrow-down</v-icon>
+														</v-btn>
+													</v-btn-toggle>
+												</template>
+											</v-toolbar>
+										</template>
 
-													<v-divider></v-divider>
+										<!-- Data Iterator Items -->
+										<template v-slot:default="props">
+											<v-row>
+												<v-col
+													v-for="followedArtist in props.items"
+													:key="followedArtist.name"
+													cols="12"
+													lg="3"
+													md="4"
+													sm="6"
+												>
+													<v-card>
+														<v-card-title class="subheading">
+															{{ followedArtist.name }}
+														</v-card-title>
+														<!-- Artist Artwork (Links to artist page on Spotify) -->
+														<a :href="followedArtist.external_urls.spotify" target="_blank">
+															<v-img
+																:aspect-ratio="1"
+																:src="followedArtist.images[0].url"
+															>
+															</v-img>
+														</a>
 
-													<v-list dense>
-														<v-list-item>
-															<v-list-item-content :class="{ 'purple--text': followedArtistsData.followedArtistSortBy === 'popularity' }">
-																Popularity:
-															</v-list-item-content>
-															<v-list-item-content
-																:class="{ 'purple--text': followedArtistsData.followedArtistSortBy === 'popularity' }"
-																class="justify-end"
-															>
-																{{ followedArtist.popularity }}
-															</v-list-item-content>
-														</v-list-item>
-														<v-list-item>
-															<v-list-item-content :class="{ 'purple--text': followedArtistsData.followedArtistSortBy === 'followers.total' }">
-																Followers:
-															</v-list-item-content>
-															<v-list-item-content
-																:class="{ 'purple--text': followedArtistsData.followedArtistSortBy === 'followers.total' }"
-																class="justify-end"
-															>
-																{{ followedArtist.followers.total }}
-															</v-list-item-content>
+														<v-divider></v-divider>
+
+														<v-list dense>
+															<v-list-item>
+																<v-list-item-content :class="{ 'purple--text': followedArtistsData.followedArtistSortBy === 'popularity' }">
+																	Popularity:
+																</v-list-item-content>
+																<v-list-item-content
+																	:class="{ 'purple--text': followedArtistsData.followedArtistSortBy === 'popularity' }"
+																	class="justify-end"
+																>
+																	{{ followedArtist.popularity }}
+																</v-list-item-content>
+															</v-list-item>
+															<v-list-item>
+																<v-list-item-content :class="{ 'purple--text': followedArtistsData.followedArtistSortBy === 'followers.total' }">
+																	Followers:
+																</v-list-item-content>
+																<v-list-item-content
+																	:class="{ 'purple--text': followedArtistsData.followedArtistSortBy === 'followers.total' }"
+																	class="justify-end"
+																>
+																	{{ followedArtist.followers.total }}
+																</v-list-item-content>
+															</v-list-item>
+														</v-list>
+													</v-card>
+												</v-col>
+											</v-row>
+										</template>
+
+										<template v-slot:footer>
+											<v-row
+												align="center"
+												class="mt-2 ml-2"
+												justify="center"
+											>
+												<span class="grey--text">Artists per page</span>
+												<v-menu offset-y>
+													<template v-slot:activator="{ on, attrs }">
+														<v-btn
+															class="ml-2"
+															color="accent"
+															dark
+															text
+															v-bind="attrs"
+															v-on="on"
+														>
+															{{ followedArtistsData.followedArtistsPerPage }}
+															<v-icon>mdi-chevron-down</v-icon>
+														</v-btn>
+													</template>
+													<v-list>
+														<v-list-item
+															v-for="(number, followedArtist) in followedArtistsData.followedArtistsPerPageArray"
+															:key="followedArtist"
+															@click="updateFollowedArtistsPerPage(number)"
+														>
+															<v-list-item-title>{{ number }}</v-list-item-title>
 														</v-list-item>
 													</v-list>
-												</v-card>
-											</v-col>
-										</v-row>
-									</template>
+												</v-menu>
 
-									<template v-slot:footer>
-										<v-row
-											align="center"
-											class="mt-2 ml-2"
-											justify="center"
-										>
-											<span class="grey--text">Artists per page</span>
-											<v-menu offset-y>
-												<template v-slot:activator="{ on, attrs }">
-													<v-btn
-														class="ml-2"
-														color="accent"
-														dark
-														text
-														v-bind="attrs"
-														v-on="on"
-													>
-														{{ followedArtistsData.followedArtistsPerPage }}
-														<v-icon>mdi-chevron-down</v-icon>
-													</v-btn>
-												</template>
-												<v-list>
-													<v-list-item
-														v-for="(number, followedArtist) in followedArtistsData.followedArtistsPerPageArray"
-														:key="followedArtist"
-														@click="updateFollowedArtistsPerPage(number)"
-													>
-														<v-list-item-title>{{ number }}</v-list-item-title>
-													</v-list-item>
-												</v-list>
-											</v-menu>
+												<v-spacer></v-spacer>
 
-											<v-spacer></v-spacer>
-
-											<span class="mr-4 grey--text">
+												<span class="mr-4 grey--text">
 											Page {{ followedArtistsData.followedArtistPage }} of {{ numberOfFollowedArtistPages }}
 										</span>
-											<v-btn
-												class="mr-1"
-												color="purple darken-2"
-												dark
-												fab
-												@click="formerFollowedArtistPage"
-											>
-												<v-icon>mdi-chevron-left</v-icon>
-											</v-btn>
-											<v-btn
-												class="ml-1 mr-2"
-												color="purple darken-2"
-												dark
-												fab
-												@click="nextFollowedArtistPage"
-											>
-												<v-icon>mdi-chevron-right</v-icon>
-											</v-btn>
-										</v-row>
+												<v-btn
+													class="mr-1"
+													color="purple darken-2"
+													dark
+													fab
+													@click="formerFollowedArtistPage"
+												>
+													<v-icon>mdi-chevron-left</v-icon>
+												</v-btn>
+												<v-btn
+													class="ml-1 mr-2"
+													color="purple darken-2"
+													dark
+													fab
+													@click="nextFollowedArtistPage"
+												>
+													<v-icon>mdi-chevron-right</v-icon>
+												</v-btn>
+											</v-row>
+										</template>
+									</v-data-iterator>
+								</v-card>
+							</div>
+						</v-container>
+
+						<!--	My Playlists Module	-->
+						<v-container v-if="moduleContainer.selectedModule === 'userPlaylists'" fluid>
+							<!--	If there is a token && no Spotify errors  -->
+							<v-card>
+								<v-card-title>
+									<v-btn
+										v-if="playlistLayer !== 0"
+										class="mr-2"
+										icon
+										@click="decrementPlaylistLayer()"
+									><v-icon>mdi-arrow-left</v-icon>
+									</v-btn>
+									Playlists
+									<v-text-field
+										v-model="playlistTable[playlistLayer].Search"
+										append-icon="mdi-magnify"
+										class="pl-8 pr-8 mt-n3"
+										clearable
+										color="purple"
+										hide-details
+										label="Search"
+										single-line
+									></v-text-field>
+									<v-switch
+										v-model="playlistTable[playlistLayer].singleExpand"
+										class="mb-n3"
+										color="purple"
+										label="Single expand"
+									></v-switch>
+								</v-card-title>
+								<!-- Table LOADING -->
+								<v-data-table
+									v-if="isLoading"
+									:item-key="playlistTable[playlistLayer].Headers[0].value"
+									loading
+									loading-text="Loading playlists... Please wait"
+								></v-data-table>
+								<!-- Table LOADED -->
+								<v-data-table
+									v-else
+									:expanded.sync="playlistTable[playlistLayer].Expanded"
+									:headers="playlistTable[playlistLayer].Headers"
+									:item-key="playlistTable[playlistLayer].Headers[0].value"
+									:items="playlistTable[playlistLayer].Items"
+									:search="playlistTable[playlistLayer].Search"
+									:single-expand="playlistTable[playlistLayer].singleExpand"
+									:sort-by="playlistTable[playlistLayer].Sort.toLowerCase()"
+									:sort-desc="playlistTable[playlistLayer].SortDesc"
+									:v-model="playlistTable[playlistLayer].Selected"
+									checkbox-color="purple"
+									expand-icon="mdi-music"
+									no-data-text="No data! Are you signed in to Spotify?"
+									no-results-text="No results :C"
+									show-expand
+									show-select
+								>
+
+									<!--				Layer One Customization				-->
+									<!--	Customizing items under the name column 	-->
+									<template v-if="playlistLayer === 0" v-slot:item.name="{ item }">
+										<v-btn class="text-capitalize" text @click="getUserPlaylists(item)">
+											{{ item.name }}
+										</v-btn>
 									</template>
-								</v-data-iterator>
+									<!--	Custom item colours using chips, set with v-slots	-->
+									<template v-if="playlistLayer === 0" v-slot:item.tracks.total="{ item }">
+										<v-chip :color="colorizeTableTracks(item.tracks.total)" dark>
+											{{ item.tracks.total }}
+										</v-chip>
+									</template>
+									<template v-if="playlistLayer === 0" v-slot:item.collaborative="{ item }">
+										<v-chip :color="colorizeTableBooleans(item.collaborative)" dark>
+											{{ item.collaborative }}
+										</v-chip>
+									</template>
+									<template v-if="playlistLayer === 0" v-slot:item.public="{ item }">
+										<v-chip :color="colorizeTableBooleans(item.public)" dark>
+											{{ item.public }}
+										</v-chip>
+									</template>
+									<!-- Making delete buttons under delete column -->
+									<template v-if="playlistLayer === 0" v-slot:item.delete="{ item }">
+										<!-- Delete button -->
+										<v-btn
+											color="red"
+											icon
+											@click="unfollowSpotifyPlaylist(item)"
+										>
+											<!--	The button uses this icon	-->
+											<v-icon>mdi-delete</v-icon>
+										</v-btn>
+									</template>
+
+									<!--				Layer Two Customization				-->
+									<!--	Customizing items under the title column 	-->
+									<template v-if="playlistLayer === 1" v-slot:item.track.name="{ item }">
+										<!--	Play button for track 	-->
+										<!--	TODO: Implement pause/play functionality? -->
+										<!--  ( May require hacky code without Spotify Premium.. ) -->
+										<v-btn icon @click="queueSpotifyTrack(item)">
+											<v-icon>mdi-playlist-plus</v-icon>
+										</v-btn>
+										<!--	Link to track 	-->
+										<a
+											:href="item.track.external_urls.spotify"
+											class="black--text text-decoration-none"
+											target="_blank"
+										>
+											<v-btn class="text-capitalize" text>
+												{{ item.track.name }}
+											</v-btn>
+										</a>
+									</template>
+									<!--	Customizing items under the artist column 	-->
+									<template v-if="playlistLayer === 1" v-slot:item.track.artists[0].name="{ item }">
+										<a
+											:href="item.track.artists[0].external_urls.spotify"
+											class="black--text text-decoration-none"
+											target="_blank"
+										>
+											<v-btn class="text-capitalize" text>
+												{{ item.track.artists[0].name }}
+											</v-btn>
+										</a>
+									</template>
+									<!--	Customizing items under the added column 	-->
+									<template v-if="playlistLayer === 1" v-slot:item.added_at="{ item }">
+										{{ dateParser(item.added_at) }}
+									</template>
+									<!-- Making remove buttons under remove column -->
+									<template v-if="playlistLayer === 1" v-slot:item.remove="{ item }">
+										<v-btn
+											color="red"
+											icon
+											@click="removeSpotifyPlaylistTrack(item, currentSpotifyPlaylist)"
+										>
+											<v-icon>mdi-delete</v-icon>
+										</v-btn>
+									</template>
+
+									<!--  Data Table: Expanded Rows  -->
+									<!--  Layer One  -->
+									<template v-slot:expanded-item="{ headers, item }" v-slot:top>
+										<td :colspan="headers.length">
+											<div v-if="playlistLayer === 0">
+												<v-row v-if="spotifyEmbeds">
+													<!-- To-be Spotify embed -->
+													<iframe :src="`${item.uri}`" allowtransparency="true" frameborder="0" height="80" width="500"></iframe>
+												</v-row>
+												<v-row>
+													<v-col v-if="item.images[0]" cols="4">
+														<a :href="item.external_urls.spotify" target="_blank">
+															<v-img
+																:src="item.images[0].url"
+																aspect-ratio="1"
+																class="ma-5"
+																width="350"
+															></v-img>
+														</a>
+													</v-col>
+													<v-col v-else>
+														<a :href="item.external_urls.spotify" target="_blank">Link to playlist</a>
+													</v-col>
+													<v-col v-if="item.description" cols="6">
+														<v-card class="ma-5">
+															<v-card-text>
+																{{ item.description }}
+															</v-card-text>
+														</v-card>
+													</v-col>
+													<v-col cols="2"></v-col>
+												</v-row>
+											</div>
+											<!--  Layer Two  -->
+											<div v-else>
+												<v-row v-if="spotifyEmbeds">
+													<!-- To-be Spotify embed -->
+													<iframe :src="`${item.track.uri}`" allowtransparency="true" frameborder="0" height="80" width="500"></iframe>
+												</v-row>
+												<v-row>
+													<v-col v-if="item.track.album.images[0].url" cols="4">
+														<a :href="item.track.preview_url" target="_blank">
+															<v-img
+																:src="item.track.album.images[0].url"
+																aspect-ratio="1"
+																class="ma-5"
+																width="350"
+															></v-img>
+														</a>
+														<vuetify-audio v-if="item.track.preview_url" :file="item.track.preview_url" color="accent"></vuetify-audio>
+														<small v-else>Sorry, no preview available.</small>
+													</v-col>
+													<v-col v-else>
+														<a :href="item.track.preview_url" target="_blank">Link to playlist</a>
+													</v-col>
+													<v-col v-if="item.track.album.name" cols="6">
+														<v-card class="ma-5">
+															<v-card-text>
+																<small>Album:</small> {{ item.track.album.name }}
+																<br>
+																<small>Artist:</small> {{ item.track.artists[0].name }}
+																<br>
+																<small>Track:</small> {{ item.track.name }}
+															</v-card-text>
+														</v-card>
+													</v-col>
+													<v-col cols="2"></v-col>
+												</v-row>
+											</div>
+										</td>
+									</template>
+
+								</v-data-table>
 							</v-card>
-						</div>
-					</v-container>
+						</v-container>
 
-					<!--	My Playlists Module	-->
-					<v-container v-if="selectedModule === 'userPlaylists'" fluid>
-						<!--	If there is a token && no Spotify errors  -->
-						<v-card>
-							<v-card-title>
-								<v-btn
-									v-if="playlistLayer !== 0"
-									class="mr-2"
-									icon
-									@click="decrementPlaylistLayer()"
-								><v-icon>mdi-arrow-left</v-icon>
-								</v-btn>
-								Playlists
-								<v-text-field
-									v-model="playlistTable[playlistLayer].Search"
-									append-icon="mdi-magnify"
-									class="pl-8 pr-8 mt-n3"
-									clearable
-									color="purple"
-									hide-details
-									label="Search"
-									single-line
-								></v-text-field>
-								<v-switch
-									v-model="playlistTable[playlistLayer].singleExpand"
-									class="mb-n3"
-									color="purple"
-									label="Single expand"
-								></v-switch>
-							</v-card-title>
-							<!-- Table LOADING -->
-							<v-data-table
-								v-if="isLoading"
-								:item-key="playlistTable[playlistLayer].Headers[0].value"
-								loading
-								loading-text="Loading playlists... Please wait"
-							></v-data-table>
-							<!-- Table LOADED -->
-							<v-data-table
-								v-else
-								:expanded.sync="playlistTable[playlistLayer].Expanded"
-								:headers="playlistTable[playlistLayer].Headers"
-								:item-key="playlistTable[playlistLayer].Headers[0].value"
-								:items="playlistTable[playlistLayer].Items"
-								:search="playlistTable[playlistLayer].Search"
-								:single-expand="playlistTable[playlistLayer].singleExpand"
-								:sort-by="playlistTable[playlistLayer].Sort.toLowerCase()"
-								:sort-desc="playlistTable[playlistLayer].SortDesc"
-								:v-model="playlistTable[playlistLayer].Selected"
-								checkbox-color="purple"
-								expand-icon="mdi-music"
-								no-data-text="No data! Are you signed in to Spotify?"
-								no-results-text="No results :C"
-								show-expand
-								show-select
-							>
-
-								<!--				Layer One Customization				-->
-								<!--	Customizing items under the name column 	-->
-								<template v-if="playlistLayer === 0" v-slot:item.name="{ item }">
-									<v-btn class="text-capitalize" text @click="getUserPlaylists(item)">
-										{{ item.name }}
-									</v-btn>
-								</template>
-								<!--	Custom item colours using chips, set with v-slots	-->
-								<template v-if="playlistLayer === 0" v-slot:item.tracks.total="{ item }">
-									<v-chip :color="colorizeTableTracks(item.tracks.total)" dark>
-										{{ item.tracks.total }}
-									</v-chip>
-								</template>
-								<template v-if="playlistLayer === 0" v-slot:item.collaborative="{ item }">
-									<v-chip :color="colorizeTableBooleans(item.collaborative)" dark>
-										{{ item.collaborative }}
-									</v-chip>
-								</template>
-								<template v-if="playlistLayer === 0" v-slot:item.public="{ item }">
-									<v-chip :color="colorizeTableBooleans(item.public)" dark>
-										{{ item.public }}
-									</v-chip>
-								</template>
-								<!-- Making delete buttons under delete column -->
-								<template v-if="playlistLayer === 0" v-slot:item.delete="{ item }">
-									<!-- Delete button -->
-									<v-btn
-										color="red"
-										icon
-										@click="unfollowSpotifyPlaylist(item)"
+						<!-- Recommendations Module	-->
+						<v-container v-if="moduleContainer.selectedModule === 'recommendationGenerator'" fluid>
+							<v-divider></v-divider>
+							<p class="unselectable mb-2 mt-2">Required Parameters
+								<br>
+								<small>Choose at least one!</small>
+							</p>
+							<v-divider></v-divider>
+							<!-- Required fields -->
+							<v-row class="mb-3">
+								<!-- Artist seed type selector -->
+								<v-col cols="0" md="3"></v-col>
+								<v-col class="d-flex flex-row justify-center" cols="12" md="6">
+									<!-- Radio group models artistSeedType from requiredParams -->
+									<!-- Row boolean determined by computed method -->
+									<v-radio-group
+										v-model="recommendationsForm.requiredParams.artistSeedType"
+										:row="recommenderRowBreakpoints"
 									>
-										<!--	The button uses this icon	-->
-										<v-icon>mdi-delete</v-icon>
-									</v-btn>
-								</template>
-
-								<!--				Layer Two Customization				-->
-								<!--	Customizing items under the title column 	-->
-								<template v-if="playlistLayer === 1" v-slot:item.track.name="{ item }">
-									<!--	Play button for track 	-->
-									<!--	TODO: Implement pause/play functionality? -->
-									<!--  ( May require hacky code without Spotify Premium.. ) -->
-									<v-btn icon @click="queueSpotifyTrack(item)">
-										<v-icon>mdi-playlist-plus</v-icon>
-									</v-btn>
-									<!--	Link to track 	-->
-									<a
-										:href="item.track.external_urls.spotify"
-										class="black--text text-decoration-none"
-										target="_blank"
-									>
-										<v-btn class="text-capitalize" text>
-											{{ item.track.name }}
-										</v-btn>
-									</a>
-								</template>
-								<!--	Customizing items under the artist column 	-->
-								<template v-if="playlistLayer === 1" v-slot:item.track.artists[0].name="{ item }">
-									<a
-										:href="item.track.artists[0].external_urls.spotify"
-										class="black--text text-decoration-none"
-										target="_blank"
-									>
-										<v-btn class="text-capitalize" text>
-											{{ item.track.artists[0].name }}
-										</v-btn>
-									</a>
-								</template>
-								<!--	Customizing items under the added column 	-->
-								<template v-if="playlistLayer === 1" v-slot:item.added_at="{ item }">
-									{{ dateParser(item.added_at) }}
-								</template>
-								<!-- Making remove buttons under remove column -->
-								<template v-if="playlistLayer === 1" v-slot:item.remove="{ item }">
-									<v-btn
-										color="red"
-										icon
-										@click="removeSpotifyPlaylistTrack(item, currentSpotifyPlaylist)"
-									>
-										<v-icon>mdi-delete</v-icon>
-									</v-btn>
-								</template>
-
-								<!--  Data Table: Expanded Rows  -->
-								<!--  Layer One  -->
-								<template v-slot:expanded-item="{ headers, item }" v-slot:top>
-									<td :colspan="headers.length">
-										<div v-if="playlistLayer === 0">
-											<v-row v-if="spotifyEmbeds">
-												<!-- To-be Spotify embed -->
-												<iframe :src="`${item.uri}`" allowtransparency="true" frameborder="0" height="80" width="500"></iframe>
-											</v-row>
-											<v-row>
-												<v-col v-if="item.images[0]" cols="4">
-													<a :href="item.external_urls.spotify" target="_blank">
-														<v-img
-															:src="item.images[0].url"
-															aspect-ratio="1"
-															class="ma-5"
-															width="350"
-														></v-img>
-													</a>
-												</v-col>
-												<v-col v-else>
-													<a :href="item.external_urls.spotify" target="_blank">Link to playlist</a>
-												</v-col>
-												<v-col v-if="item.description" cols="6">
-													<v-card class="ma-5">
-														<v-card-text>
-															{{ item.description }}
-														</v-card-text>
-													</v-card>
-												</v-col>
-												<v-col cols="2"></v-col>
-											</v-row>
-										</div>
-										<!--  Layer Two  -->
-										<div v-else>
-											<v-row v-if="spotifyEmbeds">
-												<!-- To-be Spotify embed -->
-												<iframe :src="`${item.track.uri}`" allowtransparency="true" frameborder="0" height="80" width="500"></iframe>
-											</v-row>
-											<v-row>
-												<v-col v-if="item.track.album.images[0].url" cols="4">
-													<a :href="item.track.preview_url" target="_blank">
-														<v-img
-															:src="item.track.album.images[0].url"
-															aspect-ratio="1"
-															class="ma-5"
-															width="350"
-														></v-img>
-													</a>
-													<vuetify-audio v-if="item.track.preview_url" :file="item.track.preview_url" color="accent"></vuetify-audio>
-													<small v-else>Sorry, no preview available.</small>
-												</v-col>
-												<v-col v-else>
-													<a :href="item.track.preview_url" target="_blank">Link to playlist</a>
-												</v-col>
-												<v-col v-if="item.track.album.name" cols="6">
-													<v-card class="ma-5">
-														<v-card-text>
-															<small>Album:</small> {{ item.track.album.name }}
-															<br>
-															<small>Artist:</small> {{ item.track.artists[0].name }}
-															<br>
-															<small>Track:</small> {{ item.track.name }}
-														</v-card-text>
-													</v-card>
-												</v-col>
-												<v-col cols="2"></v-col>
-											</v-row>
-										</div>
-									</td>
-								</template>
-
-							</v-data-table>
-						</v-card>
-					</v-container>
-					<!-- Recommendations Module	-->
-					<v-container v-if="selectedModule === 'recommendationGenerator'" fluid>
-						<v-divider></v-divider>
-						<p class="unselectable mb-2 mt-2">Required Parameters
-							<br>
-							<small>Choose at least one!</small>
-						</p>
-						<v-divider></v-divider>
-						<!-- Required fields -->
-						<v-row class="mb-3">
-							<!-- Artist seed type selector -->
-							<v-col cols="0" md="3"></v-col>
-							<v-col class="d-flex flex-row justify-center" cols="12" md="6">
-								<!-- Radio group models artistSeedType from requiredParams -->
-								<!-- Row boolean determined by computed method -->
-								<v-radio-group
-									v-model="recommendationsForm.requiredParams.artistSeedType"
-									:row="recommenderRowBreakpoints"
+										<!-- Clicking either radio wipes seed_artists -->
+										<!-- This is so we aren't keep something invisible selected -->
+										<v-radio
+											color="accent"
+											label="Artist Search"
+											off-icon="mdi-magnify"
+											on-icon="mdi-magnify"
+											value="artistSearch"
+											@click="recommendationsForm.requiredParams.seed_artists = ''"
+										>
+											Artist Search
+										</v-radio>
+										<v-radio
+											color="accent"
+											label="Followed Artists"
+											off-icon="mdi-heart"
+											on-icon="mdi-heart"
+											value="followedArtists"
+											@click="recommendationsForm.requiredParams.seed_artists = ''"
+										>
+											Followed Artists
+										</v-radio>
+									</v-radio-group>
+								</v-col>
+								<v-col cols="0" md="3"></v-col>
+								<!-- Followed Artists Mode -->
+								<v-col
+									v-if="recommendationsForm.requiredParams.artistSeedType === 'followedArtists'"
+									cols="12"
+									md="6"
 								>
-									<!-- Clicking either radio wipes seed_artists -->
-									<!-- This is so we aren't keep something invisible selected -->
-									<v-radio
-										color="accent"
-										label="Artist Search"
-										off-icon="mdi-magnify"
-										on-icon="mdi-magnify"
-										value="artistSearch"
-										@click="recommendationsForm.requiredParams.seed_artists = ''"
-									>
-										Artist Search
-									</v-radio>
-									<v-radio
-										color="accent"
-										label="Followed Artists"
-										off-icon="mdi-heart"
-										on-icon="mdi-heart"
-										value="followedArtists"
-										@click="recommendationsForm.requiredParams.seed_artists = ''"
-									>
-										Followed Artists
-									</v-radio>
-								</v-radio-group>
-							</v-col>
-							<v-col cols="0" md="3"></v-col>
-							<!-- Followed Artists Mode -->
-							<v-col
-								v-if="recommendationsForm.requiredParams.artistSeedType === 'followedArtists'"
-								cols="12"
-								md="6"
-							>
-								<v-autocomplete
-									v-model="recommendationsForm.requiredParams.seed_artists"
-									:items="followedArtistsData.followedArtists"
-									clearable
-									color="accent"
-									item-text="name"
-									item-value="id"
-									label="Choose a followed artist!"
-									no-data-text="It seems you don't follow any artists... 🙁"
-									outlined
-								></v-autocomplete>
-							</v-col>
-							<!-- Artist Search Mode -->
-							<v-col
-								v-if="recommendationsForm.requiredParams.artistSeedType === 'artistSearch'"
-								cols="12"
-								md="6"
-							>
-								<v-row no-gutters>
-									<v-text-field
-										v-model="recommendationsForm.requiredParams.artistSearch"
+									<v-autocomplete
+										v-model="recommendationsForm.requiredParams.seed_artists"
+										:items="followedArtistsData.followedArtists"
 										clearable
 										color="accent"
-										label="Search for an artist!"
+										item-text="name"
+										item-value="id"
+										label="Choose a followed artist!"
+										no-data-text="It seems you don't follow any artists... 🙁"
 										outlined
-										@keydown.enter="recommenderArtistSearch()"
-									></v-text-field>
-									<v-btn
-										:disabled="!recommendationsForm.requiredParams.artistSearch"
-										color="accent"
-										height="56"
-										outlined
-										x-small
-										@click="recommenderArtistSearch()">
-										<v-icon>mdi-magnify</v-icon>
-									</v-btn>
-								</v-row>
-							</v-col>
-							<v-col
-								v-if="recommendationsForm.requiredParams.artistOptions.length !== 0
+									></v-autocomplete>
+								</v-col>
+								<!-- Artist Search Mode -->
+								<v-col
+									v-if="recommendationsForm.requiredParams.artistSeedType === 'artistSearch'"
+									cols="12"
+									md="6"
+								>
+									<v-row no-gutters>
+										<v-text-field
+											v-model="recommendationsForm.requiredParams.artistSearch"
+											clearable
+											color="accent"
+											label="Search for an artist!"
+											outlined
+											@keydown.enter="recommenderArtistSearch()"
+										></v-text-field>
+										<v-btn
+											:disabled="!recommendationsForm.requiredParams.artistSearch"
+											color="accent"
+											height="56"
+											outlined
+											x-small
+											@click="recommenderArtistSearch()">
+											<v-icon>mdi-magnify</v-icon>
+										</v-btn>
+									</v-row>
+								</v-col>
+								<v-col
+									v-if="recommendationsForm.requiredParams.artistOptions.length !== 0
 								&& recommendationsForm.requiredParams.artistSeedType==='artistSearch'"
-								cols="12"
-								md="6"
-							>
-								<v-autocomplete
-									v-model="recommendationsForm.requiredParams.seed_artists"
-									:items="recommendationsForm.requiredParams.artistOptions"
-									clearable
-									color="accent"
-									item-text="name"
-									item-value="id"
-									label="Choose an artist!"
-									no-data-text="Nothing here! Did you search? 🤔"
-									outlined
-								></v-autocomplete>
-							</v-col>
-							<v-col cols="12" md="6">
-								<v-autocomplete
-									v-model="recommendationsForm.requiredParams.seed_genres"
-									:items="recommendationsForm.requiredParams.genreOptions"
-									clearable
-									color="accent"
-									item-text="item"
-									item-value="id"
-									label="Choose a genre!"
-									no-data-text="We couldn't find any genres... This is on us, sorry! 🙁"
-									outlined
+									cols="12"
+									md="6"
 								>
-									<!-- This v-slot determines how the items in the selection list look -->
-									<template v-slot:item="{ item }">
-										<span class="text-capitalize">
-											{{ item }}
-										</span>
-									</template>
-									<!-- This v-slot determines how the selected item looks -->
-									<template v-slot:selection="{ item }">
-										<span class="text-capitalize">
-											{{ item }}
-										</span>
-									</template>
-								</v-autocomplete>
-							</v-col>
-							<v-col
-								cols="12"
-								md="6"
-							>
-								<v-row no-gutters>
-									<v-text-field
-										v-model="recommendationsForm.requiredParams.trackSearch"
+									<v-autocomplete
+										v-model="recommendationsForm.requiredParams.seed_artists"
+										:items="recommendationsForm.requiredParams.artistOptions"
 										clearable
 										color="accent"
-										label="Search for a track!"
+										item-text="name"
+										item-value="id"
+										label="Choose an artist!"
+										no-data-text="Nothing here! Did you search? 🤔"
 										outlined
-										@keydown.enter="recommenderTrackSearch()"
-									></v-text-field>
-									<v-btn
-										:disabled="!recommendationsForm.requiredParams.trackSearch"
+									></v-autocomplete>
+								</v-col>
+								<v-col cols="12" md="6">
+									<v-autocomplete
+										v-model="recommendationsForm.requiredParams.seed_genres"
+										:items="recommendationsForm.requiredParams.genreOptions"
+										clearable
 										color="accent"
-										height="56"
+										item-text="item"
+										item-value="id"
+										label="Choose a genre!"
+										no-data-text="We couldn't find any genres... This is on us, sorry! 🙁"
 										outlined
-										x-small
-										@click="recommenderTrackSearch()">
-										<v-icon>mdi-magnify</v-icon>
-									</v-btn>
-								</v-row>
-
-							</v-col>
-							<v-col v-if="recommendationsForm.requiredParams.trackOptions.length !== 0" cols="12" md="6">
-								<v-autocomplete
-									v-model="recommendationsForm.requiredParams.seed_tracks"
-									:items="recommendationsForm.requiredParams.trackOptions"
-									clearable
-									color="accent"
-									item-text="item"
-									item-value="id"
-									label="Choose a track!"
-									no-data-text="Nothing here! Did you search? 🤔"
-									outlined
+									>
+										<!-- This v-slot determines how the items in the selection list look -->
+										<template v-slot:item="{ item }">
+										<span class="text-capitalize">
+											{{ item }}
+										</span>
+										</template>
+										<!-- This v-slot determines how the selected item looks -->
+										<template v-slot:selection="{ item }">
+										<span class="text-capitalize">
+											{{ item }}
+										</span>
+										</template>
+									</v-autocomplete>
+								</v-col>
+								<v-col
+									cols="12"
+									md="6"
 								>
-									<!-- This v-slot determines how the items in the selection list look -->
-									<template v-slot:item="{ item }">
-										'{{ item.name }}' (by {{ item.artists[0].name }})
-									</template>
-									<!-- This v-slot determines how the selected item looks -->
-									<template v-slot:selection="{ item }">
-										'{{ item.name }}' (by {{ item.artists[0].name }})
-									</template>
-								</v-autocomplete>
-							</v-col>
-							<!-- Technically-not-required-as-it-has-a-default-value field -->
-							<v-col cols="12" md="6">
-								<v-select
-									v-model="recommendationsForm.optionalParams.limitSelected"
-									:items="recommendationsForm.optionalParams.limitOptions"
-									color="accent"
-									item-text="value"
-									item-value="value"
-									label="How many recommendations?"
-									outlined
-								></v-select>
-							</v-col>
-						</v-row>
+									<v-row no-gutters>
+										<v-text-field
+											v-model="recommendationsForm.requiredParams.trackSearch"
+											clearable
+											color="accent"
+											label="Search for a track!"
+											outlined
+											@keydown.enter="recommenderTrackSearch()"
+										></v-text-field>
+										<v-btn
+											:disabled="!recommendationsForm.requiredParams.trackSearch"
+											color="accent"
+											height="56"
+											outlined
+											x-small
+											@click="recommenderTrackSearch()">
+											<v-icon>mdi-magnify</v-icon>
+										</v-btn>
+									</v-row>
 
-						<!-- Slider choices -->
-						<v-divider></v-divider>
-						<p class="unselectable mb-2 mt-2">Optional Parameters</p>
-						<v-simple-checkbox v-model="recommendationsForm.optionalParamsEnabled" off-icon="mdi-chevron-up" on-icon="mdi-chevron-down"></v-simple-checkbox>
-						<v-divider></v-divider>
+								</v-col>
+								<v-col v-if="recommendationsForm.requiredParams.trackOptions.length !== 0" cols="12" md="6">
+									<v-autocomplete
+										v-model="recommendationsForm.requiredParams.seed_tracks"
+										:items="recommendationsForm.requiredParams.trackOptions"
+										clearable
+										color="accent"
+										item-text="item"
+										item-value="id"
+										label="Choose a track!"
+										no-data-text="Nothing here! Did you search? 🤔"
+										outlined
+									>
+										<!-- This v-slot determines how the items in the selection list look -->
+										<template v-slot:item="{ item }">
+											'{{ item.name }}' (by {{ item.artists[0].name }})
+										</template>
+										<!-- This v-slot determines how the selected item looks -->
+										<template v-slot:selection="{ item }">
+											'{{ item.name }}' (by {{ item.artists[0].name }})
+										</template>
+									</v-autocomplete>
+								</v-col>
+								<!-- Technically-not-required-as-it-has-a-default-value field -->
+								<v-col cols="12" md="6">
+									<v-select
+										v-model="recommendationsForm.optionalParams.limitSelected"
+										:items="recommendationsForm.optionalParams.limitOptions"
+										color="accent"
+										item-text="value"
+										item-value="value"
+										label="How many recommendations?"
+										outlined
+									></v-select>
+								</v-col>
+							</v-row>
 
-						<v-row v-if="recommendationsForm.optionalParamsEnabled" class="justify-center" dense>
-							<v-col
+							<!-- Slider choices -->
+							<v-divider></v-divider>
+							<p class="unselectable mb-2 mt-2">Optional Parameters</p>
+							<v-simple-checkbox v-model="recommendationsForm.optionalParamsEnabled" off-icon="mdi-chevron-up" on-icon="mdi-chevron-down"></v-simple-checkbox>
+							<v-divider></v-divider>
+
+							<v-row v-if="recommendationsForm.optionalParamsEnabled" class="justify-center" dense>
+								<v-col
+									v-for="slider in recommendationsForm.optionalParams.sliderParams"
+									:key="slider.param"
+									:class="sliderCheckboxBreakpoints"
+									cols="12" lg="2" md="3" sm="5">
+									<!-- TODO: Maybe use v-autocomplete with multiple enabled? -->
+									<!-- This would make the params take up a lot less space! -->
+									<!-- Only issue may lie in adding the special slider(s) to it? -->
+									<v-checkbox
+										v-model="slider.enabled"
+										:label="slider.label"
+										:off-icon="slider.icon"
+										:on-icon="slider.icon"
+										class="text-capitalize"
+										color="accent"
+									></v-checkbox>
+								</v-col>
+								<!--	 Special slider choices		-->
+								<v-col
+									v-for="slider in recommendationsForm.optionalParams.specialSliders"
+									:key="slider.param"
+									:class="sliderCheckboxBreakpoints"
+									cols="12" lg="2" md="3" sm="5">
+									<v-checkbox
+										v-model="slider.enabled"
+										:label="slider.label"
+										:off-icon="slider.icon"
+										:on-icon="slider.icon"
+										class="text-capitalize"
+										color="accent"
+									></v-checkbox>
+								</v-col>
+							</v-row>
+
+							<!-- Parameter controls -->
+							<v-divider class="mb-15"></v-divider>
+							<v-row
 								v-for="slider in recommendationsForm.optionalParams.sliderParams"
 								:key="slider.param"
-								:class="sliderCheckboxBreakpoints"
-								cols="12" lg="2" md="3" sm="5">
-								<!-- TODO: Maybe use v-autocomplete with multiple enabled? -->
-								<!-- This would make the params take up a lot less space! -->
-								<!-- Only issue may lie in adding the special slider(s) to it? -->
-								<v-checkbox
-									v-model="slider.enabled"
-									:label="slider.label"
-									:off-icon="slider.icon"
-									:on-icon="slider.icon"
-									class="text-capitalize"
-									color="accent"
-								></v-checkbox>
-							</v-col>
-							<!--	 Special slider choices		-->
-							<v-col
+							>
+								<v-col v-if="slider.enabled" class="mt-n4" cols="1">
+									<v-radio-group v-model="slider.type" dense row>
+										<v-radio
+											color="accent"
+											label="Equal"
+											value="target"
+										></v-radio>
+										<v-radio
+											color="accent"
+											label="Min"
+											value="min"
+										></v-radio>
+										<v-radio
+											color="accent"
+											label="Max"
+											value="max"
+										></v-radio>
+									</v-radio-group>
+								</v-col>
+								<v-col v-if="slider.enabled" cols="9">
+									<v-slider
+										v-model="slider.value"
+										:append-icon="slider.icon"
+										:max="slider.max"
+										:min="slider.min"
+										:step="slider.step"
+										class="ml-6 mr-n3"
+										thumb-color="accent"
+										thumb-label="always"
+										ticks="always"
+										track-color="primary"
+										track-fill-color="green"
+									>
+										<!-- For the key slider, we're using the keyDoctor() function
+												so that the label shows 'C' to the user instead of '0', for example -->
+										<template v-if="(slider.param)==='key'" v-slot:thumb-label="key">
+											{{ keyDoctor(key.value) }}
+										</template>
+
+										<!-- For most of the other sliders, we calculate the percentage and return it on the label -->
+										<template v-else-if="(slider.param)==='acousticness'" v-slot:thumb-label="acousticness">
+											{{ percentageDoctor(acousticness.value, 1) }}%
+										</template>
+
+										<template v-else-if="(slider.param)==='danceability'" v-slot:thumb-label="danceability">
+											{{ percentageDoctor(danceability.value, 1) }}%
+										</template>
+
+										<template v-else-if="(slider.param)==='energy'" v-slot:thumb-label="energy">
+											{{ percentageDoctor(energy.value, 1) }}%
+										</template>
+
+										<template v-else-if="(slider.param)==='instrumentalness'" v-slot:thumb-label="instrumentalness">
+											{{ percentageDoctor(instrumentalness.value, 1) }}%
+										</template>
+
+										<template v-else-if="(slider.param)==='liveness'" v-slot:thumb-label="liveness">
+											{{ percentageDoctor(liveness.value, 1) }}%
+										</template>
+
+										<template v-else-if="(slider.param)==='loudness'" v-slot:thumb-label="loudness">
+											{{ percentageDoctor(loudness.value, 1) }}%
+										</template>
+
+										<template v-else-if="(slider.param)==='speechiness'" v-slot:thumb-label="speechiness">
+											{{ percentageDoctor(speechiness.value, 1) }}%
+										</template>
+
+										<template v-else-if="(slider.param)==='valence'" v-slot:thumb-label="valence">
+											{{ percentageDoctor(valence.value, 1) }}%
+										</template>
+
+										<template v-else-if="(slider.param)==='popularity'" v-slot:thumb-label="popularity">
+											{{ percentageDoctor(popularity.value, 100) }}%
+										</template>
+
+									</v-slider>
+								</v-col>
+								<v-col v-if="slider.enabled" class="mt-1" cols="2">
+									<p class="text-left">{{ slider.label }}</p>
+								</v-col>
+							</v-row>
+							<!-- Special parameter controls -->
+							<v-row
 								v-for="slider in recommendationsForm.optionalParams.specialSliders"
 								:key="slider.param"
-								:class="sliderCheckboxBreakpoints"
-								cols="12" lg="2" md="3" sm="5">
-								<v-checkbox
-									v-model="slider.enabled"
-									:label="slider.label"
-									:off-icon="slider.icon"
-									:on-icon="slider.icon"
-									class="text-capitalize"
-									color="accent"
-								></v-checkbox>
-							</v-col>
-						</v-row>
-
-						<!-- Parameter controls -->
-						<v-divider class="mb-15"></v-divider>
-						<v-row
-							v-for="slider in recommendationsForm.optionalParams.sliderParams"
-							:key="slider.param"
-						>
-							<v-col v-if="slider.enabled" class="mt-n4" cols="1">
-								<v-radio-group v-model="slider.type" dense row>
-									<v-radio
-										color="accent"
-										label="Equal"
-										value="target"
-									></v-radio>
-									<v-radio
-										color="accent"
-										label="Min"
-										value="min"
-									></v-radio>
-									<v-radio
-										color="accent"
-										label="Max"
-										value="max"
-									></v-radio>
-								</v-radio-group>
-							</v-col>
-							<v-col v-if="slider.enabled" cols="9">
-								<v-slider
-									v-model="slider.value"
-									:append-icon="slider.icon"
-									:max="slider.max"
-									:min="slider.min"
-									:step="slider.step"
-									class="ml-6 mr-n3"
-									thumb-color="accent"
-									thumb-label="always"
-									ticks="always"
-									track-color="primary"
-									track-fill-color="green"
-								>
-									<!-- For the key slider, we're using the keyDoctor() function
-											so that the label shows 'C' to the user instead of '0', for example -->
-									<template v-if="(slider.param)==='key'" v-slot:thumb-label="key">
-										{{ keyDoctor(key.value) }}
-									</template>
-
-									<!-- For most of the other sliders, we calculate the percentage and return it on the label -->
-									<template v-else-if="(slider.param)==='acousticness'" v-slot:thumb-label="acousticness">
-										{{ percentageDoctor(acousticness.value, 1) }}%
-									</template>
-
-									<template v-else-if="(slider.param)==='danceability'" v-slot:thumb-label="danceability">
-										{{ percentageDoctor(danceability.value, 1) }}%
-									</template>
-
-									<template v-else-if="(slider.param)==='energy'" v-slot:thumb-label="energy">
-										{{ percentageDoctor(energy.value, 1) }}%
-									</template>
-
-									<template v-else-if="(slider.param)==='instrumentalness'" v-slot:thumb-label="instrumentalness">
-										{{ percentageDoctor(instrumentalness.value, 1) }}%
-									</template>
-
-									<template v-else-if="(slider.param)==='liveness'" v-slot:thumb-label="liveness">
-										{{ percentageDoctor(liveness.value, 1) }}%
-									</template>
-
-									<template v-else-if="(slider.param)==='loudness'" v-slot:thumb-label="loudness">
-										{{ percentageDoctor(loudness.value, 1) }}%
-									</template>
-
-									<template v-else-if="(slider.param)==='speechiness'" v-slot:thumb-label="speechiness">
-										{{ percentageDoctor(speechiness.value, 1) }}%
-									</template>
-
-									<template v-else-if="(slider.param)==='valence'" v-slot:thumb-label="valence">
-										{{ percentageDoctor(valence.value, 1) }}%
-									</template>
-
-									<template v-else-if="(slider.param)==='popularity'" v-slot:thumb-label="popularity">
-										{{ percentageDoctor(popularity.value, 100) }}%
-									</template>
-
-								</v-slider>
-							</v-col>
-							<v-col v-if="slider.enabled" class="mt-1" cols="2">
-								<p class="text-left">{{ slider.label }}</p>
-							</v-col>
-						</v-row>
-						<!-- Special parameter controls -->
-						<v-row
-							v-for="slider in recommendationsForm.optionalParams.specialSliders"
-							:key="slider.param"
-						>
-							<v-col v-if="slider.enabled" class="mt-n4" cols="1">
-								<v-radio-group v-model="slider.type" dense row>
-									<v-radio
-										color="accent"
-										label="Equal"
-										value="target"
-									></v-radio>
-									<v-radio
-										color="accent"
-										label="Min"
-										value="min"
-									></v-radio>
-									<v-radio
-										color="accent"
-										label="Max"
-										value="max"
-									></v-radio>
-								</v-radio-group>
-							</v-col>
-							<v-col v-if="slider.enabled" cols="9">
-								<v-slider
-									v-model="slider.value"
-									:append-icon="slider.icon"
-									:max="slider.max"
-									:min="slider.min"
-									:step="slider.step"
-									class="ml-6 mr-n3"
-									thumb-color="accent"
-									thumb-label="always"
-									ticks="always"
-									track-color="primary"
-									track-fill-color="green"
-								></v-slider>
-							</v-col>
-							<v-col v-if="slider.enabled" class="mt-1" cols="2">
-								<p class="text-left">{{ slider.label }}</p>
-							</v-col>
-						</v-row>
-						<!-- Recommender request button -->
-						<v-row class="mt-n5 mb-3">
-							<v-spacer></v-spacer>
-							<!-- If there was an artist seed provided -->
-							<v-col v-if="recommendationsRequired" cols="3" md="3">
-								<v-btn block color="accent" @click="generateRecommendations(recommendationsForm)">
-									Recommend!
-								</v-btn>
-							</v-col>
-							<!-- If there wasn't an artist seed provided -->
-							<v-col v-else cols="4" md="4">
-								<v-btn block color="grey" disable>
-									I need more data!
-								</v-btn>
-							</v-col>
-							<v-spacer></v-spacer>
-							<v-btn
-								v-if="this.recommendationData.response.length!==0"
-								color="green"
-								@click="createRecommendationsPlaylist()"
 							>
-								Create Playlist
-							</v-btn>
-							<v-spacer v-if="this.recommendationData.response.length!==0"></v-spacer>
-						</v-row>
-						<v-row v-if="this.newPlaylistURL" class="justify-center mt-5 mb-5">
-							<p>Your new playlist can be found <a :href="this.newPlaylistURL" class="newPlaylistURL" target="_blank">here!</a></p>
-						</v-row>
+								<v-col v-if="slider.enabled" class="mt-n4" cols="1">
+									<v-radio-group v-model="slider.type" dense row>
+										<v-radio
+											color="accent"
+											label="Equal"
+											value="target"
+										></v-radio>
+										<v-radio
+											color="accent"
+											label="Min"
+											value="min"
+										></v-radio>
+										<v-radio
+											color="accent"
+											label="Max"
+											value="max"
+										></v-radio>
+									</v-radio-group>
+								</v-col>
+								<v-col v-if="slider.enabled" cols="9">
+									<v-slider
+										v-model="slider.value"
+										:append-icon="slider.icon"
+										:max="slider.max"
+										:min="slider.min"
+										:step="slider.step"
+										class="ml-6 mr-n3"
+										thumb-color="accent"
+										thumb-label="always"
+										ticks="always"
+										track-color="primary"
+										track-fill-color="green"
+									></v-slider>
+								</v-col>
+								<v-col v-if="slider.enabled" class="mt-1" cols="2">
+									<p class="text-left">{{ slider.label }}</p>
+								</v-col>
+							</v-row>
+							<!-- Recommender request button -->
+							<v-row class="mt-n5 mb-3">
+								<v-spacer></v-spacer>
+								<!-- If there was an artist seed provided -->
+								<v-col v-if="recommendationsRequired" cols="3" md="3">
+									<v-btn block color="accent" @click="generateRecommendations(recommendationsForm)">
+										Recommend!
+									</v-btn>
+								</v-col>
+								<!-- If there wasn't an artist seed provided -->
+								<v-col v-else cols="4" md="4">
+									<v-btn block color="grey" disable>
+										I need more data!
+									</v-btn>
+								</v-col>
+								<v-spacer></v-spacer>
+								<v-btn
+									v-if="recommendationData.response.length!==0"
+									color="green"
+									@click="createRecommendationsPlaylist()"
+								>
+									Create Playlist
+								</v-btn>
+								<v-spacer v-if="recommendationData.response.length!==0"></v-spacer>
+							</v-row>
+							<v-row v-if="newPlaylistURL" class="justify-center mt-5 mb-5">
+								<p>Your new playlist can be found <a :href="newPlaylistURL" class="newPlaylistURL" target="_blank">here!</a></p>
+							</v-row>
 
-						<!-- RECOMMENDATIONS -->
-						<!-- TODO: Show extra details in row expansion? -->
-						<!-- TODO: Allow user to add tracks to one of their playlists -->
-						<!-- TODO: Add play button to each listing -->
-						<v-row v-if="recommendationData.response[0]" class="justify-center">
+							<!-- RECOMMENDATIONS -->
+							<!-- TODO: Show extra details in row expansion? -->
+							<!-- TODO: Allow user to add tracks to one of their playlists -->
+							<!-- TODO: Add play button to each listing -->
+							<v-row v-if="recommendationData.response[0]" class="justify-center">
+								<v-data-table
+									:headers="recommendationData.headers"
+									:item-key="recommendationData.response.id"
+									:items="recommendationData.response"
+									calculate-widths
+									no-data-text="No data!?"
+									no-results-text="No results :C"
+								>
+									<template v-slot:item.album.images[0].url="{ item }">
+										<v-hover>
+											<template v-slot:default="{ hover }">
+												<v-card
+													class="ml-n2 ma-2"
+													outlined
+													raised
+												>
+													<v-img
+														:src="item.album.images[0].url"
+														aspect-ratio="1"
+														width="150"
+													></v-img>
+													<!--<audio :src="item.preview_url"></audio>-->
+													<v-fade-transition>
+														<v-overlay
+															v-if="hover"
+															absolute
+															color="#000"
+														>
+															<v-btn
+																v-if="item.preview_url"
+																icon
+																@click.prevent="
+															item.isPlaying
+															? previewSpotifyTrack('pause', item)
+															: previewSpotifyTrack('play', item)"
+															>
+																<audio :src="item.preview_url">
+																	<!-- This is shown in browsers which don't support audio elements -->
+																	Your browser does not support the audio element.
+																</audio>
+																<v-icon v-if="item.isPlaying">mdi-pause</v-icon>
+																<v-icon v-else>mdi-play</v-icon>
+															</v-btn>
+															<v-btn
+																v-else
+																icon
+															>
+																<v-icon color="red">mdi-cancel</v-icon>
+															</v-btn>
+														</v-overlay>
+													</v-fade-transition>
+												</v-card>
+											</template>
+										</v-hover>
+										<!-- TODO: Get track preview working nicely (may need expand) -->
+										<!--
+										<vuetify-audio
+											v-if="item.preview_url"
+											:ended="audioFinish"
+											:file="item.preview_url"
+											color="accent"
+											flat
+										></vuetify-audio>
+										-->
+									</template>
+									<template v-slot:item.name="{ item }">
+										<a
+											:href="item.external_urls.spotify"
+											class="text--primary text-decoration-none"
+											target="_blank"
+										>
+											{{ item.name }}
+										</a>
+									</template>
+									<template v-slot:item.album.name="{ item }">
+										<a
+											:href="item.album.external_urls.spotify"
+											class="text--primary text-decoration-none"
+											target="_blank"
+										>
+											{{ item.album.name }}
+										</a>
+									</template>
+									<template v-slot:item.artists[0].name="{ item }">
+										<a
+											:href="item.artists[0].external_urls.spotify"
+											class="text--primary text-decoration-none"
+											target="_blank"
+										>
+											{{ item.artists[0].name }}
+										</a>
+									</template>
+								</v-data-table>
+							</v-row>
+						</v-container>
+
+						<!-- Recently Played Module -->
+						<v-container v-if="moduleContainer.selectedModule === 'recentlyPlayed'">
+							<h2 class="text-left mb-3">
+								Your Recently Played Tracks
+							</h2>
 							<v-data-table
-								:headers="recommendationData.headers"
-								:item-key="recommendationData.response.id"
-								:items="recommendationData.response"
+								:headers="recentlyPlayedData.headers"
+								:items="recentlyPlayedData.tracks"
+								item-key="track.id"
 								calculate-widths
 								no-data-text="No data!?"
 								no-results-text="No results :C"
+							>
+								<template v-slot:item.track.album.images[0].url="{ item }">
+									<v-hover>
+										<template v-slot:default="{ hover }">
+											<v-card
+												class="ml-n2 ma-2"
+												outlined
+												raised
+												max-width="150"
+											>
+												<v-img
+													:src="item.track.album.images[0].url"
+													aspect-ratio="1"
+													width="150"
+												></v-img>
+												<!--<audio :src="item.preview_url"></audio>-->
+												<v-fade-transition>
+													<v-overlay
+														v-if="hover"
+														absolute
+														color="#000"
+													>
+														<v-btn
+															v-if="item.track.preview_url"
+															icon
+															@click.prevent="
+															item.isPlaying
+															? previewSpotifyTrack('pause', item.track)
+															: previewSpotifyTrack('play', item.track)"
+														>
+															<audio :src="item.track.preview_url">
+																<!-- This is shown in browsers which don't support audio elements -->
+																Your browser does not support the audio element.
+															</audio>
+															<v-icon v-if="item.track.isPlaying">mdi-pause</v-icon>
+															<v-icon v-else>mdi-play</v-icon>
+														</v-btn>
+														<v-btn
+															v-else
+															icon
+														>
+															<v-icon color="red">mdi-cancel</v-icon>
+														</v-btn>
+													</v-overlay>
+												</v-fade-transition>
+											</v-card>
+										</template>
+									</v-hover>
+								</template>
+								<template v-slot:item.track.name="{ item }">
+									<a
+										:href="item.track.external_urls.spotify"
+										class="text--primary text-decoration-none"
+										target="_blank"
+									>
+										{{ item.track.name }}
+									</a>
+								</template>
+								<template v-slot:item.track.album.name="{ item }">
+									<a
+										:href="item.track.album.external_urls.spotify"
+										class="text--primary text-decoration-none"
+										target="_blank"
+									>
+										{{ item.track.album.name }}
+									</a>
+								</template>
+								<template v-slot:item.track.artists[0].name="{ item }">
+									<a
+										:href="item.track.artists[0].external_urls.spotify"
+										class="text--primary text-decoration-none"
+										target="_blank"
+									>
+										{{ item.track.artists[0].name }}
+									</a>
+								</template>
+								<template v-slot:item.played_at="{ item }">
+										{{ dateParser(item.played_at) }}
+								</template>
+							</v-data-table>
+						</v-container>
+
+						<!-- Saved Tracks Module -->
+						<v-container v-if="moduleContainer.selectedModule === 'savedTracks'">
+							<h2 class="text-left mb-3">
+								Your Saved Tracks
+							</h2>
+							<v-data-table
+								:headers="savedTracksData.headers"
+								:items="savedTracksData.tracks"
+								item-key="id"
+								calculate-widths
+								no-data-text="No data!?"
+								no-results-text="No results :C"
+							>
+								<template v-slot:item.track.album.images[0].url="{ item }">
+									<v-hover>
+										<template v-slot:default="{ hover }">
+											<v-card
+												class="ml-n2 ma-2"
+												outlined
+												raised
+												max-width="150"
+											>
+												<v-img
+													:src="item.track.album.images[0].url"
+													aspect-ratio="1"
+													width="150"
+												></v-img>
+												<!--<audio :src="item.preview_url"></audio>-->
+												<v-fade-transition>
+													<v-overlay
+														v-if="hover"
+														absolute
+														color="#000"
+													>
+														<v-btn
+															v-if="item.track.preview_url"
+															icon
+															@click.prevent="
+															item.isPlaying
+															? previewSpotifyTrack('pause', item.track)
+															: previewSpotifyTrack('play', item.track)"
+														>
+															<audio :src="item.track.preview_url">
+																<!-- This is shown in browsers which don't support audio elements -->
+																Your browser does not support the audio element.
+															</audio>
+															<v-icon v-if="item.track.isPlaying">mdi-pause</v-icon>
+															<v-icon v-else>mdi-play</v-icon>
+														</v-btn>
+														<v-btn
+															v-else
+															icon
+														>
+															<v-icon color="red">mdi-cancel</v-icon>
+														</v-btn>
+													</v-overlay>
+												</v-fade-transition>
+											</v-card>
+										</template>
+									</v-hover>
+								</template>
+								<template v-slot:item.track.name="{ item }">
+									<a
+										:href="item.track.external_urls.spotify"
+										class="text--primary text-decoration-none"
+										target="_blank"
+									>
+										{{ item.track.name }}
+									</a>
+								</template>
+								<template v-slot:item.track.album.name="{ item }">
+									<a
+										:href="item.track.album.external_urls.spotify"
+										class="text--primary text-decoration-none"
+										target="_blank"
+									>
+										{{ item.track.album.name }}
+									</a>
+								</template>
+								<template v-slot:item.track.artists[0].name="{ item }">
+									<a
+										:href="item.track.artists[0].external_urls.spotify"
+										class="text--primary text-decoration-none"
+										target="_blank"
+									>
+										{{ item.track.artists[0].name }}
+									</a>
+								</template>
+							</v-data-table>
+						</v-container>
+
+						<!-- Top Tracks Module -->
+						<v-container v-if="moduleContainer.selectedModule === 'topTracks'">
+							<h2 class="text-left mb-3">
+								Your Top Tracks
+							</h2>
+							<v-data-table
+								:headers="topTracksData.headers"
+								:items="topTracksData.tracks"
+								item-key="id"
+								calculate-widths
+								no-data-text="No data!?"
+								no-results-text="No results :C"
+								:items-per-page="5"
 							>
 								<template v-slot:item.album.images[0].url="{ item }">
 									<v-hover>
@@ -943,6 +1235,7 @@
 												class="ml-n2 ma-2"
 												outlined
 												raised
+												max-width="150"
 											>
 												<v-img
 													:src="item.album.images[0].url"
@@ -961,8 +1254,8 @@
 															icon
 															@click.prevent="
 															item.isPlaying
-															? previewSpotifyTrack('pause', item)
-															: previewSpotifyTrack('play', item)"
+															? previewSpotifyTrack('pause', item.track)
+															: previewSpotifyTrack('play', item.track)"
 														>
 															<audio :src="item.preview_url">
 																<!-- This is shown in browsers which don't support audio elements -->
@@ -982,16 +1275,6 @@
 											</v-card>
 										</template>
 									</v-hover>
-									<!-- TODO: Get track preview working nicely (may need expand) -->
-									<!--
-									<vuetify-audio
-										v-if="item.preview_url"
-										:ended="audioFinish"
-										:file="item.preview_url"
-										color="accent"
-										flat
-									></vuetify-audio>
-									-->
 								</template>
 								<template v-slot:item.name="{ item }">
 									<a
@@ -1021,12 +1304,53 @@
 									</a>
 								</template>
 							</v-data-table>
-						</v-row>
-					</v-container>
-				</v-card>
-			</v-col>
-			<v-col cols="0" lg="2" md="1"></v-col>
-		</v-row>
+						</v-container>
+
+						<!-- Top Artists Module -->
+						<v-container v-if="moduleContainer.selectedModule === 'topArtists'">
+							<h2 class="text-left mb-3">
+								Your Top Artists
+							</h2>
+							<v-data-table
+								:headers="topArtistsData.headers"
+								:items="topArtistsData.artists"
+								item-key="id"
+								calculate-widths
+								no-data-text="No data!?"
+								no-results-text="No results :C"
+								:items-per-page="5"
+							>
+								<template v-slot:item.images[0].url="{ item }">
+											<v-card
+												class="ml-n2 ma-2"
+												outlined
+												raised
+												max-width="150"
+											>
+												<v-img
+													:src="item.images[0].url"
+													aspect-ratio="1"
+													width="150"
+												></v-img>
+											</v-card>
+								</template>
+								<template v-slot:item.name="{ item }">
+									<a
+										:href="item.external_urls.spotify"
+										class="text--primary text-decoration-none"
+										target="_blank"
+									>
+										{{ item.name }}
+									</a>
+								</template>
+							</v-data-table>
+						</v-container>
+
+					</v-card>
+				</v-col>
+				<v-col cols="0" lg="2" md="1"></v-col>
+			</v-row>
+		</div>
 	</v-container>
 </template>
 
@@ -1060,15 +1384,37 @@ export default {
 			// Disabling iframes for now
 			spotifyEmbeds: false,
 			// Module Data //
-			selectedModule: "recommendationGenerator",
+			// TODO: Store these in localStorage!
+			moduleContainers: [
+				{ selectedModule: "topTracks" },
+				{ selectedModule: "userPlaylists" },
+				{ selectedModule: "followedArtists" },
+				{ selectedModule: "recommendationGenerator" }
+			],
 			modules: [
 				{
 					label: "Your Playlists",
 					value: "userPlaylists"
 				},
 				{
-					label: "Followed Artists",
+					label: "Your Saved Tracks",
+					value: "savedTracks"
+				},
+				{
+					label: "Your Top Tracks",
+					value: "topTracks"
+				},
+				{
+					label: "Recently Played",
+					value: "recentlyPlayed"
+				},
+				{
+					label: "Artists You Follow",
 					value: "followedArtists"
+				},
+				{
+					label: "Your Top Artists",
+					value: "topArtists"
 				},
 				{
 					label: "Recommendation Generator",
@@ -1425,31 +1771,236 @@ export default {
 				somethingIsPlaying: false,
 			},
 			newPlaylistURL: "",
+			// Recently Played Data //
+			recentlyPlayedData: {
+				headers: [
+					{
+						text: 'Art',
+						value: 'track.album.images[0].url',
+						align: 'left',
+						sortable: false
+					},
+					{
+						text: 'Title',
+						value: 'track.name',
+						align: 'left'
+					},
+					{
+						text: 'Album',
+						value: 'track.album.name',
+						align: 'left'
+					},
+					{
+						text: 'Artist',
+						value: 'track.artists[0].name',
+						align: 'left'
+					},
+					{
+						text: 'When',
+						value: 'played_at',
+						align: 'left'
+					},
+				],
+				tracks: [],
+				when: [],
+			},
+			// Saved Tracks Data //
+			savedTracksData: {
+				headers: [
+					{
+						text: 'Art',
+						value: 'track.album.images[0].url',
+						align: 'left',
+						sortable: false
+					},
+					{
+						text: 'Title',
+						value: 'track.name',
+						align: 'left'
+					},
+					{
+						text: 'Album',
+						value: 'track.album.name',
+						align: 'left'
+					},
+					{
+						text: 'Artist',
+						value: 'track.artists[0].name',
+						align: 'left'
+					},
+				],
+				tracks: [],
+			},
+			// Top Tracks Data //
+			topTracksData: {
+				headers: [
+					{
+						text: 'Art',
+						value: 'album.images[0].url',
+						align: 'left',
+						sortable: false
+					},
+					{
+						text: 'Title',
+						value: 'name',
+						align: 'left'
+					},
+					{
+						text: 'Album',
+						value: 'album.name',
+						align: 'left'
+					},
+					{
+						text: 'Artist',
+						value: 'artists[0].name',
+						align: 'left'
+					},
+				],
+				tracks: [],
+			},
+			// Top Artists Data //
+			topArtistsData: {
+				headers: [
+					{
+						text: 'Art',
+						value: 'images[0].url',
+						align: 'left',
+						sortable: false
+					},
+					{
+						text: 'Name',
+						value: 'name',
+						align: 'left'
+					},
+					{
+						text: 'Popularity',
+						value: 'popularity',
+						align: 'left'
+					},
+					{
+						text: 'Followers',
+						value: 'followers.total',
+						align: 'left'
+					},
+				],
+				artists: [],
+			},
 			// TODO: Playback Data
 		}
 	},
 	watch: {
-		// Watching selectedModule variable to only trigger necessary functions
-		'selectedModule' : function(val){
-			switch (val) {
-				case "followedArtists" :
-					console.log("Selected: Followed Artists Module");
-					this.getFollowedArtists();
-					break
-				case "userPlaylists" :
-					console.log("Selected: User Playlists Module");
-					this.getUserPlaylists();
-					break
-				case "recommendationGenerator" :
-					console.log("Selected: Recommender Module");
-					this.getFollowedArtists();
-					break
+		// Watcher is monitoring xModuleSelected functions from computed
+		// If the user chooses a different module, it runs any function required
+		// (Implemented to try to cut down on CPU & RAM usage)
+		userPlaylistSelected : function(selected){
+			if(selected){
+				console.log("userPlaylistSelected")
+				this.getUserPlaylists()
+			} else {
+				console.log("userPlaylistUnselected")
 			}
-		}
+		},
+		savedTracksSelected : function(selected){
+			if(selected){
+				console.log("savedTracksSelected")
+				this.getSavedTracks()
+			} else {
+				console.log("savedTracksUnselected")
+			}
+		},
+		topTracksSelected : function(selected){
+			if(selected){
+				console.log("topTracksSelected")
+				this.getTopTracks()
+			} else {
+				console.log("topTracksUnselected")
+			}
+		},
+		recentlyPlayedSelected : function(selected){
+			if(selected){
+				console.log("recentlyPlayedSelected")
+				this.getRecentlyPlayed()
+			} else {
+				console.log("recentlyPlayedUnselected")
+			}
+		},
+		followedArtistsSelected : function(selected){
+			if(selected){
+				console.log("followedArtistsSelected")
+				this.getFollowedArtists()
+			} else {
+				console.log("followedArtistsUnselected")
+			}
+		},
+		topArtistsSelected : function(selected){
+			if(selected){
+				console.log("topArtistsSelected")
+				this.getTopArtists()
+			} else {
+				console.log("topArtistsUnselected")
+			}
+		},
+		recommendationGeneratorSelected : function(selected){
+			if(selected){
+				console.log("recommendationGeneratorSelected")
+				this.getSpotifyGenres()
+			} else {
+				console.log("recommendationGeneratorUnselected")
+			}
+		},
 	},
 	computed: {
 		// Map loggedIn status & errors from Vuex store
 		...mapState(['loggedIn', 'errors']),
+
+		// Check currently selected modules & return a boolean
+		// Each returns true if module is selected, false if not
+		userPlaylistSelected() {
+			return this.selectedModulesHas('userPlaylists')
+		},
+		savedTracksSelected() {
+			return this.selectedModulesHas('savedTracks')
+		},
+		topTracksSelected() {
+			return this.selectedModulesHas('topTracks')
+		},
+		recentlyPlayedSelected() {
+			return this.selectedModulesHas('recentlyPlayed')
+		},
+		followedArtistsSelected() {
+			return this.selectedModulesHas('followedArtists')
+		},
+		topArtistsSelected() {
+			return this.selectedModulesHas('topArtists')
+		},
+		recommendationGeneratorSelected() {
+			return this.selectedModulesHas('recommendationGenerator')
+		},
+
+		// Filter out modules from module select which are already selected
+		availableModules () {
+			return this.modules.filter(key =>
+				key.value !== this.moduleContainers[0].selectedModule
+				&&
+				key.value !== this.moduleContainers[1].selectedModule
+				&&
+				key.value !== this.moduleContainers[2].selectedModule
+				&&
+				key.value !== this.moduleContainers[3].selectedModule
+			)
+		},
+		// Opposite of above
+		selectedModules () {
+			return this.modules.filter(key =>
+				key.value === this.moduleContainers[0].selectedModule
+				||
+				key.value === this.moduleContainers[1].selectedModule
+				||
+				key.value === this.moduleContainers[2].selectedModule
+				||
+				key.value === this.moduleContainers[3].selectedModule
+			)
+		},
 
 		// Data Iterator Computed Methods //
 		numberOfFollowedArtistPages () {
@@ -1541,6 +2092,10 @@ export default {
 		this.getUserPlaylists()
 		this.getSpotifyGenres()
 		this.getUserData()
+		this.getRecentlyPlayed()
+		this.getSavedTracks()
+		this.getTopTracks()
+		this.getTopArtists()
 	},
 	created() {
 		// When an axios request is made, intercept it and:
@@ -1581,6 +2136,25 @@ export default {
 				console.log("No no no.. Nice try though! 😉")
 				router.push('/')
 			}
+		},
+		selectedModulesHas(moduleType){
+
+			// TESTING LOGIC (using .includes) //
+			// for each module in filtered array of selected modules
+			// this.selectedModules.forEach((module, index) => {
+			// 	// log if the value parameter includes passed moduleType
+			// 	console.log(index, `includes ${moduleType}?..`, module.value.includes(moduleType))
+			// })
+
+			// SAVIOUR LOGIC (using .some)
+			// const defining what some checks against
+			// in this case, whether the value parameter === passed moduleType
+			const hasType = (item) => item.value === `${moduleType}`
+			// logging during testing
+			// console.log(`some ${moduleType}?..`, this.selectedModules.some(hasType))
+			// returns true if one of the selected modules matches moduleType
+			// returns false if not
+			return this.selectedModules.some(hasType)
 		},
 		// Loading status method
 		setLoading(isLoading) {
@@ -1701,6 +2275,10 @@ export default {
 							this.getUserPlaylists()
 							this.getSpotifyGenres()
 							this.getUserData()
+							this.getRecentlyPlayed()
+							this.getSavedTracks()
+							this.getTopTracks()
+							this.getTopArtists()
 						}
 					)
 					.catch(error => {
@@ -1739,98 +2317,94 @@ export default {
 		},
 		// Function for getting user's followed artists
 		getFollowedArtists(){
-			if(this.selectedModule==="followedArtists" || this.selectedModule === "recommendationGenerator") {
-				// If user is logged-in
-				if (this.spotifyLoggedIn) {
-					let token = localStorage.getItem('spotify_access_token')
-					let spotifyBaseURL = 'https://api.spotify.com/v1'
-					axios
-						// GET request for followed artists, with the maximum limit of 50 set
-						.get(`${spotifyBaseURL}/me/following?type=artist&limit=50`,
-							{
-								headers: {
-									"Authorization": `Bearer ${token}`
-								}
-							})
-						.then(response => {
-								// Log response
-								console.log("getFollowedArtists() response: ", response.data.artists.items)
-								// Assign followedArtists to response.artists.items (followed artist array)
-								this.followedArtistsData.followedArtists = response.data.artists.items
+			// If user is logged-in
+			if (this.spotifyLoggedIn && this.followedArtistsSelected) {
+				let token = localStorage.getItem('spotify_access_token')
+				let spotifyBaseURL = 'https://api.spotify.com/v1'
+				axios
+					// GET request for followed artists, with the maximum limit of 50 set
+					.get(`${spotifyBaseURL}/me/following?type=artist&limit=50`,
+						{
+							headers: {
+								"Authorization": `Bearer ${token}`
 							}
-						)
-						.catch(error => {
-							// Log errors
-							console.log("getFollowedArtists() error caught: ", error)
-							console.log("getFollowedArtists() error message: ", error.message)
-							// Assign spotifyStatusMessage string to the value of error.message
-							this.spotifyStatusMessage = error.message
 						})
-				}
+					.then(response => {
+							// Log response
+							console.log("getFollowedArtists() response: ", response.data.artists.items)
+							// Assign followedArtists to response.artists.items (followed artist array)
+							this.followedArtistsData.followedArtists = response.data.artists.items
+						}
+					)
+					.catch(error => {
+						// Log errors
+						console.log("getFollowedArtists() error caught: ", error)
+						console.log("getFollowedArtists() error message: ", error.message)
+						// Assign spotifyStatusMessage string to the value of error.message
+						this.spotifyStatusMessage = error.message
+					})
 			}
 		},
 		// Function for getting user's saved playlists
 		getUserPlaylists(selectedPlaylist) {
-			if(this.selectedModule==="userPlaylists") {
-				let token = localStorage.getItem('spotify_access_token')
-				let userID = localStorage.getItem('spotify_user_id')
-				let spotifyBaseURL = 'https://api.spotify.com/v1'
-				if (this.spotifyLoggedIn) {
-					if (userID !== null && userID !== "") {
-						// If no playlist was selected (ie we want list of playlists)
-						if (!selectedPlaylist) {
-							this.currentSpotifyPlaylist = null
-							axios
-								// GET request using user's ID
-								.get(`${spotifyBaseURL}/users/${userID}/playlists?limit=50`,
-									{
-										headers: {
-											"Authorization": `Bearer ${token}`
-										}
-									})
-								.then(response => {
-										// Log response
-										console.log("getUserPlaylists() response: ", response.data)
-										// Assign playlistTableItems to response.data.items (playlist array)
-										this.playlistTable[0].Items = response.data.items
+			let token = localStorage.getItem('spotify_access_token')
+			let userID = localStorage.getItem('spotify_user_id')
+			let spotifyBaseURL = 'https://api.spotify.com/v1'
+			if (this.spotifyLoggedIn && this.userPlaylistSelected) {
+				if (userID !== null && userID !== "") {
+					// If no playlist was selected (ie we want list of playlists)
+					if (!selectedPlaylist) {
+						this.currentSpotifyPlaylist = null
+						axios
+							// GET request using user's ID
+							.get(`${spotifyBaseURL}/users/${userID}/playlists?limit=50`,
+								{
+									headers: {
+										"Authorization": `Bearer ${token}`
 									}
-								)
-								.catch(error => {
-									// Log error
-									console.log("getUserPlaylists() error caught: ", error)
-									console.log("getUserPlaylists() error message: ", error.message)
-									// Assign spotifyStatusMessage string to the value of error.message
-									this.spotifyStatusMessage = error.message
 								})
-						}
-						// If a playlist was selected (ie we want list of tracks inside playlist)
-						if (selectedPlaylist) {
-							// console.log(`getUserPlaylists(${selectedPlaylist.id}): '${selectedPlaylist.name}' executed.`)
-							this.currentSpotifyPlaylist = selectedPlaylist
-							axios
-								.get(`${spotifyBaseURL}/playlists/${selectedPlaylist.id}/tracks`,
-									{
-										headers: {
-											"Authorization": `Bearer ${token}`
-										}
-									})
-								.then(response => {
-										console.log("getUserPlaylistTracks() response: ", response.data)
-										// If we get a response, assign the second layer of playlistTable to it
-										this.playlistTable[1].Items = response.data.items
-										// Increment playlistLayer so the vuetify table changes too
-										this.playlistLayer++
-									}
-								)
-								.catch(error => {
-									console.log("error caught: ", error)
-									console.log("error message: ", error.message)
-									this.spotifyStatusMessage = error.message
-								})
-						}
-					} else {
-						this.spotifyStatusMessage = "No user ID found.. Refresh?"
+							.then(response => {
+									// Log response
+									console.log("getUserPlaylists() response: ", response.data)
+									// Assign playlistTableItems to response.data.items (playlist array)
+									this.playlistTable[0].Items = response.data.items
+								}
+							)
+							.catch(error => {
+								// Log error
+								console.log("getUserPlaylists() error caught: ", error)
+								console.log("getUserPlaylists() error message: ", error.message)
+								// Assign spotifyStatusMessage string to the value of error.message
+								this.spotifyStatusMessage = error.message
+							})
 					}
+					// If a playlist was selected (ie we want list of tracks inside playlist)
+					if (selectedPlaylist) {
+						// console.log(`getUserPlaylists(${selectedPlaylist.id}): '${selectedPlaylist.name}' executed.`)
+						this.currentSpotifyPlaylist = selectedPlaylist
+						axios
+							.get(`${spotifyBaseURL}/playlists/${selectedPlaylist.id}/tracks`,
+								{
+									headers: {
+										"Authorization": `Bearer ${token}`
+									}
+								})
+							.then(response => {
+									console.log("getUserPlaylistTracks() response: ", response.data)
+									// If we get a response, assign the second layer of playlistTable to it
+									this.playlistTable[1].Items = response.data.items
+									// Increment playlistLayer so the vuetify table changes too
+									this.playlistLayer++
+								}
+							)
+							.catch(error => {
+								console.log("error caught: ", error)
+								console.log("error message: ", error.message)
+								this.spotifyStatusMessage = error.message
+							})
+					}
+				} else {
+					this.spotifyStatusMessage = "No user ID found.. Refresh?"
 				}
 			}
 		},
@@ -1963,7 +2537,7 @@ export default {
 		// Function for getting available genre seeds
 		getSpotifyGenres(){
 			// If user is logged-in
-			if (this.spotifyLoggedIn) {
+			if (this.spotifyLoggedIn && this.recommendationGeneratorSelected) {
 				let token = localStorage.getItem('spotify_access_token')
 				let spotifyBaseURL = 'https://api.spotify.com/v1'
 				axios
@@ -2059,146 +2633,143 @@ export default {
 		},
 		// Function for generating recommendations
 		generateRecommendations(formData){
-			if(this.selectedModule==="recommendationGenerator") {
+			// filter sliderParameter array by enabled sliders only (inserts into enabledSliders array)
+			let enabledSliders = formData.optionalParams.sliderParams.filter(slider => slider.enabled !== false)
 
-				// filter sliderParameter array by enabled sliders only (inserts into enabledSliders array)
-				let enabledSliders = formData.optionalParams.sliderParams.filter(slider => slider.enabled !== false)
+			// lots of logging for testing purposes
+			console.log("Enabled sliders: ", enabledSliders)
+			// console.log("Query Output:")
+			// console.log(`?limit=${formData.optionalParams.limitSelected}`)
+			// console.log(`&seed_artists=${formData.requiredParams.seed_artists}`)
+			// console.log(`&seed_genres=${formData.requiredParams.seed_genres}`)
+			// enabledSliders.forEach(slider =>
+			// 	console.log(`&${slider.type}_${slider.param}=${slider.value}`)
+			// )
 
-				// lots of logging for testing purposes
-				console.log("Enabled sliders: ", enabledSliders)
-				// console.log("Query Output:")
-				// console.log(`?limit=${formData.optionalParams.limitSelected}`)
-				// console.log(`&seed_artists=${formData.requiredParams.seed_artists}`)
-				// console.log(`&seed_genres=${formData.requiredParams.seed_genres}`)
-				// enabledSliders.forEach(slider =>
-				// 	console.log(`&${slider.type}_${slider.param}=${slider.value}`)
-				// )
+			// if required parameters are empty on arrival...
+			if (!this.recommendationsRequired) {
+				console.log("Required params not filled!")
+				this.spotifyStatusMessage = "You must pick one of the required parameters before we can generate any recommendations!"
+			} else {
+				// else if required parameters were passed...
+				console.log("Required params filled! Executing request...")
+				let token = localStorage.getItem('spotify_access_token')
+				let spotifyBaseURL = 'https://api.spotify.com/v1'
 
-				// if required parameters are empty on arrival...
-				if (!this.recommendationsRequired) {
-					console.log("Required params not filled!")
-					this.spotifyStatusMessage = "You must pick one of the required parameters before we can generate any recommendations!"
-				} else {
-					// else if required parameters were passed...
-					console.log("Required params filled! Executing request...")
-					let token = localStorage.getItem('spotify_access_token')
-					let spotifyBaseURL = 'https://api.spotify.com/v1'
+				// Required Params //
 
-					// Required Params //
+				// '?limit=x' starts off the recommendation URL queries (although it is optional)
+				let limit = `?limit=${formData.optionalParams.limitSelected}`
 
-					// '?limit=x' starts off the recommendation URL queries (although it is optional)
-					let limit = `?limit=${formData.optionalParams.limitSelected}`
+				// '&market=x' specifies the target market for recommendations.
+				// While technically optional, without this set, some tracks will be unplayable.
+				let market = `&market=${this.spotifyUserData.country}`
 
-					// '&market=x' specifies the target market for recommendations.
-					// While technically optional, without this set, some tracks will be unplayable.
-					let market = `&market=${this.spotifyUserData.country}`
+				// Artist seed
+				// initialising as blank
+				let artist = ""
+				// if the user provided something in the artist field...
+				if(formData.requiredParams.seed_artists){
+					// ...assign artist the value of '&seed_artists=<data>'
+					artist = `&seed_artists=${formData.requiredParams.seed_artists}`
+				}
 
-					// Artist seed
-					// initialising as blank
-					let artist = ""
-					// if the user provided something in the artist field...
-					if(formData.requiredParams.seed_artists){
-						// ...assign artist the value of '&seed_artists=<data>'
-						artist = `&seed_artists=${formData.requiredParams.seed_artists}`
-					}
+				// Genre seed
+				// initialising as blank
+				let genre = ""
+				// if the user provided something in the genre field...
+				if(formData.requiredParams.seed_genres){
+					// ...assign genre the value of '&seed_genres=<data>'
+					genre = `&seed_genres=${formData.requiredParams.seed_genres}`
+				}
 
-					// Genre seed
-					// initialising as blank
-					let genre = ""
-					// if the user provided something in the genre field...
-					if(formData.requiredParams.seed_genres){
-						// ...assign genre the value of '&seed_genres=<data>'
-						genre = `&seed_genres=${formData.requiredParams.seed_genres}`
-					}
+				// Track seed
+				// initialising as blank
+				let track = ""
+				// if the user provided something in the track field...
+				if(formData.requiredParams.seed_tracks){
+					// ...assign track the value of '&seed_tracks=<data>'
+					track = `&seed_tracks=${formData.requiredParams.seed_tracks}`
+				}
 
-					// Track seed
-					// initialising as blank
-					let track = ""
-					// if the user provided something in the track field...
-					if(formData.requiredParams.seed_tracks){
-						// ...assign track the value of '&seed_tracks=<data>'
-						track = `&seed_tracks=${formData.requiredParams.seed_tracks}`
-					}
+				// Optional Params //
+				// initialising sliderQueries as a String
+				let sliderQueries = ""
+				// for each enabled slider, format as '&type_param=value'
+				// then on each loop, auto-increment (concatenate)
+				// this gives us our desired '&type_param=value&type_param=value...' chain
+				enabledSliders.forEach(slider => (sliderQueries += `&${slider.type}_${slider.param}=${slider.value}`))
+				// if duration slider is enabled, concatenate sliderQueries with milliseconds
+				if (formData.optionalParams.specialSliders[0].enabled) {
+					let durationSlider = formData.optionalParams.specialSliders[0]
+					let type = durationSlider.type
+					let value = this.timeDoctor(durationSlider.value)
+					sliderQueries += `&${type}_duration_ms=${value}`
+				}
 
-					// Optional Params //
-					// initialising sliderQueries as a String
-					let sliderQueries = ""
-					// for each enabled slider, format as '&type_param=value'
-					// then on each loop, auto-increment (concatenate)
-					// this gives us our desired '&type_param=value&type_param=value...' chain
-					enabledSliders.forEach(slider => (sliderQueries += `&${slider.type}_${slider.param}=${slider.value}`))
-					// if duration slider is enabled, concatenate sliderQueries with milliseconds
-					if (formData.optionalParams.specialSliders[0].enabled) {
-						let durationSlider = formData.optionalParams.specialSliders[0]
-						let type = durationSlider.type
-						let value = this.timeDoctor(durationSlider.value)
-						sliderQueries += `&${type}_duration_ms=${value}`
-					}
+				// // log sliderQueries for testing purposes
+				// if (sliderQueries !== "") {
+				// 	console.log(sliderQueries)
+				// }
 
-					// // log sliderQueries for testing purposes
-					// if (sliderQueries !== "") {
-					// 	console.log(sliderQueries)
-					// }
+				// logging the URL to be used in the GET request
+				console.log(`Built URL: ${spotifyBaseURL}/recommendations${limit}${market}${artist}${genre}${track}${sliderQueries}`)
 
-					// logging the URL to be used in the GET request
-					console.log(`Built URL: ${spotifyBaseURL}/recommendations${limit}${market}${artist}${genre}${track}${sliderQueries}`)
-
-					// The HTTP Request //
-					// finally, make axios GET request using limit, artist, and sliderQueries variables
-					axios
-						.get(`${spotifyBaseURL}/recommendations${limit}${market}${artist}${track}${genre}${sliderQueries}`,
-							{
-								headers: {
-									"Authorization": `Bearer ${token}`
+				// The HTTP Request //
+				// finally, make axios GET request using limit, artist, and sliderQueries variables
+				axios
+					.get(`${spotifyBaseURL}/recommendations${limit}${market}${artist}${track}${genre}${sliderQueries}`,
+						{
+							headers: {
+								"Authorization": `Bearer ${token}`
+							}
+						})
+					.then(response => {
+							console.log("generateRecommendations() response: ", response.data)
+							// assign recommendationData.response variable to response.tracks array
+							this.recommendationData.response = response.data.tracks
+							// assign recommendationData.seeds variable to response.seeds array
+							this.recommendationData.seeds = response.data.seeds
+							// get name of artist/track seeds if used
+							response.data.seeds.forEach(seed => {
+								if(seed.type === "ARTIST"){
+									axios
+										.get(seed.href,{ headers: {"Authorization": `Bearer ${token}`}})
+										.then(response=>{
+											console.log("Artist seed name:", response.data.name)
+											this.recommendationData.artistSeed = `${response.data.name} [artist]`
+										})
+										.catch(error =>{console.log(error)})
+								}
+								if(seed.type === "TRACK"){
+									axios
+										.get(seed.href,{ headers: {"Authorization": `Bearer ${token}`}})
+										.then(response=>{
+											console.log("Track seed name:", response.data.name, "by", response.data.artists[0].name)
+											this.recommendationData.trackSeed = `${response.data.name} by ${response.data.artists[0].name} [track]`
+										})
+										.catch(error =>{console.log(error)})
+								}
+								if(seed.type === "GENRE"){
+									this.recommendationData.genreSeed = `${seed.id} [genre]`
 								}
 							})
-						.then(response => {
-								console.log("generateRecommendations() response: ", response.data)
-								// assign recommendationData.response variable to response.tracks array
-								this.recommendationData.response = response.data.tracks
-								// assign recommendationData.seeds variable to response.seeds array
-								this.recommendationData.seeds = response.data.seeds
-								// get name of artist/track seeds if used
-								response.data.seeds.forEach(seed => {
-									if(seed.type === "ARTIST"){
-										axios
-											.get(seed.href,{ headers: {"Authorization": `Bearer ${token}`}})
-											.then(response=>{
-												console.log("Artist seed name:", response.data.name)
-												this.recommendationData.artistSeed = `${response.data.name} [artist]`
-											})
-											.catch(error =>{console.log(error)})
-									}
-									if(seed.type === "TRACK"){
-										axios
-											.get(seed.href,{ headers: {"Authorization": `Bearer ${token}`}})
-											.then(response=>{
-												console.log("Track seed name:", response.data.name, "by", response.data.artists[0].name)
-												this.recommendationData.trackSeed = `${response.data.name} by ${response.data.artists[0].name} [track]`
-											})
-											.catch(error =>{console.log(error)})
-									}
-									if(seed.type === "GENRE"){
-										this.recommendationData.genreSeed = `${seed.id} [genre]`
-									}
-								})
-								this.recommendationData.response.forEach(track => {
-									track.isPlaying = false
-								})
-								// tell the user if recommendations were found or not
-								if(this.recommendationData.response.length===0){
-									this.spotifyStatusMessage = "No recommendations found! :("
-								} else {
-									this.spotifyStatusMessage = "Recommendations found!"
-								}
+							this.recommendationData.response.forEach(track => {
+								track.isPlaying = false
+							})
+							// tell the user if recommendations were found or not
+							if(this.recommendationData.response.length===0){
+								this.spotifyStatusMessage = "No recommendations found! :("
+							} else {
+								this.spotifyStatusMessage = "Recommendations found!"
 							}
-						)
-						.catch(error => {
-							console.log("generateRecommendations() error caught: ", error)
-							// Assign spotifyStatusMessage string to the value of error message
-							this.spotifyStatusMessage = error.response.data.error.message
-						})
-				}
+						}
+					)
+					.catch(error => {
+						console.log("generateRecommendations() error caught: ", error)
+						// Assign spotifyStatusMessage string to the value of error message
+						this.spotifyStatusMessage = error.response.data.error.message
+					})
 			}
 		},
 		// durationCalculator
@@ -2353,7 +2924,99 @@ export default {
 						this.spotifyStatusMessage = error.response.data.error.message
 					}
 				)
-		}
+		},
+		getRecentlyPlayed(){
+			if (this.spotifyLoggedIn && this.recentlyPlayedSelected) {
+				let token = localStorage.getItem('spotify_access_token')
+				let spotifyBaseURL = 'https://api.spotify.com/v1'
+				axios
+					.get(`${spotifyBaseURL}/me/player/recently-played?limit=50`,
+						{
+							headers: {
+								"Authorization": `Bearer ${token}`
+							}
+						})
+					.then(response => {
+							console.log("getRecentlyPlayed() response: ", response.data)
+							this.recentlyPlayedData.tracks = response.data.items
+						}
+					)
+					.catch(error => {
+						console.log("getRecentlyPlayed() error caught: ", error)
+						console.log("getRecentlyPlayed() error message: ", error.message)
+						this.spotifyStatusMessage = error.message
+					})
+			}
+		},
+		getSavedTracks(){
+			if (this.spotifyLoggedIn && this.savedTracksSelected) {
+				let token = localStorage.getItem('spotify_access_token')
+				let spotifyBaseURL = 'https://api.spotify.com/v1'
+				axios
+					.get(`${spotifyBaseURL}/me/tracks?limit=50`,
+						{
+							headers: {
+								"Authorization": `Bearer ${token}`
+							}
+						})
+					.then(response => {
+							console.log("getSavedTracks() response: ", response.data)
+							this.savedTracksData.tracks = response.data.items
+						}
+					)
+					.catch(error => {
+						console.log("getSavedTracks() error caught: ", error)
+						console.log("getSavedTracks() error message: ", error.message)
+						this.spotifyStatusMessage = error.message
+					})
+			}
+		},
+		getTopTracks(){
+			if (this.spotifyLoggedIn && this.topTracksSelected) {
+				let token = localStorage.getItem('spotify_access_token')
+				let spotifyBaseURL = 'https://api.spotify.com/v1'
+				axios
+					.get(`${spotifyBaseURL}/me/top/tracks?limit=50`,
+						{
+							headers: {
+								"Authorization": `Bearer ${token}`
+							}
+						})
+					.then(response => {
+							console.log("getTopTracks() response: ", response.data)
+							this.topTracksData.tracks = response.data.items
+						}
+					)
+					.catch(error => {
+						console.log("getTopTracks() error caught: ", error)
+						console.log("getTopTracks() error message: ", error.message)
+						this.spotifyStatusMessage = error.message
+					})
+			}
+		},
+		getTopArtists(){
+			if (this.spotifyLoggedIn && this.topArtistsSelected) {
+				let token = localStorage.getItem('spotify_access_token')
+				let spotifyBaseURL = 'https://api.spotify.com/v1'
+				axios
+					.get(`${spotifyBaseURL}/me/top/artists?limit=50`,
+						{
+							headers: {
+								"Authorization": `Bearer ${token}`
+							}
+						})
+					.then(response => {
+							console.log("getTopArtists() response: ", response.data)
+							this.topArtistsData.artists = response.data.items
+						}
+					)
+					.catch(error => {
+						console.log("getTopArtists() error caught: ", error)
+						console.log("getTopArtists() error message: ", error.message)
+						this.spotifyStatusMessage = error.message
+					})
+			}
+		},
 	}
 }
 </script>
@@ -2391,7 +3054,7 @@ export default {
 	position: absolute;
 	width: 32px;
 	height: 32px;
-	background-color: var(--v-accent);
+	background-color: purple;
 	animation: lds-heart 1.2s infinite cubic-bezier(0.215, 0.61, 0.355, 1);
 }
 .lds-heart div:after,
@@ -2401,7 +3064,7 @@ export default {
 	display: block;
 	width: 32px;
 	height: 32px;
-	background-color: var(--v-accent);
+	background-color: purple;
 }
 .lds-heart div:before {
 	left: -24px;
