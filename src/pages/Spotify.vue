@@ -1,41 +1,6 @@
 <template>
 	<v-container :style="cssProps" fluid>
 
-		<v-container v-if="sampleTableEnabled">
-			<v-simple-table>
-				<template v-slot:default>
-					<thead>
-					<tr>
-						<th class="text-left">
-							Endpoint
-						</th>
-						<th class="text-left">
-							Type
-						</th>
-						<th class="text-left">
-							Request
-						</th>
-						<th class="text-left">
-							Response
-						</th>
-					</tr>
-					</thead>
-					<tbody>
-					<tr
-						v-for="requestEntry in spotifySampleRequests"
-						:key="requestEntry.type"
-						style="text-align: left"
-					>
-						<td>{{ requestEntry.endpoint }}</td>
-						<td :style="`background-color:${requestEntry.color}`" style="text-align: center">{{ requestEntry.type }}</td>
-						<td>{{ requestEntry.request }}</td>
-						<td>{{ requestEntry.response }}</td>
-					</tr>
-					</tbody>
-				</template>
-			</v-simple-table>
-		</v-container>
-
 		<!-- Spotify Login Button	-->
 		<v-container>
 			<!--	If there is no token == You're not logged-in to Spotify	-->
@@ -74,7 +39,7 @@
 					</v-list-item-content>
 
 					<v-img
-						:src="userProfilePic()"
+						:src="userProfilePic"
 						color="grey"
 						max-height="80"
 						max-width="80"
@@ -108,22 +73,26 @@
 		</v-scale-transition>
 
 		<!-- Spotify Errors & Refresh Token Button -->
-		<div v-if="spotifyStatusMessage">
+		<div v-if="spotifyStatusMessage && spotifyLoggedIn">
 			<h4 style="
 				color: deeppink;
 				background-color: #333;
 				font-family: 'Courier New',
 				monospace;
-			">{{
-					spotifyStatusMessage
-				}}</h4>
-			<v-btn v-on:click="refreshSpotifyToken()">
-				<v-icon>mdi-spotify</v-icon> Refresh Token
+			">
+				{{ spotifyStatusMessage }}
+			</h4>
+			<v-btn
+				v-if="spotifyStatusMessage==='Request failed with status code 401'"
+				v-on:click="refreshSpotifyToken()"
+			>
+				<v-icon>mdi-spotify</v-icon>
+				Refresh Token
 			</v-btn>
 		</div>
 
 		<!-- Loader (shows when API request is loading) -->
-		<div v-if="isLoading">
+		<div v-if="isLoading && spotifyLoggedIn">
 			<div class="lds-heart"><div></div></div>
 			<div>Loading... ({{refCount}})</div>
 		</div>
@@ -155,12 +124,12 @@
 									Followed Artists
 								</v-card-title>
 								<v-data-iterator
-									:items="followedArtists"
-									:items-per-page.sync="followedArtistsPerPage"
-									:page.sync="followedArtistPage"
-									:search="followedArtistSearch"
-									:sort-by="followedArtistSortBy.toLowerCase()"
-									:sort-desc="followedArtistSortDesc"
+									:items="followedArtistsData.followedArtists"
+									:items-per-page.sync="followedArtistsData.followedArtistsPerPage"
+									:page.sync="followedArtistsData.followedArtistPage"
+									:search="followedArtistsData.followedArtistSearch"
+									:sort-by="followedArtistsData.followedArtistSortBy.toLowerCase()"
+									:sort-desc="followedArtistsData.followedArtistSortDesc"
 									class="pa-4"
 									hide-default-footer
 								>
@@ -171,7 +140,7 @@
 											dark
 										>
 											<v-text-field
-												v-model="followedArtistSearch"
+												v-model="followedArtistsData.followedArtistSearch"
 												clearable
 												flat
 												hide-details
@@ -182,17 +151,19 @@
 											<template v-if="$vuetify.breakpoint.mdAndUp">
 												<v-spacer></v-spacer>
 												<v-select
-													v-model="followedArtistSortBy"
-													:items="followedArtistKeys"
+													v-model="followedArtistsData.followedArtistSortBy"
+													:items="followedArtistsData.followedArtistKeys"
 													flat
 													hide-details
+													item-text="text"
+													item-value="value"
 													label="Sort by"
 													prepend-inner-icon="mdi-magnify"
 													solo-inverted
 												></v-select>
 												<v-spacer></v-spacer>
 												<v-btn-toggle
-													v-model="followedArtistSortDesc"
+													v-model="followedArtistsData.followedArtistSortDesc"
 													mandatory
 												>
 													<v-btn
@@ -228,7 +199,7 @@
 												sm="6"
 											>
 												<v-card>
-													<v-card-title class="subheading font-weight-bold">
+													<v-card-title class="subheading">
 														{{ followedArtist.name }}
 													</v-card-title>
 													<!-- Artist Artwork (Links to artist page on Spotify) -->
@@ -243,18 +214,26 @@
 													<v-divider></v-divider>
 
 													<v-list dense>
-														<v-list-item
-															v-for="(key, followedArtist) in followedArtistFilteredKeys"
-															:key="followedArtist"
-														>
-															<v-list-item-content :class="{ 'purple--text': followedArtistSortBy === key }">
-																{{ key }}:
+														<v-list-item>
+															<v-list-item-content :class="{ 'purple--text': followedArtistsData.followedArtistSortBy === 'popularity' }">
+																Popularity:
 															</v-list-item-content>
 															<v-list-item-content
-																:class="{ 'purple--text': followedArtistSortBy === key }"
-																class="align-end"
+																:class="{ 'purple--text': followedArtistsData.followedArtistSortBy === 'popularity' }"
+																class="justify-end"
 															>
-																{{ followedArtist[key.toLowerCase()] }}
+																{{ followedArtist.popularity }}
+															</v-list-item-content>
+														</v-list-item>
+														<v-list-item>
+															<v-list-item-content :class="{ 'purple--text': followedArtistsData.followedArtistSortBy === 'followers.total' }">
+																Followers:
+															</v-list-item-content>
+															<v-list-item-content
+																:class="{ 'purple--text': followedArtistsData.followedArtistSortBy === 'followers.total' }"
+																class="justify-end"
+															>
+																{{ followedArtist.followers.total }}
 															</v-list-item-content>
 														</v-list-item>
 													</v-list>
@@ -274,19 +253,19 @@
 												<template v-slot:activator="{ on, attrs }">
 													<v-btn
 														class="ml-2"
-														color="primary"
+														color="accent"
 														dark
 														text
 														v-bind="attrs"
 														v-on="on"
 													>
-														{{ followedArtistsPerPage }}
+														{{ followedArtistsData.followedArtistsPerPage }}
 														<v-icon>mdi-chevron-down</v-icon>
 													</v-btn>
 												</template>
 												<v-list>
 													<v-list-item
-														v-for="(number, followedArtist) in followedArtistsPerPageArray"
+														v-for="(number, followedArtist) in followedArtistsData.followedArtistsPerPageArray"
 														:key="followedArtist"
 														@click="updateFollowedArtistsPerPage(number)"
 													>
@@ -298,7 +277,7 @@
 											<v-spacer></v-spacer>
 
 											<span class="mr-4 grey--text">
-											Page {{ followedArtistPage }} of {{ numberOfFollowedArtistPages }}
+											Page {{ followedArtistsData.followedArtistPage }} of {{ numberOfFollowedArtistPages }}
 										</span>
 											<v-btn
 												class="mr-1"
@@ -592,7 +571,7 @@
 							>
 								<v-autocomplete
 									v-model="recommendationsForm.requiredParams.seed_artists"
-									:items="followedArtists"
+									:items="followedArtistsData.followedArtists"
 									clearable
 									color="accent"
 									item-text="name"
@@ -1045,9 +1024,9 @@
 // import axios from '../config/audiohaven.js'
 import router from "@/router";
 import axios from "axios";
+import {mapState} from "vuex";
 
 require('dotenv').config();
-
 
 export default {
 	name: "Spotify",
@@ -1059,52 +1038,10 @@ export default {
 		return{
 			// Environment Variables //
 			appBaseURL: process.env.VUE_APP_BASE_URL,
-			// Sample API Table Data //
-			sampleTableEnabled: false,
-			spotifySampleRequests: [
-				{
-					endpoint: 'N/A',
-					type: 'OAuth',
-					color: 'magenta',
-					request: 'http://localhost:3000/spotify/login',
-					response: '[URL] Access Token & Refresh Token',
-				},
-				{
-					endpoint: 'Create Playlist',
-					type: 'POST',
-					color: 'lime',
-					request: 'https://api.spotify.com/v1/users/1174214454/playlists',
-					response: '[JSON] New playlist details.',
-				},
-				{
-					endpoint: 'Get Playlist Items',
-					type: 'GET',
-					color: 'cyan',
-					request: 'https://api.spotify.com/v1/playlists/6ExDnRZ59C0NKPKW4YW54S/tracks',
-					response: "[JSON] Items from given playlist.",
-				},
-				{
-					endpoint: 'Add To Playlist',
-					type: 'POST',
-					color: 'lime',
-					request: 'https://api.spotify.com/v1/playlists/6ExDnRZ59C0NKPKW4YW54S/tracks',
-					response: '[JSON] Snapshot ID.',
-				},
-				{
-					endpoint: 'Update Playlist Items',
-					type: 'PUT',
-					color: 'orange',
-					request: 'https://api.spotify.com/v1/playlists/6ExDnRZ59C0NKPKW4YW54S/tracks',
-					response: '[JSON] Snapshot ID.',
-				},
-				{
-					endpoint: 'Remove Playlist Items',
-					type: 'DELETE',
-					color: 'red',
-					request: 'https://api.spotify.com/v1/playlists/6ExDnRZ59C0NKPKW4YW54S/tracks',
-					response: '[JSON] Snapshot ID.',
-				}
-			],
+			// Global Parameters //
+			refCount: 0,
+			isLoading: false,
+			overlay: false,
 			// Spotify Data //
 			spotifyLoggedIn: false,
 			spotifyStatusMessage: "",
@@ -1129,18 +1066,29 @@ export default {
 				},
 			],
 			// Followed Artists Data Iterator //
-			followedArtistsPerPageArray: [4, 8, 12],
-			followedArtistSearch: '',
-			followedArtistFilter: {},
-			followedArtistSortDesc: false,
-			followedArtistPage: 1,
-			followedArtistsPerPage: 4,
-			followedArtistSortBy: 'name',
-			followedArtistKeys: [
-				'Name',
-				'Popularity',
-			],
-			followedArtists: [],
+			followedArtistsData: {
+				followedArtistsPerPageArray: [4, 8, 12],
+				followedArtistSearch: '',
+				followedArtistFilter: {},
+				followedArtistSortDesc: false,
+				followedArtistPage: 1,
+				followedArtistsPerPage: 4,
+				followedArtistSortBy: 'name',
+				followedArtistKeys: [
+					{ text: 'Name',
+						value: 'name'
+					},
+					{
+						text: 'Popularity',
+						value: 'popularity'
+					},
+					{
+						text: 'Followers',
+						value: 'followers.total'
+					},
+				],
+				followedArtists: [],
+			},
 			// Playlist Data Table //
 			playlistLayer: 0,
 			playlistTable: [
@@ -1438,11 +1386,6 @@ export default {
 			recommendationData: {
 				headers: [
 					{
-						text: 'ID',
-						value: 'id',
-						align: ' d-none'
-					},
-					{
 						text: 'Art',
 						value: 'album.images[0].url',
 						align: 'left',
@@ -1473,9 +1416,6 @@ export default {
 			},
 			newPlaylistURL: "",
 			// TODO: Playback Data
-			refCount: 0,
-			isLoading: false,
-			overlay: false,
 		}
 	},
 	watch: {
@@ -1484,35 +1424,34 @@ export default {
 			switch (val) {
 				case "followedArtists" :
 					console.log("Selected: Followed Artists Module");
-					if(this.followedArtists.length===0){
-						console.log("No followed artists found! Trying again..")
-						this.getFollowedArtists();
-					}
+					this.getFollowedArtists();
 					break
 				case "userPlaylists" :
 					console.log("Selected: User Playlists Module");
-					if(this.playlistTable[0].Items.length === 0){
-						this.getUserPlaylists();
-					}
+					this.getUserPlaylists();
 					break
 				case "recommendationGenerator" :
 					console.log("Selected: Recommender Module");
-					if(this.followedArtists.length===0){
-						console.log("No followed artists found! Trying again..")
-						this.getFollowedArtists();
-					}
+					this.getFollowedArtists();
 					break
 			}
 		}
 	},
 	computed: {
+		// Map loggedIn status & errors from Vuex store
+		...mapState(['loggedIn', 'errors']),
+
 		// Data Iterator Computed Methods //
 		numberOfFollowedArtistPages () {
-			return Math.ceil(this.followedArtists.length / this.followedArtistsPerPage)
+			return Math.ceil(this.followedArtistsData.followedArtists.length / this.followedArtistsData.followedArtistsPerPage)
 		},
-		followedArtistFilteredKeys () {
-			return this.followedArtistKeys.filter(key => key !== 'Name')
-		},
+
+		// DISABLED: Awkward to get working with followers.total
+		// Made more sense to just 'hardcode' with only two other datasets (popularity/followers)
+		// followedArtistFilteredKeys () {
+		// 	return this.followedArtistsData.followedArtistKeys.filter(key => key.text !== 'Name')
+		// },
+
 		// making CSS color variables out of vuetify.js custom themes
 		cssProps() {
 			// create themeColors object
@@ -1573,9 +1512,19 @@ export default {
 				case 'xl': return true
 			}
 			return false
+		},
+		userProfilePic() {
+			// If user data failed to load, or if there is no image, return placeholder kitten
+			if(this.spotifyUserData.images === undefined || this.spotifyUserData.images.length === 0){
+				return "https://placekitten.com/80/80"
+				// Else return user's avatar
+			} else {
+				return this.spotifyUserData.images[0].url
+			}
 		}
 	},
 	mounted(){
+		this.checkAudiohavenLogin()
 		this.checkTokens()
 		this.checkSpotifyLogin()
 		this.getFollowedArtists()
@@ -1592,6 +1541,10 @@ export default {
 			return config;
 			// Otherwise:
 		}, (error) => {
+			// If user gets a 401, their access token likely expired- so refresh.
+			if (error.response.status === 401) {
+				this.refreshSpotifyToken()
+			}
 			// assign setLoading to false
 			this.setLoading(false);
 			// return a Promise Object with given reason
@@ -1603,16 +1556,20 @@ export default {
 			this.setLoading(false);
 			return response;
 		}, (error) => {
+			if (error.response.status === 401) {
+				this.refreshSpotifyToken()
+			}
 			this.setLoading(false);
 			return Promise.reject(error);
 		});
 	},
 	methods: {
-		userProfilePic() {
-			if(this.spotifyUserData.images === undefined){
-				return "https://placekitten.com/80/80"
-			} else {
-				return this.spotifyUserData.images[0].url
+		// Check if logged-in to Audiohaven
+		checkAudiohavenLogin(){
+			if(!this.loggedIn){
+				// If not logged in, tell the user off & send them back to root!
+				console.log("No no no.. Nice try though! 😉")
+				router.push('/')
 			}
 		},
 		// Loading status method
@@ -1643,13 +1600,13 @@ export default {
 
 		// Data Iterator Methods //
 		nextFollowedArtistPage () {
-			if (this.followedArtistPage + 1 <= this.numberOfFollowedArtistPages) this.followedArtistPage += 1
+			if (this.followedArtistsData.followedArtistPage + 1 <= this.numberOfFollowedArtistPages) this.followedArtistsData.followedArtistPage += 1
 		},
 		formerFollowedArtistPage () {
-			if (this.followedArtistPage - 1 >= 1) this.followedArtistPage -= 1
+			if (this.followedArtistsData.followedArtistPage - 1 >= 1) this.followedArtistsData.followedArtistPage -= 1
 		},
 		updateFollowedArtistsPerPage (number) {
-			this.followedArtistsPerPage = number
+			this.followedArtistsData.followedArtistsPerPage = number
 		},
 
 		// Data Table Methods //
@@ -1675,9 +1632,9 @@ export default {
 				let access_token = this.$route.query.access_token
 				let refresh_token = this.$route.query.refresh_token
 				// Log tokens
-				console.log("Tokens received through redirect URL:")
-				console.log("Access Token", access_token)
-				console.log("Refresh Token", refresh_token)
+				console.log("Tokens received through redirect URL!")
+				// console.log("Access Token", access_token)
+				// console.log("Refresh Token", refresh_token)
 				// Store tokens in localStorage
 				localStorage.setItem("spotify_access_token", access_token)
 				localStorage.setItem("spotify_refresh_token", refresh_token)
@@ -1706,64 +1663,69 @@ export default {
 		},
 		removeSpotifyToken(){
 			// DEV FUNCTION //
+			// TODO: Deactivate this & the button when no longer needed
 			// Remove access token
 			localStorage.setItem("spotify_access_token", "INVALID_TOKEN")
-			// Push "/spotify" to URL (to remove tokens if present)
-			router.push("/spotify")
 			// Go to current location (to refresh/reload page)
 			router.go(0)
 		},
 		refreshSpotifyToken(){
-			let baseUrl = this.appBaseURL
-			let refresh_token = localStorage.getItem('spotify_refresh_token')
-			axios
-				.get(`${baseUrl}/spotify/refresh_token?refresh_token=${refresh_token}`,{
-					headers: {
-						"Content-Type" : 'application/x-www-form-urlencoded'
-					}
-				})
-				.then(response => {
-						// Log response
-						console.log("refreshSpotifyToken() response: ", response.data)
-						// Assign local storage access token to new access token
-						localStorage.setItem("spotify_access_token", response.data.access_token)
-						// Clear spotifyStatusMessage message
-						this.spotifyStatusMessage = ""
-						// Re-run anything that would have failed with an expired token
-						this.getFollowedArtists()
-						this.getUserPlaylists()
-					}
-				)
-				.catch(error => {
-					console.log("refreshSpotifyToken() error caught: ", error)
-					console.log("refreshSpotifyToken() error message: ", error.message)
-					this.spotifyStatusMessage = error.message
-				})
+			if(this.spotifyLoggedIn) {
+				let baseUrl = this.appBaseURL
+				let refresh_token = localStorage.getItem('spotify_refresh_token')
+				axios
+					.get(`${baseUrl}/spotify/refresh_token?refresh_token=${refresh_token}`, {
+						headers: {
+							"Content-Type": 'application/x-www-form-urlencoded'
+						}
+					})
+					.then(response => {
+							// Log response
+							console.log("refreshSpotifyToken() response: ", response.data)
+							// Assign local storage access token to new access token
+							localStorage.setItem("spotify_access_token", response.data.access_token)
+							// Clear spotifyStatusMessage message
+							this.spotifyStatusMessage = ""
+							// Re-run anything that would have failed with an expired token
+							this.getFollowedArtists()
+							this.getUserPlaylists()
+							this.getSpotifyGenres()
+							this.getUserData()
+						}
+					)
+					.catch(error => {
+						console.log("refreshSpotifyToken() error caught: ", error)
+						console.log("refreshSpotifyToken() error message: ", error.message)
+						this.spotifyStatusMessage = error.message
+					})
+			}
 		},
 
 		// Spotify API Requests //
 		// Function for getting profile data from the user
 		getUserData(){
-			let token = localStorage.getItem('spotify_access_token')
-			let spotifyBaseURL = 'https://api.spotify.com/v1'
-			axios
-				.get(`${spotifyBaseURL}/me/`,
-					{
-						headers: {
-							"Authorization": `Bearer ${token}`
+			if(this.spotifyLoggedIn) {
+				let token = localStorage.getItem('spotify_access_token')
+				let spotifyBaseURL = 'https://api.spotify.com/v1'
+				axios
+					.get(`${spotifyBaseURL}/me/`,
+						{
+							headers: {
+								"Authorization": `Bearer ${token}`
+							}
+						})
+					.then(response => {
+							console.log("getUserData() response: ", response.data)
+							localStorage.setItem('spotify_user_id', response.data.id)
+							this.spotifyUserData = response.data
 						}
+					)
+					.catch(error => {
+						console.log("getUserData() error caught: ", error)
+						console.log("getUserData() error message: ", error.message)
+						this.spotifyStatusMessage = error.message
 					})
-				.then(response => {
-						console.log("getUserData() response: ", response.data)
-						localStorage.setItem('spotify_user_id', response.data.id)
-						this.spotifyUserData = response.data
-					}
-				)
-				.catch(error => {
-					console.log("getUserData() error caught: ", error)
-					console.log("getUserData() error message: ", error.message)
-					this.spotifyStatusMessage = error.message
-				})
+			}
 		},
 		// Function for getting user's followed artists
 		getFollowedArtists(){
@@ -1784,7 +1746,7 @@ export default {
 								// Log response
 								console.log("getFollowedArtists() response: ", response.data.artists.items)
 								// Assign followedArtists to response.artists.items (followed artist array)
-								this.followedArtists = response.data.artists.items
+								this.followedArtistsData.followedArtists = response.data.artists.items
 							}
 						)
 						.catch(error => {
@@ -1793,11 +1755,6 @@ export default {
 							console.log("getFollowedArtists() error message: ", error.message)
 							// Assign spotifyStatusMessage string to the value of error.message
 							this.spotifyStatusMessage = error.message
-							// If error is a 401 (token has likely expired)
-							if (error.message === "Request failed with status code 401") {
-								// Run refreshSpotifyToken() to get new access token
-								this.refreshSpotifyToken()
-							}
 						})
 				}
 			}
@@ -1815,7 +1772,7 @@ export default {
 							this.currentSpotifyPlaylist = null
 							axios
 								// GET request using user's ID
-								.get(`${spotifyBaseURL}/users/${userID}/playlists`,
+								.get(`${spotifyBaseURL}/users/${userID}/playlists?limit=50`,
 									{
 										headers: {
 											"Authorization": `Bearer ${token}`
@@ -1834,11 +1791,6 @@ export default {
 									console.log("getUserPlaylists() error message: ", error.message)
 									// Assign spotifyStatusMessage string to the value of error.message
 									this.spotifyStatusMessage = error.message
-									// If error is a 401 (token has likely expired)
-									if (error.message === "Request failed with status code 401") {
-										// Run refreshSpotifyToken() to get new access token
-										this.refreshSpotifyToken()
-									}
 								})
 						}
 						// If a playlist was selected (ie we want list of tracks inside playlist)
@@ -1864,15 +1816,10 @@ export default {
 									console.log("error caught: ", error)
 									console.log("error message: ", error.message)
 									this.spotifyStatusMessage = error.message
-									if (error.message === "Request failed with status code 401") {
-										// Run refreshSpotifyToken() to get new access token
-										this.refreshSpotifyToken()
-									}
 								})
 						}
 					} else {
 						this.spotifyStatusMessage = "No user ID found.. Refresh?"
-						this.refreshSpotifyToken()
 					}
 				}
 			}
@@ -2030,11 +1977,6 @@ export default {
 							console.log("getSpotifyGenres() error message: ", error.message)
 							// Assign spotifyStatusMessage string to the value of error message
 							this.spotifyStatusMessage = error.response.data.error.message
-							// If error is a 401 (token has likely expired)
-							if (error.message === "Request failed with status code 401") {
-								// Run refreshSpotifyToken() to get new access token
-								this.refreshSpotifyToken()
-							}
 						}
 					)
 			}
@@ -2068,11 +2010,6 @@ export default {
 							console.log("recommenderTrackSearch() error message: ", error.message)
 							// Assign spotifyStatusMessage string to the value of error message
 							this.spotifyStatusMessage = error.response.data.error.message
-							// If error is a 401 (token has likely expired)
-							if (error.message === "Request failed with status code 401") {
-								// Run refreshSpotifyToken() to get new access token
-								this.refreshSpotifyToken()
-							}
 						}
 					)
 			}
@@ -2106,11 +2043,6 @@ export default {
 							console.log("recommenderArtistSearch() error message: ", error.message)
 							// Assign spotifyStatusMessage string to the value of error message
 							this.spotifyStatusMessage = error.response.data.error.message
-							// If error is a 401 (token has likely expired)
-							if (error.message === "Request failed with status code 401") {
-								// Run refreshSpotifyToken() to get new access token
-								this.refreshSpotifyToken()
-							}
 						}
 					)
 			}
@@ -2255,11 +2187,6 @@ export default {
 							console.log("generateRecommendations() error caught: ", error)
 							// Assign spotifyStatusMessage string to the value of error message
 							this.spotifyStatusMessage = error.response.data.error.message
-							// If error is a 401 (token has likely expired)
-							if (error.message === "Request failed with status code 401") {
-								// Run refreshSpotifyToken() to get new access token
-								this.refreshSpotifyToken()
-							}
 						})
 				}
 			}
@@ -2385,11 +2312,6 @@ export default {
 									console.log("Message: ", error.message)
 									// Assign spotifyStatusMessage string to the value of error message
 									this.spotifyStatusMessage = error.response.data.error.message
-									// If error is a 401 (token has likely expired)
-									if (error.message === "Request failed with status code 401") {
-										// Run refreshSpotifyToken() to get new access token
-										this.refreshSpotifyToken()
-									}
 									// Log message indicating attempt at unfollowing the new playlist,
 									// since adding tracks to it failed.
 									console.log("Unfollowing empty playlist.")
@@ -2419,11 +2341,6 @@ export default {
 						console.log("createRecommendationsPlaylist() error message: ", error.message)
 						// Assign spotifyStatusMessage string to the value of error message
 						this.spotifyStatusMessage = error.response.data.error.message
-						// If error is a 401 (token has likely expired)
-						if (error.message === "Request failed with status code 401") {
-							// Run refreshSpotifyToken() to get new access token
-							this.refreshSpotifyToken()
-						}
 					}
 				)
 		}

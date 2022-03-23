@@ -49,8 +49,8 @@
 									<small v-if="errors.message" class="unselectable errorMessage">{{ errors.message }}</small>
 								</v-form>
 								<br>
-								<v-btn class="mr-2" color="primary" large @click="toggleForm()">Register</v-btn>
-								<v-btn class="secondary--text ml-2" color="accent" large @click="login(loginForm)">Login</v-btn>
+								<v-btn class="text--secondary mr-2" color="primary" large @click="toggleForm()">Register?</v-btn>
+								<v-btn class="text--primary ml-2" color="accent" large @click="login(loginForm)">Login</v-btn>
 							</div>
 							<!-- Register Form -->
 							<div v-else>
@@ -90,8 +90,8 @@
 									<small v-if="errors.message" class="unselectable errorMessage">{{ errors.message }}</small>
 								</v-form>
 								<br>
-								<v-btn class="mr-2" color="primary" large @click="toggleForm()">Login</v-btn>
-								<v-btn class="secondary--text ml-2" color="accent" large @click="register(registerForm)">Register
+								<v-btn class="text--secondary mr-2" color="primary" large @click="toggleForm()">Login?</v-btn>
+								<v-btn class="text--primary ml-2" color="accent" large @click="register(registerForm)">Register
 								</v-btn>
 							</div>
 						</div>
