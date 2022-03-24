@@ -1321,18 +1321,11 @@
 								:items-per-page="5"
 							>
 								<template v-slot:item.images[0].url="{ item }">
-											<v-card
-												class="ml-n2 ma-2"
-												outlined
-												raised
-												max-width="150"
-											>
-												<v-img
-													:src="item.images[0].url"
-													aspect-ratio="1"
-													width="150"
-												></v-img>
-											</v-card>
+									<v-avatar size="75">
+										<v-img
+											:src="item.images[0].url"
+										></v-img>
+									</v-avatar>
 								</template>
 								<template v-slot:item.name="{ item }">
 									<a
@@ -1862,7 +1855,7 @@ export default {
 			topArtistsData: {
 				headers: [
 					{
-						text: 'Art',
+						text: 'Profile Picture',
 						value: 'images[0].url',
 						align: 'left',
 						sortable: false
