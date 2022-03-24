@@ -137,10 +137,10 @@
 						<v-container v-if="moduleContainer.selectedModule === 'followedArtists'" fluid>
 							<!--	If there is a token && no Spotify errors  -->
 							<div v-if="spotifyLoggedIn && !spotifyStatusMessage">
+								<h2 class="ml-2 mb-3">
+									Artists You Follow
+								</h2>
 								<v-card>
-									<v-card-title>
-										Followed Artists
-									</v-card-title>
 									<v-data-iterator
 										:items="followedArtistsData.followedArtists"
 										:items-per-page.sync="followedArtistsData.followedArtistsPerPage"
@@ -325,7 +325,9 @@
 
 						<!--	My Playlists Module	-->
 						<v-container v-if="moduleContainer.selectedModule === 'userPlaylists'" fluid>
-							<!--	If there is a token && no Spotify errors  -->
+							<h2 class="ml-2 mb-3">
+								Your Playlists
+							</h2>
 							<v-card>
 								<v-card-title>
 									<v-btn
@@ -335,11 +337,10 @@
 										@click="decrementPlaylistLayer()"
 									><v-icon>mdi-arrow-left</v-icon>
 									</v-btn>
-									Playlists
 									<v-text-field
 										v-model="playlistTable[playlistLayer].Search"
 										append-icon="mdi-magnify"
-										class="pl-8 pr-8 mt-n3"
+										class="pr-8 mt-n3"
 										clearable
 										color="purple"
 										hide-details
@@ -542,6 +543,9 @@
 
 						<!-- Recommendations Module	-->
 						<v-container v-if="moduleContainer.selectedModule === 'recommendationGenerator'" fluid>
+							<h2 class="ml-2 mb-3">
+								Recommendations Generator
+							</h2>
 							<v-divider></v-divider>
 							<p class="unselectable mb-2 mt-2">Required Parameters
 								<br>
@@ -1038,7 +1042,7 @@
 
 						<!-- Recently Played Module -->
 						<v-container v-if="moduleContainer.selectedModule === 'recentlyPlayed'">
-							<h2 class="text-left mb-3">
+							<h2 class="ml-2 mb-3">
 								Your Recently Played Tracks
 							</h2>
 							<v-data-table
@@ -1133,7 +1137,7 @@
 
 						<!-- Saved Tracks Module -->
 						<v-container v-if="moduleContainer.selectedModule === 'savedTracks'">
-							<h2 class="text-left mb-3">
+							<h2 class="ml-2 mb-3">
 								Your Saved Tracks
 							</h2>
 							<v-data-table
@@ -1225,7 +1229,7 @@
 
 						<!-- Top Tracks Module -->
 						<v-container v-if="moduleContainer.selectedModule === 'topTracks'">
-							<h2 class="text-left mb-3">
+							<h2 class="ml-2 mb-3">
 								Your Top Tracks
 							</h2>
 							<v-data-table
@@ -1317,7 +1321,7 @@
 
 						<!-- Top Artists Module -->
 						<v-container v-if="moduleContainer.selectedModule === 'topArtists'">
-							<h2 class="text-left mb-3">
+							<h2 class="ml-2 mb-3">
 								Your Top Artists
 							</h2>
 							<v-data-table
@@ -2129,6 +2133,7 @@ export default {
 		});
 	},
 	methods: {
+
 		// Check if logged-in to Audiohaven
 		checkAudiohavenLogin(){
 			if(!this.loggedIn){
@@ -2137,8 +2142,18 @@ export default {
 				router.push('/')
 			}
 		},
-		selectedModulesHas(moduleType){
 
+		// Return label of passed module (UNUSED)
+		// Not using because it proved to be super heavy in module for-loop
+		moduleLabel(module) {
+			console.log(this.selectedModules)
+			let filter = this.selectedModules.filter(key => key.value === module)
+			console.log(filter)
+			return filter[0].label
+		},
+
+		// Do the selected modules contain passed moduleType?
+		selectedModulesHas(moduleType){
 			// TESTING LOGIC (using .includes) //
 			// for each module in filtered array of selected modules
 			// this.selectedModules.forEach((module, index) => {
@@ -2156,6 +2171,7 @@ export default {
 			// returns false if not
 			return this.selectedModules.some(hasType)
 		},
+
 		// Loading status method
 		setLoading(isLoading) {
 			// if loading
@@ -2208,6 +2224,7 @@ export default {
 			const parsedDate = new Date(date)
 			return(`${parsedDate.getDate()}-${parsedDate.getMonth() +1}-${parsedDate.getFullYear()}`)
 		},
+
 		// Spotify Token Management //
 		checkTokens(){
 			// If there is both an access & refresh token in the URL
@@ -2408,10 +2425,12 @@ export default {
 				}
 			}
 		},
+		// Reset playlist layer to base layer
 		decrementPlaylistLayer() {
 			this.playlistLayer = 0
 			this.currentSpotifyPlaylist = null
 		},
+		// Add track to Spotify queue
 		queueSpotifyTrack(selected) {
 			console.log(`queueSpotifyTrack(${selected.track.name})`)
 			let token = localStorage.getItem('spotify_access_token')
@@ -2434,6 +2453,7 @@ export default {
 					this.spotifyStatusMessage = `${error.response.data.error.message}...`
 				})
 		},
+		// Play the Spotify preview (NON-FUNCTIONAL)
 		previewSpotifyTrack(signal, track){
 			// console.log(track.preview_url)
 			// let trackPreview = new Audio(track.preview_url)
@@ -2467,6 +2487,7 @@ export default {
 				this.recommendationData.somethingIsPlaying = false
 			}
 		},
+		// Unfollow the Spotify playlist (remove)
 		unfollowSpotifyPlaylist(playlist){
 			let indexOfPlaylist = this.playlistTable[0].Items.indexOf(playlist)
 			if (confirm(`Are you sure you want to unfollow ${playlist.name}?`)) {
@@ -2497,6 +2518,8 @@ export default {
 				console.log(`Playlist '${playlist.name}' unfollow cancelled.`);
 			}
 		},
+		// Remove track from Spotify playlist
+		// TODO: Multiple track removal
 		removeSpotifyPlaylistTrack(track, playlist){
 			console.log("playlist: ", playlist, "\n", "track: ", track)
 			let indexOfTrack = this.playlistTable[1].Items.indexOf(track)
@@ -2533,8 +2556,7 @@ export default {
 				console.log(`Track '${track.name}' removal cancelled.`);
 			}
 		},
-		// TODO: Multiple track removal
-		// Function for getting available genre seeds
+		// Get available genre seeds
 		getSpotifyGenres(){
 			// If user is logged-in
 			if (this.spotifyLoggedIn && this.recommendationGeneratorSelected) {
@@ -2565,7 +2587,7 @@ export default {
 					)
 			}
 		},
-		// Function to search for tracks
+		// Search for tracks in recommender
 		recommenderTrackSearch(){
 			console.log("recommenderTrackSearch() executed")
 			// If user is logged-in
@@ -2598,7 +2620,7 @@ export default {
 					)
 			}
 		},
-		// Function to search for artists
+		// Search for artists in recommender
 		recommenderArtistSearch(){
 			console.log("recommenderArtistSearch() executed")
 			// If user is logged-in
@@ -2631,7 +2653,7 @@ export default {
 					)
 			}
 		},
-		// Function for generating recommendations
+		// Generate recommendations from form data
 		generateRecommendations(formData){
 			// filter sliderParameter array by enabled sliders only (inserts into enabledSliders array)
 			let enabledSliders = formData.optionalParams.sliderParams.filter(slider => slider.enabled !== false)
@@ -2795,6 +2817,7 @@ export default {
 				case 11: return 'B'
 			}
 		},
+		// Percentage calculator
 		percentageDoctor(value, max){
 			// console.log("value: ", value)
 			// console.log("max: ", max)
@@ -2804,6 +2827,7 @@ export default {
 			// console.log("m: ", m)
 			return Math.floor((v / m) * 100)
 		},
+		// Create playlist from recommender results
 		createRecommendationsPlaylist(){
 			console.log("Got these recommendations: ",this.recommendationData.response)
 			let token = localStorage.getItem('spotify_access_token')
@@ -2925,6 +2949,7 @@ export default {
 					}
 				)
 		},
+		// Get recently played tracks
 		getRecentlyPlayed(){
 			if (this.spotifyLoggedIn && this.recentlyPlayedSelected) {
 				let token = localStorage.getItem('spotify_access_token')
@@ -2948,6 +2973,7 @@ export default {
 					})
 			}
 		},
+		// Get saved (hearted) tracks
 		getSavedTracks(){
 			if (this.spotifyLoggedIn && this.savedTracksSelected) {
 				let token = localStorage.getItem('spotify_access_token')
@@ -2971,6 +2997,7 @@ export default {
 					})
 			}
 		},
+		// Get top (most played) tracks
 		getTopTracks(){
 			if (this.spotifyLoggedIn && this.topTracksSelected) {
 				let token = localStorage.getItem('spotify_access_token')
@@ -2994,6 +3021,7 @@ export default {
 					})
 			}
 		},
+		// Get top (most played) artists
 		getTopArtists(){
 			if (this.spotifyLoggedIn && this.topArtistsSelected) {
 				let token = localStorage.getItem('spotify_access_token')
