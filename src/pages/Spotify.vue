@@ -104,7 +104,7 @@
 		<!-- Module Container for-loop -->
 		<!-- TODO: Try 6-col modules when large / extra-large breakpoint? -->
 
-		<v-container v-if="spotifyLoggedIn && spotifyStatusMessage!=='Request failed with status code 401'">
+		<v-container fluid v-if="spotifyLoggedIn && spotifyStatusMessage!=='Request failed with status code 401'">
 			<v-row
 				no-gutters
 				justify="center"
@@ -113,8 +113,8 @@
 				<v-col
 					v-for="moduleContainer in moduleContainers"
 					:key="moduleContainer.selectedModule"
-					cols="12" lg="6" md="10" sm="11"
-					class="pr-4 pl-4 mt-4 mb-4"
+					cols="12" lg="8" md="10"
+					class="mt-4 mb-4"
 				>
 					<v-card>
 						<!-- Module Selector -->
