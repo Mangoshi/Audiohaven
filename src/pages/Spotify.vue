@@ -103,14 +103,19 @@
 
 		<!-- Module Container for-loop -->
 		<!-- TODO: Try 6-col modules when large / extra-large breakpoint? -->
-		<div
-			v-for="moduleContainer in moduleContainers"
-			:key="moduleContainer.selectedModule"
-		>
-			<v-row v-if="spotifyLoggedIn && spotifyStatusMessage!=='Request failed with status code 401'">
-				<v-col cols="0" lg="2" md="1"></v-col>
-				<v-col cols="12" lg="8" md="10">
-					<!-- Module Container -->
+
+		<v-container v-if="spotifyLoggedIn && spotifyStatusMessage!=='Request failed with status code 401'">
+			<v-row
+				no-gutters
+				justify="center"
+				class="mt-4 mb-4"
+			>
+				<v-col
+					v-for="moduleContainer in moduleContainers"
+					:key="moduleContainer.selectedModule"
+					cols="12" lg="6" md="10" sm="11"
+					class="pr-4 pl-4 mt-4 mb-4"
+				>
 					<v-card>
 						<!-- Module Selector -->
 						<v-container>
@@ -1342,12 +1347,10 @@
 								</template>
 							</v-data-table>
 						</v-container>
-
 					</v-card>
 				</v-col>
-				<v-col cols="0" lg="2" md="1"></v-col>
 			</v-row>
-		</div>
+		</v-container>
 	</v-container>
 </template>
 
