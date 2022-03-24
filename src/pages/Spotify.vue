@@ -103,14 +103,19 @@
 
 		<!-- Module Container for-loop -->
 		<!-- TODO: Try 6-col modules when large / extra-large breakpoint? -->
-		<div
-			v-for="moduleContainer in moduleContainers"
-			:key="moduleContainer.selectedModule"
-		>
-			<v-row v-if="spotifyLoggedIn && spotifyStatusMessage!=='Request failed with status code 401'">
-				<v-col cols="0" lg="2" md="1"></v-col>
-				<v-col cols="12" lg="8" md="10">
-					<!-- Module Container -->
+
+		<v-container v-if="spotifyLoggedIn && spotifyStatusMessage!=='Request failed with status code 401'" fluid>
+			<v-row
+				class="mt-4 mb-4"
+				justify="center"
+				no-gutters
+			>
+				<v-col
+					v-for="moduleContainer in moduleContainers"
+					:key="moduleContainer.selectedModule"
+					class="mt-4 mb-4"
+					cols="12" lg="8" md="10"
+				>
 					<v-card>
 						<!-- Module Selector -->
 						<v-container>
@@ -362,6 +367,7 @@
 									:headers="playlistTable[playlistLayer].Headers"
 									:item-key="playlistTable[playlistLayer].Headers[0].value"
 									:items="playlistTable[playlistLayer].Items"
+									:items-per-page="5"
 									:search="playlistTable[playlistLayer].Search"
 									:single-expand="playlistTable[playlistLayer].singleExpand"
 									:sort-by="playlistTable[playlistLayer].Sort.toLowerCase()"
@@ -937,6 +943,7 @@
 									:headers="recommendationData.headers"
 									:item-key="recommendationData.response.id"
 									:items="recommendationData.response"
+									:items-per-page="5"
 									calculate-widths
 									no-data-text="No data!?"
 									no-results-text="No results :C"
@@ -1037,8 +1044,9 @@
 							<v-data-table
 								:headers="recentlyPlayedData.headers"
 								:items="recentlyPlayedData.tracks"
-								item-key="track.id"
+								:items-per-page="5"
 								calculate-widths
+								item-key="track.id"
 								no-data-text="No data!?"
 								no-results-text="No results :C"
 							>
@@ -1047,14 +1055,14 @@
 										<template v-slot:default="{ hover }">
 											<v-card
 												class="ml-n2 ma-2"
+												max-width="75"
 												outlined
 												raised
-												max-width="150"
 											>
 												<v-img
 													:src="item.track.album.images[0].url"
 													aspect-ratio="1"
-													width="150"
+													width="75"
 												></v-img>
 												<!--<audio :src="item.preview_url"></audio>-->
 												<v-fade-transition>
@@ -1118,7 +1126,7 @@
 									</a>
 								</template>
 								<template v-slot:item.played_at="{ item }">
-										{{ dateParser(item.played_at) }}
+									{{ dateParser(item.played_at) }}
 								</template>
 							</v-data-table>
 						</v-container>
@@ -1131,8 +1139,9 @@
 							<v-data-table
 								:headers="savedTracksData.headers"
 								:items="savedTracksData.tracks"
-								item-key="id"
+								:items-per-page="5"
 								calculate-widths
+								item-key="id"
 								no-data-text="No data!?"
 								no-results-text="No results :C"
 							>
@@ -1141,14 +1150,14 @@
 										<template v-slot:default="{ hover }">
 											<v-card
 												class="ml-n2 ma-2"
+												max-width="75"
 												outlined
 												raised
-												max-width="150"
 											>
 												<v-img
 													:src="item.track.album.images[0].url"
 													aspect-ratio="1"
-													width="150"
+													width="75"
 												></v-img>
 												<!--<audio :src="item.preview_url"></audio>-->
 												<v-fade-transition>
@@ -1222,25 +1231,25 @@
 							<v-data-table
 								:headers="topTracksData.headers"
 								:items="topTracksData.tracks"
-								item-key="id"
+								:items-per-page="5"
 								calculate-widths
+								item-key="id"
 								no-data-text="No data!?"
 								no-results-text="No results :C"
-								:items-per-page="5"
 							>
 								<template v-slot:item.album.images[0].url="{ item }">
 									<v-hover>
 										<template v-slot:default="{ hover }">
 											<v-card
 												class="ml-n2 ma-2"
+												max-width="75"
 												outlined
 												raised
-												max-width="150"
 											>
 												<v-img
 													:src="item.album.images[0].url"
 													aspect-ratio="1"
-													width="150"
+													width="75"
 												></v-img>
 												<!--<audio :src="item.preview_url"></audio>-->
 												<v-fade-transition>
@@ -1314,25 +1323,18 @@
 							<v-data-table
 								:headers="topArtistsData.headers"
 								:items="topArtistsData.artists"
-								item-key="id"
+								:items-per-page="5"
 								calculate-widths
+								item-key="id"
 								no-data-text="No data!?"
 								no-results-text="No results :C"
-								:items-per-page="5"
 							>
 								<template v-slot:item.images[0].url="{ item }">
-											<v-card
-												class="ml-n2 ma-2"
-												outlined
-												raised
-												max-width="150"
-											>
-												<v-img
-													:src="item.images[0].url"
-													aspect-ratio="1"
-													width="150"
-												></v-img>
-											</v-card>
+									<v-avatar class="ma-1" size="75">
+										<v-img
+											:src="item.images[0].url"
+										></v-img>
+									</v-avatar>
 								</template>
 								<template v-slot:item.name="{ item }">
 									<a
@@ -1345,12 +1347,10 @@
 								</template>
 							</v-data-table>
 						</v-container>
-
 					</v-card>
 				</v-col>
-				<v-col cols="0" lg="2" md="1"></v-col>
 			</v-row>
-		</div>
+		</v-container>
 	</v-container>
 </template>
 
@@ -1862,7 +1862,7 @@ export default {
 			topArtistsData: {
 				headers: [
 					{
-						text: 'Art',
+						text: 'Profile Picture',
 						value: 'images[0].url',
 						align: 'left',
 						sortable: false
