@@ -1,7 +1,12 @@
-# 🎵 Audiohaven 🎵
+<div align="center">
+  
+# 🎵 Welcome to Audiohaven 🎵
 
-Live at:
+### 🌐 [Live website here!](https://mangoshi.github.io/Audiohaven) 🌐
 
-- 📜 [GitHub Pages](https://mangoshi.github.io/Audiohaven-Sandbox/) (functional 🙌)
-- 💜 [Heroku](https://audiohaven-sandbox.herokuapp.com/) (broken 💔)
-- 🔥 [Firebase](https://audiohaven-8ffd8.web.app/) (broken 💔)
+</div>
+  
+| <img type="svg" src="/src/assets/Audiohaven_logo_lightmode.svg" alt="Audiohaven logo"> | <img type="svg" src="/src/assets/Audiohaven_logo_darkmode.svg" alt="Audiohaven logo">  | <img type="svg" src="/src/assets/Audiohaven_logo_lightmode.svg" alt="Audiohaven logo"> |
+|----------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------|
+| <img type="svg" src="/src/assets/Audiohaven_logo_darkmode.svg" alt="Audiohaven logo">  | <img type="svg" src="/src/assets/Audiohaven_logo_lightmode.svg" alt="Audiohaven logo"> | <img type="svg" src="/src/assets/Audiohaven_logo_darkmode.svg" alt="Audiohaven logo">  |
+| <img type="svg" src="/src/assets/Audiohaven_logo_lightmode.svg" alt="Audiohaven logo"> | <img type="svg" src="/src/assets/Audiohaven_logo_darkmode.svg" alt="Audiohaven logo">  | <img type="svg" src="/src/assets/Audiohaven_logo_lightmode.svg" alt="Audiohaven logo"> |
