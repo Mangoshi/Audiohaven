@@ -2217,7 +2217,7 @@ export default {
 				return module
 			} else {
 				console.log("No module found in localStorage!")
-				return 'topTracks'
+				return 'userPlaylists'
 			}
 		},
 		secondModuleLocalStorage(){
@@ -2227,7 +2227,7 @@ export default {
 				return module
 			} else {
 				console.log("No module found in localStorage!")
-				return 'userPlaylists'
+				return 'followedArtists'
 			}
 		},
 		thirdModuleLocalStorage(){
@@ -2237,7 +2237,7 @@ export default {
 				return module
 			} else {
 				console.log("No module found in localStorage!")
-				return 'followedArtists'
+				return 'recentlyPlayed'
 			}
 		},
 		fourthModuleLocalStorage(){
