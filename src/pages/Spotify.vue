@@ -59,17 +59,6 @@
 						<v-icon>mdi-spotify</v-icon>
 						Log Out
 					</v-btn>
-					<!--  DEV FUNCTION: Invalidate token for easy 401 error testing  -->
-					<v-btn
-						class="ml-1"
-						outlined
-						rounded
-						text
-						v-on:click="removeSpotifyToken()"
-					>
-						<v-icon>mdi-delete</v-icon>
-						Remove token
-					</v-btn>
 				</v-card-actions>
 			</v-card>
 		</v-scale-transition>
@@ -2346,15 +2335,6 @@ export default {
 			// Using catch & end to stop error from being thrown
 			// (The error is due to the fact that technically we're routing back to the same place)
 			router.replace("/Spotify").catch(()=>{})
-			router.go(0)
-		},
-		// Remove Spotify token (for test purposes only)
-		removeSpotifyToken(){
-			// DEV FUNCTION //
-			// TODO: Deactivate this & the button when no longer needed
-			// Remove access token
-			localStorage.setItem("spotify_access_token", "")
-			// Go to current location (to refresh/reload page)
 			router.go(0)
 		},
 		// Once access token expires, use refresh token to get a new one
