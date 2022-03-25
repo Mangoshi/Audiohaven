@@ -74,25 +74,27 @@
 			</v-card>
 		</v-scale-transition>
 
-		<!-- Spotify Status Message & Refresh Token Button -->
-		<!-- TODO: Convert crappy status message into alert/toast/snackbar -->
-		<div v-if="spotifyStatusMessage && spotifyLoggedIn">
-			<h4 style="
-				color: deeppink;
-				background-color: #333;
-				font-family: 'Courier New',
-				monospace;
-			">
-				{{ spotifyStatusMessage }}
-			</h4>
-			<v-btn
-				v-if="spotifyStatusMessage==='Request failed with status code 401'"
-				v-on:click="refreshSpotifyToken()"
-			>
-				<v-icon>mdi-spotify</v-icon>
-				Refresh Token
-			</v-btn>
-		</div>
+		<!-- Spotify Status Message Snackbar -->
+		<v-snackbar
+			v-model="displaySpotifyStatusMessage"
+			:color="snackbarColour"
+			app
+			rounded
+			text
+			timeout="5000"
+		>
+			{{ spotifyStatusMessage }}
+			<template v-slot:action="{ attrs }">
+				<v-btn
+					:color="snackbarColour"
+					v-bind="attrs"
+					@click="displaySpotifyStatusMessage = false"
+					icon
+				>
+					<v-icon :color="snackbarColour">mdi-close</v-icon>
+				</v-btn>
+			</template>
+		</v-snackbar>
 
 		<!-- Loader (shows when API request is loading) -->
 		<!-- TODO: Show in alert/toast/snackbar/statusbar instead! -->
@@ -1381,7 +1383,9 @@ export default {
 			isLoading: false,
 			overlay: false,
 			// Spotify Data //
+			displaySpotifyStatusMessage: false,
 			spotifyStatusMessage: "",
+			snackbarColour: "purple darken-1",
 			spotifyUserData: {},
 			currentSpotifyPlaylist: null,
 			// Disabling iframes for now
@@ -2268,6 +2272,13 @@ export default {
 			}
 		},
 
+		// Set snackbar method
+		setSnackbar(message, colour) {
+			this.spotifyStatusMessage = message
+			this.snackbarColour = colour
+			this.displaySpotifyStatusMessage = true
+		},
+
 		// Logo Methods //
 		spotifyLogo(type) {
 			if (type === "text") {
@@ -2361,8 +2372,6 @@ export default {
 						console.log("refreshSpotifyToken() response: ", response.data)
 						// Assign local storage access token to new access token
 						localStorage.setItem("spotify_access_token", response.data.access_token)
-						// Clear spotifyStatusMessage message
-						this.spotifyStatusMessage = ""
 						// Re-run anything that would have failed with an expired token
 						this.getFollowedArtists()
 						this.getSpotifyGenres()
@@ -2376,7 +2385,7 @@ export default {
 				.catch(error => {
 					console.log("refreshSpotifyToken() error caught: ", error)
 					console.log("refreshSpotifyToken() error message: ", error.message)
-					this.spotifyStatusMessage = error.message
+					this.setSnackbar(error.message, "red", )
 				})
 		},
 
@@ -2400,12 +2409,13 @@ export default {
 							// Run getUserPlaylists
 							// (Since it doesn't have the userID yet if run at mounted)
 							this.getUserPlaylists()
+							this.setSnackbar(`Welcome, ${response.data.display_name}! 👋`, "green")
 						}
 					)
 					.catch(error => {
 						console.log("getUserData() error caught: ", error)
 						console.log("getUserData() error message: ", error.message)
-						this.spotifyStatusMessage = error.message
+						this.setSnackbar(error.message, "red")
 					})
 			}
 		},
@@ -2435,7 +2445,7 @@ export default {
 						console.log("getFollowedArtists() error caught: ", error)
 						console.log("getFollowedArtists() error message: ", error.message)
 						// Assign spotifyStatusMessage string to the value of error.message
-						this.spotifyStatusMessage = error.message
+						this.setSnackbar(error.message, "red")
 					})
 			}
 		},
@@ -2468,7 +2478,7 @@ export default {
 								console.log("getUserPlaylists() error caught: ", error)
 								console.log("getUserPlaylists() error message: ", error.message)
 								// Assign spotifyStatusMessage string to the value of error.message
-								this.spotifyStatusMessage = error.message
+								this.setSnackbar(error.message, "red")
 							})
 					}
 					// If a playlist was selected (ie we want list of tracks inside playlist)
@@ -2493,7 +2503,7 @@ export default {
 							.catch(error => {
 								console.log("error caught: ", error)
 								console.log("error message: ", error.message)
-								this.spotifyStatusMessage = error.message
+								this.setSnackbar(error.message, "red")
 							})
 					}
 				}
@@ -2519,12 +2529,12 @@ export default {
 					})
 				.then(response => {
 						console.log("queueSpotifyTrack() SUCCESS! \n Response: ", response.data)
-						this.spotifyStatusMessage = `Successfully added ${selected.track.name} to queue`
+						this.setSnackbar(`Successfully added ${selected.track.name} to queue`, "green")
 					}
 				)
 				.catch(error => {
 					console.log("playSpotifyTrack() error caught: ", error.response, "\n Message: ", error.response.data.error.message)
-					this.spotifyStatusMessage = `${error.response.data.error.message}...`
+					this.setSnackbar(`${error.response.data.error.message}...`, "red")
 				})
 		},
 		// Play the Spotify preview (NON-FUNCTIONAL)
@@ -2579,13 +2589,13 @@ export default {
 						})
 					.then(response => {
 							console.log("unfollowSpotifyPlaylist() SUCCESS! \n Response: ", response.data)
-							this.spotifyStatusMessage = `Successfully unfollowed ${playlist.name}`
+							this.setSnackbar(`Successfully unfollowed ${playlist.name}`, "green")
 							this.playlistTable[0].Items.splice(indexOfPlaylist, 1)
 						}
 					)
 					.catch(error => {
 						console.log("unfollowSpotifyPlaylist() error caught: ", error.response, "\n Message: ", error.response.data.error.message)
-						this.spotifyStatusMessage = `${error.response.data.error.message}...`
+						this.setSnackbar(`${error.response.data.error.message}...`, "red")
 					})
 			} else {
 				// Do nothing!
@@ -2617,13 +2627,13 @@ export default {
 						})
 					.then(response => {
 							console.log("removeSpotifyPlaylistTrack() SUCCESS! \n Response: ", response.data)
-							this.spotifyStatusMessage = `Successfully removed ${track.track.name}`
+							this.setSnackbar(`Successfully removed ${track.track.name}`, "green")
 							this.playlistTable[1].Items.splice(indexOfTrack, 1)
 						}
 					)
 					.catch(error => {
 						console.log("removeSpotifyPlaylistTrack() error caught: ", error.response, "\n Message: ", error.response.data.error.message)
-						this.spotifyStatusMessage = `${error.response.data.error.message}...`
+						this.setSnackbar(`${error.response.data.error.message}...`, "red")
 					})
 			} else {
 				// Do nothing!
@@ -2656,7 +2666,7 @@ export default {
 							console.log("getSpotifyGenres() error caught: ", error)
 							console.log("getSpotifyGenres() error message: ", error.message)
 							// Assign spotifyStatusMessage string to the value of error message
-							this.spotifyStatusMessage = error.response.data.error.message
+							this.setSnackbar(`${error.response.data.error.message}...`, "red")
 						}
 					)
 			}
@@ -2689,7 +2699,7 @@ export default {
 							console.log("recommenderTrackSearch() error caught: ", error)
 							console.log("recommenderTrackSearch() error message: ", error.message)
 							// Assign spotifyStatusMessage string to the value of error message
-							this.spotifyStatusMessage = error.response.data.error.message
+							this.setSnackbar(`${error.response.data.error.message}...`, "red")
 						}
 					)
 			}
@@ -2722,7 +2732,7 @@ export default {
 							console.log("recommenderArtistSearch() error caught: ", error)
 							console.log("recommenderArtistSearch() error message: ", error.message)
 							// Assign spotifyStatusMessage string to the value of error message
-							this.spotifyStatusMessage = error.response.data.error.message
+							this.setSnackbar(`${error.response.data.error.message}...`, "red")
 						}
 					)
 			}
@@ -2745,7 +2755,7 @@ export default {
 			// if required parameters are empty on arrival...
 			if (!this.recommendationsRequired) {
 				console.log("Required params not filled!")
-				this.spotifyStatusMessage = "You must pick one of the required parameters before we can generate any recommendations!"
+				this.setSnackbar(`$You must pick one of the required parameters before we can generate any recommendations!`, "red")
 			} else {
 				// else if required parameters were passed...
 				console.log("Required params filled! Executing request...")
@@ -2855,16 +2865,16 @@ export default {
 							})
 							// tell the user if recommendations were found or not
 							if(this.recommendationData.response.length===0){
-								this.spotifyStatusMessage = "No recommendations found! :("
+								this.setSnackbar("No recommendations found! 😢", "red")
 							} else {
-								this.spotifyStatusMessage = "Recommendations found!"
+								this.setSnackbar("Recommendations found! 😄", "green")
 							}
 						}
 					)
 					.catch(error => {
 						console.log("generateRecommendations() error caught: ", error)
 						// Assign spotifyStatusMessage string to the value of error message
-						this.spotifyStatusMessage = error.response.data.error.message
+						this.setSnackbar(error.response.data.error.message, "red")
 					})
 			}
 		},
@@ -2981,7 +2991,7 @@ export default {
 							.then(response => {
 									// Log response
 									console.log("Adding recommendations to new playlist response: ", response.data)
-									this.spotifyStatusMessage = `Your playlist was made!`
+									this.setSnackbar("Your playlist was made! 😄", "green")
 								}
 							)
 							.catch(error => {
@@ -2989,7 +2999,7 @@ export default {
 									console.log("Error caught adding to new playlist: ", error)
 									console.log("Message: ", error.message)
 									// Assign spotifyStatusMessage string to the value of error message
-									this.spotifyStatusMessage = error.response.data.error.message
+								this.setSnackbar(error.response.data.error.message, "red")
 									// Log message indicating attempt at unfollowing the new playlist,
 									// since adding tracks to it failed.
 									console.log("Unfollowing empty playlist.")
@@ -3007,7 +3017,7 @@ export default {
 										)
 										.catch(error => {
 											console.log("Error caught unfollowing empty playlist: ", error.response, "\n Message: ", error.response.data.error.message)
-											this.spotifyStatusMessage = `${error.response.data.error.message}...`
+											this.setSnackbar(error.response.data.error.message, "red")
 										})
 								}
 							)
@@ -3018,7 +3028,7 @@ export default {
 						console.log("createRecommendationsPlaylist() error caught: ", error)
 						console.log("createRecommendationsPlaylist() error message: ", error.message)
 						// Assign spotifyStatusMessage string to the value of error message
-						this.spotifyStatusMessage = error.response.data.error.message
+						this.setSnackbar(error.response.data.error.message, "red")
 					}
 				)
 		},
@@ -3042,7 +3052,7 @@ export default {
 					.catch(error => {
 						console.log("getRecentlyPlayed() error caught: ", error)
 						console.log("getRecentlyPlayed() error message: ", error.message)
-						this.spotifyStatusMessage = error.message
+						this.setSnackbar(error.message, "red")
 					})
 			}
 		},
@@ -3066,7 +3076,7 @@ export default {
 					.catch(error => {
 						console.log("getSavedTracks() error caught: ", error)
 						console.log("getSavedTracks() error message: ", error.message)
-						this.spotifyStatusMessage = error.message
+						this.setSnackbar(error.message, "red")
 					})
 			}
 		},
@@ -3090,7 +3100,7 @@ export default {
 					.catch(error => {
 						console.log("getTopTracks() error caught: ", error)
 						console.log("getTopTracks() error message: ", error.message)
-						this.spotifyStatusMessage = error.message
+						this.setSnackbar(error.message, "red")
 					})
 			}
 		},
@@ -3114,7 +3124,7 @@ export default {
 					.catch(error => {
 						console.log("getTopArtists() error caught: ", error)
 						console.log("getTopArtists() error message: ", error.message)
-						this.spotifyStatusMessage = error.message
+						this.setSnackbar(error.message, "red")
 					})
 			}
 		},
