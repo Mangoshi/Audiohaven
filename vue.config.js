@@ -1,5 +1,5 @@
 module.exports = {
-    publicPath: process.env.NODE_ENV === 'production' ? '/Audiohaven-Sandbox/': '/',
+    publicPath: process.env.NODE_ENV === 'production' ? '/Audiohaven/': '/',
     transpileDependencies: ["vuetify"],
     pages: {
         index: {

@@ -1,6 +1,8 @@
 {
-  "name": "audiohaven-sandbox",
+  "name": "audiohaven",
   "version": "0.1.0",
+  "description": "Audiohaven, Professional Practice Project CA",
+  "author": "mangoshi & dalekmad",
   "private": true,
   "engines": {
     "node": "14.17.6",
