@@ -14,7 +14,7 @@
 						transition="scale-transition"
 					></v-img>
 				</v-row>
-				<v-btn :href="`${appBaseURL}/spotify/login`">
+				<v-btn :href="`${serverBaseURL}/spotify/login`">
 					<v-icon>mdi-spotify</v-icon> Log-in to Spotify
 				</v-btn>
 			</div>
@@ -104,7 +104,7 @@
 		<!-- Module Container for-loop -->
 		<!-- TODO: Try 6-col modules when large / extra-large breakpoint? -->
 
-		<v-container v-if="spotifyLoggedIn && spotifyStatusMessage!=='Request failed with status code 401'" fluid>
+		<v-container v-if="spotifyLoggedIn" fluid>
 			<v-row
 				class="mt-4 mb-4"
 				justify="center"
@@ -136,11 +136,11 @@
 						<!--	TODO: Auto-switch to descending when not sorting by name -->
 						<v-container v-if="moduleContainer.selectedModule === 'followedArtists'" fluid>
 							<!--	If there is a token && no Spotify errors  -->
-							<div v-if="spotifyLoggedIn && !spotifyStatusMessage">
+							<div v-if="spotifyLoggedIn">
+								<h2 class="ml-2 mb-3">
+									Artists You Follow
+								</h2>
 								<v-card>
-									<v-card-title>
-										Followed Artists
-									</v-card-title>
 									<v-data-iterator
 										:items="followedArtistsData.followedArtists"
 										:items-per-page.sync="followedArtistsData.followedArtistsPerPage"
@@ -325,7 +325,9 @@
 
 						<!--	My Playlists Module	-->
 						<v-container v-if="moduleContainer.selectedModule === 'userPlaylists'" fluid>
-							<!--	If there is a token && no Spotify errors  -->
+							<h2 class="ml-2 mb-3">
+								Your Playlists
+							</h2>
 							<v-card>
 								<v-card-title>
 									<v-btn
@@ -335,11 +337,10 @@
 										@click="decrementPlaylistLayer()"
 									><v-icon>mdi-arrow-left</v-icon>
 									</v-btn>
-									Playlists
 									<v-text-field
 										v-model="playlistTable[playlistLayer].Search"
 										append-icon="mdi-magnify"
-										class="pl-8 pr-8 mt-n3"
+										class="pr-8 mt-n3"
 										clearable
 										color="purple"
 										hide-details
@@ -542,6 +543,9 @@
 
 						<!-- Recommendations Module	-->
 						<v-container v-if="moduleContainer.selectedModule === 'recommendationGenerator'" fluid>
+							<h2 class="ml-2 mb-3">
+								Recommendations Generator
+							</h2>
 							<v-divider></v-divider>
 							<p class="unselectable mb-2 mt-2">Required Parameters
 								<br>
@@ -1038,7 +1042,7 @@
 
 						<!-- Recently Played Module -->
 						<v-container v-if="moduleContainer.selectedModule === 'recentlyPlayed'">
-							<h2 class="text-left mb-3">
+							<h2 class="ml-2 mb-3">
 								Your Recently Played Tracks
 							</h2>
 							<v-data-table
@@ -1133,7 +1137,7 @@
 
 						<!-- Saved Tracks Module -->
 						<v-container v-if="moduleContainer.selectedModule === 'savedTracks'">
-							<h2 class="text-left mb-3">
+							<h2 class="ml-2 mb-3">
 								Your Saved Tracks
 							</h2>
 							<v-data-table
@@ -1225,7 +1229,7 @@
 
 						<!-- Top Tracks Module -->
 						<v-container v-if="moduleContainer.selectedModule === 'topTracks'">
-							<h2 class="text-left mb-3">
+							<h2 class="ml-2 mb-3">
 								Your Top Tracks
 							</h2>
 							<v-data-table
@@ -1317,7 +1321,7 @@
 
 						<!-- Top Artists Module -->
 						<v-container v-if="moduleContainer.selectedModule === 'topArtists'">
-							<h2 class="text-left mb-3">
+							<h2 class="ml-2 mb-3">
 								Your Top Artists
 							</h2>
 							<v-data-table
@@ -1371,13 +1375,12 @@ export default {
 	data(){
 		return{
 			// Environment Variables //
-			appBaseURL: process.env.VUE_APP_BASE_URL,
+			serverBaseURL: process.env.VUE_APP_BASE_URL,
 			// Global Parameters //
 			refCount: 0,
 			isLoading: false,
 			overlay: false,
 			// Spotify Data //
-			spotifyLoggedIn: false,
 			spotifyStatusMessage: "",
 			spotifyUserData: {},
 			currentSpotifyPlaylist: null,
@@ -1386,10 +1389,10 @@ export default {
 			// Module Data //
 			// TODO: Store these in localStorage!
 			moduleContainers: [
-				{ selectedModule: "topTracks" },
-				{ selectedModule: "userPlaylists" },
-				{ selectedModule: "followedArtists" },
-				{ selectedModule: "recommendationGenerator" }
+				{ selectedModule: this.firstModuleLocalStorage() },
+				{ selectedModule: this.secondModuleLocalStorage() },
+				{ selectedModule: this.thirdModuleLocalStorage() },
+				{ selectedModule: this.fourthModuleLocalStorage() }
 			],
 			modules: [
 				{
@@ -1944,6 +1947,7 @@ export default {
 			if(selected){
 				console.log("recommendationGeneratorSelected")
 				this.getSpotifyGenres()
+				this.getFollowedArtists()
 			} else {
 				console.log("recommendationGeneratorUnselected")
 			}
@@ -1952,6 +1956,35 @@ export default {
 	computed: {
 		// Map loggedIn status & errors from Vuex store
 		...mapState(['loggedIn', 'errors']),
+
+		// If an item with key 'spotify_access_token' exists in localStorage,
+		// return true. Otherwise, return false.
+		spotifyLoggedIn(){
+			return !!localStorage.getItem("spotify_access_token");
+		},
+
+		// If user ID was not found, return undefined.
+		// Otherwise, return user ID.
+		// (Unnecessary tbh.. leftover from userID bug testing)
+		userID() {
+			if(!this.spotifyUserData.id){
+				return undefined
+			} else {
+				return this.spotifyUserData.id
+			}
+		},
+
+		// If user has no profile picture, or user failed to load,
+		// return kitten photo. Otherwise, return profile picture.
+		userProfilePic() {
+			// If user data failed to load, or if there is no image, return placeholder kitten
+			if(this.spotifyUserData.images === undefined || this.spotifyUserData.images.length === 0){
+				return "https://placekitten.com/80/80"
+				// Else return user's avatar
+			} else {
+				return this.spotifyUserData.images[0].url
+			}
+		},
 
 		// Check currently selected modules & return a boolean
 		// Each returns true if module is selected, false if not
@@ -2016,9 +2049,10 @@ export default {
 		// making CSS color variables out of vuetify.js custom themes
 		cssProps() {
 			// create themeColors object
-			var themeColors = {}
+			let themeColors = {}
+			let darkMode = localStorage.getItem("audiohaven_darkMode")
 			// if dark mode is off,
-			if (this.darkMode === false) {
+			if (darkMode === false) {
 				// for each color key in themes.light, add to themeColors, adding '--v-' to the start of the key
 				// then assign this key the value of the color
 				Object.keys(this.$vuetify.theme.themes.light).forEach((color) => {
@@ -2034,6 +2068,9 @@ export default {
 			// return themeColors object
 			return themeColors
 		},
+
+		// Recommender Methods //
+		// Make sure at least one required seed is being used in recommender
 		recommendationsRequired(){
 			// if all required fields are empty, return false
 			// else if even one is filled, return true
@@ -2048,6 +2085,7 @@ export default {
 			{ return false }
 			else { return true }
 		},
+		// Style sliders depending on viewport size
 		sliderCheckboxBreakpoints(){
 			// Switch case using current global breakpoint
 			// If breakpoint is xs or sm, we want the content of the cols to be centered
@@ -2062,6 +2100,7 @@ export default {
 			// If none of the above, return nothing (required for a computed method)
 			return ''
 		},
+		// Style slider radios depending on viewport size
 		recommenderRowBreakpoints(){
 			// If breakpoint is xs, put radio-group in column mode
 			// Else, put radio-group in row mode
@@ -2073,23 +2112,13 @@ export default {
 				case 'xl': return true
 			}
 			return false
-		},
-		userProfilePic() {
-			// If user data failed to load, or if there is no image, return placeholder kitten
-			if(this.spotifyUserData.images === undefined || this.spotifyUserData.images.length === 0){
-				return "https://placekitten.com/80/80"
-				// Else return user's avatar
-			} else {
-				return this.spotifyUserData.images[0].url
-			}
 		}
 	},
+
 	mounted(){
 		this.checkAudiohavenLogin()
 		this.checkTokens()
-		this.checkSpotifyLogin()
 		this.getFollowedArtists()
-		this.getUserPlaylists()
 		this.getSpotifyGenres()
 		this.getUserData()
 		this.getRecentlyPlayed()
@@ -2097,6 +2126,7 @@ export default {
 		this.getTopTracks()
 		this.getTopArtists()
 	},
+
 	created() {
 		// When an axios request is made, intercept it and:
 		axios.interceptors.request.use((config) => {
@@ -2128,6 +2158,7 @@ export default {
 			return Promise.reject(error);
 		});
 	},
+
 	methods: {
 		// Check if logged-in to Audiohaven
 		checkAudiohavenLogin(){
@@ -2137,25 +2168,89 @@ export default {
 				router.push('/')
 			}
 		},
-		selectedModulesHas(moduleType){
 
-			// TESTING LOGIC (using .includes) //
-			// for each module in filtered array of selected modules
-			// this.selectedModules.forEach((module, index) => {
-			// 	// log if the value parameter includes passed moduleType
-			// 	console.log(index, `includes ${moduleType}?..`, module.value.includes(moduleType))
-			// })
-
-			// SAVIOUR LOGIC (using .some)
-			// const defining what some checks against
-			// in this case, whether the value parameter === passed moduleType
-			const hasType = (item) => item.value === `${moduleType}`
-			// logging during testing
-			// console.log(`some ${moduleType}?..`, this.selectedModules.some(hasType))
-			// returns true if one of the selected modules matches moduleType
-			// returns false if not
-			return this.selectedModules.some(hasType)
+		// Return label of passed module (UNUSED)
+		// Not using because it proved to be super heavy in module for-loop
+		moduleLabel(module) {
+			console.log(this.selectedModules)
+			let filter = this.selectedModules.filter(key => key.value === module)
+			console.log(filter)
+			return filter[0].label
 		},
+
+		// Firstly, store selected moduleContainers in localStorage
+		// Secondly, check if the selected modules contain passed moduleType
+		selectedModulesHas(moduleType){
+			if(this.spotifyLoggedIn) {
+				// Part One //
+				// for each container in moduleContainers
+				this.moduleContainers.forEach((container, index) => {
+					// (debug) log if the container includes passed moduleType
+					// console.log('moduleContainer', index, `includes ${moduleType}?..`, Object.values(container).includes(moduleType))
+					// contains = true if container includes passed moduleType, false if not
+					let contains = Object.values(container).includes(moduleType)
+					// if true
+					if (contains) {
+						// set in localStorage
+						localStorage.setItem(`selectedModule_${index}`, moduleType)
+					}
+				})
+				// Part Two //
+				// const defining what some checks against
+				// in this case, whether the value parameter === passed moduleType
+				const hasType = (item) => item.value === `${moduleType}`
+				// logging during testing
+				// console.log(`some ${moduleType}?..`, this.selectedModules.some(hasType))
+				// returns true if one of the selected modules matches moduleType
+				// returns false if not
+				return this.selectedModules.some(hasType)
+			}
+		},
+
+		// If user chose their own modules,
+		// load this choice / these choices instead of defaults.
+		// Else, load defaults.
+		firstModuleLocalStorage(){
+			if(localStorage.getItem('selectedModule_0')){
+				let module = localStorage.getItem('selectedModule_0')
+				console.log("Module found in localStorage:", module)
+				return module
+			} else {
+				console.log("No module found in localStorage!")
+				return 'topTracks'
+			}
+		},
+		secondModuleLocalStorage(){
+			if(localStorage.getItem('selectedModule_1')){
+				let module = localStorage.getItem('selectedModule_1')
+				console.log("Module found in localStorage:", module)
+				return module
+			} else {
+				console.log("No module found in localStorage!")
+				return 'userPlaylists'
+			}
+		},
+		thirdModuleLocalStorage(){
+			if(localStorage.getItem('selectedModule_2')){
+				let module = localStorage.getItem('selectedModule_2')
+				console.log("Module found in localStorage:", module)
+				return module
+			} else {
+				console.log("No module found in localStorage!")
+				return 'followedArtists'
+			}
+		},
+		fourthModuleLocalStorage(){
+			if(localStorage.getItem('selectedModule_3')){
+				let module = localStorage.getItem('selectedModule_3')
+				console.log("Module found in localStorage:", module)
+				return module
+			} else {
+				console.log("No module found in localStorage!")
+				return 'recommendationGenerator'
+			}
+		},
+
 		// Loading status method
 		setLoading(isLoading) {
 			// if loading
@@ -2208,7 +2303,9 @@ export default {
 			const parsedDate = new Date(date)
 			return(`${parsedDate.getDate()}-${parsedDate.getMonth() +1}-${parsedDate.getFullYear()}`)
 		},
+
 		// Spotify Token Management //
+		// Check if tokens exist as query parameters & store them if so.
 		checkTokens(){
 			// If there is both an access & refresh token in the URL
 			if(this.$route.query.access_token && this.$route.query.refresh_token) {
@@ -2222,71 +2319,65 @@ export default {
 				// Store tokens in localStorage
 				localStorage.setItem("spotify_access_token", access_token)
 				localStorage.setItem("spotify_refresh_token", refresh_token)
-				// Get user's profile data
-				this.getUserData()
-			} else {
-				// Otherwise, log the fact there are no tokens in the URL
-				// console.log("No access/refresh token in URL!")
+				// Clear the URL bar (to prevent crazy errors when expiration occurs)
+				router.replace('/Spotify')
+				// Refresh page to update
+				router.go(0)
 			}
 		},
-		checkSpotifyLogin(){
-			// If spotify_access_token exists, spotifyLoggedIn = true, else spotifyLoggedIn = false
-			this.spotifyLoggedIn = !!localStorage.getItem("spotify_access_token");
-		},
+		// Logout of Spotify, removing all relevant data from localStorage
 		logoutSpotify(){
 			// Remove tokens
 			localStorage.removeItem("spotify_access_token")
 			localStorage.removeItem("spotify_refresh_token")
-			localStorage.removeItem("spotify_user_id")
-			// Push "/spotify" to URL (to remove tokens if present)
-			router.push("/spotify")
-			// Go to current location (to refresh/reload page)
+			localStorage.setItem("spotify_user_id", "")
+			// Replace URL with "/spotify" (to remove tokens if present)
+			// Using catch & end to stop error from being thrown
+			// (The error is due to the fact that technically we're routing back to the same place)
+			router.replace("/Spotify").catch(()=>{})
 			router.go(0)
-			// Set spotifyLoggedIn to true
-			this.spotifyLoggedIn = false;
 		},
+		// Remove Spotify token (for test purposes only)
 		removeSpotifyToken(){
 			// DEV FUNCTION //
 			// TODO: Deactivate this & the button when no longer needed
 			// Remove access token
-			localStorage.setItem("spotify_access_token", "INVALID_TOKEN")
+			localStorage.setItem("spotify_access_token", "")
 			// Go to current location (to refresh/reload page)
 			router.go(0)
 		},
+		// Once access token expires, use refresh token to get a new one
 		refreshSpotifyToken(){
-			if(this.spotifyLoggedIn) {
-				let baseUrl = this.appBaseURL
-				let refresh_token = localStorage.getItem('spotify_refresh_token')
-				axios
-					.get(`${baseUrl}/spotify/refresh_token?refresh_token=${refresh_token}`, {
-						headers: {
-							"Content-Type": 'application/x-www-form-urlencoded'
-						}
-					})
-					.then(response => {
-							// Log response
-							console.log("refreshSpotifyToken() response: ", response.data)
-							// Assign local storage access token to new access token
-							localStorage.setItem("spotify_access_token", response.data.access_token)
-							// Clear spotifyStatusMessage message
-							this.spotifyStatusMessage = ""
-							// Re-run anything that would have failed with an expired token
-							this.getFollowedArtists()
-							this.getUserPlaylists()
-							this.getSpotifyGenres()
-							this.getUserData()
-							this.getRecentlyPlayed()
-							this.getSavedTracks()
-							this.getTopTracks()
-							this.getTopArtists()
-						}
-					)
-					.catch(error => {
-						console.log("refreshSpotifyToken() error caught: ", error)
-						console.log("refreshSpotifyToken() error message: ", error.message)
-						this.spotifyStatusMessage = error.message
-					})
-			}
+			let baseUrl = this.serverBaseURL
+			let refresh_token = localStorage.getItem('spotify_refresh_token')
+			axios
+				.get(`${baseUrl}/spotify/refresh_token?refresh_token=${refresh_token}`, {
+					headers: {
+						"Content-Type": 'application/x-www-form-urlencoded'
+					}
+				})
+				.then(response => {
+						// Log response
+						console.log("refreshSpotifyToken() response: ", response.data)
+						// Assign local storage access token to new access token
+						localStorage.setItem("spotify_access_token", response.data.access_token)
+						// Clear spotifyStatusMessage message
+						this.spotifyStatusMessage = ""
+						// Re-run anything that would have failed with an expired token
+						this.getFollowedArtists()
+						this.getSpotifyGenres()
+						this.getUserData()
+						this.getRecentlyPlayed()
+						this.getSavedTracks()
+						this.getTopTracks()
+						this.getTopArtists()
+					}
+				)
+				.catch(error => {
+					console.log("refreshSpotifyToken() error caught: ", error)
+					console.log("refreshSpotifyToken() error message: ", error.message)
+					this.spotifyStatusMessage = error.message
+				})
 		},
 
 		// Spotify API Requests //
@@ -2304,8 +2395,11 @@ export default {
 						})
 					.then(response => {
 							console.log("getUserData() response: ", response.data)
-							localStorage.setItem('spotify_user_id', response.data.id)
+							// Assign spotifyUserData to the response data
 							this.spotifyUserData = response.data
+							// Run getUserPlaylists
+							// (Since it doesn't have the userID yet if run at mounted)
+							this.getUserPlaylists()
 						}
 					)
 					.catch(error => {
@@ -2318,7 +2412,7 @@ export default {
 		// Function for getting user's followed artists
 		getFollowedArtists(){
 			// If user is logged-in
-			if (this.spotifyLoggedIn && this.followedArtistsSelected) {
+			if (this.spotifyLoggedIn && this.followedArtistsSelected || this.recommendationGeneratorSelected) {
 				let token = localStorage.getItem('spotify_access_token')
 				let spotifyBaseURL = 'https://api.spotify.com/v1'
 				axios
@@ -2347,17 +2441,16 @@ export default {
 		},
 		// Function for getting user's saved playlists
 		getUserPlaylists(selectedPlaylist) {
-			let token = localStorage.getItem('spotify_access_token')
-			let userID = localStorage.getItem('spotify_user_id')
-			let spotifyBaseURL = 'https://api.spotify.com/v1'
 			if (this.spotifyLoggedIn && this.userPlaylistSelected) {
-				if (userID !== null && userID !== "") {
+				let token = localStorage.getItem('spotify_access_token')
+				let spotifyBaseURL = 'https://api.spotify.com/v1'
+				if (this.userID) {
 					// If no playlist was selected (ie we want list of playlists)
 					if (!selectedPlaylist) {
 						this.currentSpotifyPlaylist = null
 						axios
 							// GET request using user's ID
-							.get(`${spotifyBaseURL}/users/${userID}/playlists?limit=50`,
+							.get(`${spotifyBaseURL}/users/${this.userID}/playlists?limit=50`,
 								{
 									headers: {
 										"Authorization": `Bearer ${token}`
@@ -2403,15 +2496,15 @@ export default {
 								this.spotifyStatusMessage = error.message
 							})
 					}
-				} else {
-					this.spotifyStatusMessage = "No user ID found.. Refresh?"
 				}
 			}
 		},
+		// Reset playlist layer to base layer
 		decrementPlaylistLayer() {
 			this.playlistLayer = 0
 			this.currentSpotifyPlaylist = null
 		},
+		// Add track to Spotify queue
 		queueSpotifyTrack(selected) {
 			console.log(`queueSpotifyTrack(${selected.track.name})`)
 			let token = localStorage.getItem('spotify_access_token')
@@ -2434,6 +2527,7 @@ export default {
 					this.spotifyStatusMessage = `${error.response.data.error.message}...`
 				})
 		},
+		// Play the Spotify preview (NON-FUNCTIONAL)
 		previewSpotifyTrack(signal, track){
 			// console.log(track.preview_url)
 			// let trackPreview = new Audio(track.preview_url)
@@ -2467,6 +2561,7 @@ export default {
 				this.recommendationData.somethingIsPlaying = false
 			}
 		},
+		// Unfollow the Spotify playlist (remove)
 		unfollowSpotifyPlaylist(playlist){
 			let indexOfPlaylist = this.playlistTable[0].Items.indexOf(playlist)
 			if (confirm(`Are you sure you want to unfollow ${playlist.name}?`)) {
@@ -2497,6 +2592,8 @@ export default {
 				console.log(`Playlist '${playlist.name}' unfollow cancelled.`);
 			}
 		},
+		// Remove track from Spotify playlist
+		// TODO: Multiple track removal
 		removeSpotifyPlaylistTrack(track, playlist){
 			console.log("playlist: ", playlist, "\n", "track: ", track)
 			let indexOfTrack = this.playlistTable[1].Items.indexOf(track)
@@ -2533,8 +2630,7 @@ export default {
 				console.log(`Track '${track.name}' removal cancelled.`);
 			}
 		},
-		// TODO: Multiple track removal
-		// Function for getting available genre seeds
+		// Get available genre seeds
 		getSpotifyGenres(){
 			// If user is logged-in
 			if (this.spotifyLoggedIn && this.recommendationGeneratorSelected) {
@@ -2565,7 +2661,7 @@ export default {
 					)
 			}
 		},
-		// Function to search for tracks
+		// Search for tracks in recommender
 		recommenderTrackSearch(){
 			console.log("recommenderTrackSearch() executed")
 			// If user is logged-in
@@ -2598,7 +2694,7 @@ export default {
 					)
 			}
 		},
-		// Function to search for artists
+		// Search for artists in recommender
 		recommenderArtistSearch(){
 			console.log("recommenderArtistSearch() executed")
 			// If user is logged-in
@@ -2631,7 +2727,7 @@ export default {
 					)
 			}
 		},
-		// Function for generating recommendations
+		// Generate recommendations from form data
 		generateRecommendations(formData){
 			// filter sliderParameter array by enabled sliders only (inserts into enabledSliders array)
 			let enabledSliders = formData.optionalParams.sliderParams.filter(slider => slider.enabled !== false)
@@ -2795,6 +2891,7 @@ export default {
 				case 11: return 'B'
 			}
 		},
+		// Percentage calculator
 		percentageDoctor(value, max){
 			// console.log("value: ", value)
 			// console.log("max: ", max)
@@ -2804,11 +2901,11 @@ export default {
 			// console.log("m: ", m)
 			return Math.floor((v / m) * 100)
 		},
+		// Create playlist from recommender results
 		createRecommendationsPlaylist(){
 			console.log("Got these recommendations: ",this.recommendationData.response)
 			let token = localStorage.getItem('spotify_access_token')
 			let spotifyBaseURL = 'https://api.spotify.com/v1'
-			let userID = localStorage.getItem('spotify_user_id')
 			// Initialise selected seed variables
 			let artistSeed = this.recommendationData.artistSeed
 			let trackSeed = this.recommendationData.trackSeed
@@ -2845,7 +2942,7 @@ export default {
 			console.log("Now: ", now.today(),"@",now.timeNow())
 			// Create new playlist
 			axios
-				.post(`${spotifyBaseURL}/users/${userID}/playlists`,
+				.post(`${spotifyBaseURL}/users/${this.userID}/playlists`,
 					{
 						"name" : `Audiohaven (${now.today()} @ ${now.timeNow()})`,
 						"public" : false,
@@ -2925,6 +3022,7 @@ export default {
 					}
 				)
 		},
+		// Get recently played tracks
 		getRecentlyPlayed(){
 			if (this.spotifyLoggedIn && this.recentlyPlayedSelected) {
 				let token = localStorage.getItem('spotify_access_token')
@@ -2948,6 +3046,7 @@ export default {
 					})
 			}
 		},
+		// Get saved (hearted) tracks
 		getSavedTracks(){
 			if (this.spotifyLoggedIn && this.savedTracksSelected) {
 				let token = localStorage.getItem('spotify_access_token')
@@ -2971,6 +3070,7 @@ export default {
 					})
 			}
 		},
+		// Get top (most played) tracks
 		getTopTracks(){
 			if (this.spotifyLoggedIn && this.topTracksSelected) {
 				let token = localStorage.getItem('spotify_access_token')
@@ -2994,6 +3094,7 @@ export default {
 					})
 			}
 		},
+		// Get top (most played) artists
 		getTopArtists(){
 			if (this.spotifyLoggedIn && this.topArtistsSelected) {
 				let token = localStorage.getItem('spotify_access_token')
