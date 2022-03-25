@@ -1368,7 +1368,7 @@ require('dotenv').config();
 
 export default {
 	name: "Spotify",
-	title: 'Spotify Sandbox',
+	title: 'Audiohaven | Spotify Dashboard',
 	components: {
 		VuetifyAudio: () => import('vuetify-audio'),
 	},

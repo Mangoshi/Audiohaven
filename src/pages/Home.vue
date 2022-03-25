@@ -121,7 +121,7 @@ import {mapActions, mapState} from 'vuex'
 
 export default {
 	name: "Home",
-	title: 'Home',
+	title: 'Audiohaven | Home',
 	components: {},
 	data() {
 		return {
